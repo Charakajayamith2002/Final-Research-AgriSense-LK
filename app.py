@@ -494,6 +494,9 @@ def market_ranking():
                 raise Exception("Quantity must be greater than 0")
 
             quantity_unit = form_data.get('quantity_unit', 'kg')
+            additional_transport_cost = float(form_data.get('additional_transport_cost', 0))
+            if additional_transport_cost < 0:
+                raise Exception("Additional transport cost cannot be negative")
 
             # Validate cultivation cost for sellers
             user_role = form_data.get('user_role')
@@ -511,6 +514,7 @@ def market_ranking():
                 'latitude': latitude,
                 'longitude': longitude,
                 'transport_cost_per_km': float(form_data.get('transport_cost', 160)),
+                'additional_transport_cost': additional_transport_cost,
                 'quantity': quantity,
                 'quantity_unit': quantity_unit,
                 'cultivation_cost': cultivation_cost

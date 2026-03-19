@@ -243,6 +243,15 @@
                                        value="{% if form_data %}{{ form_data.transport_cost }}{% else %}160{% endif %}">
                                 <small class="text-muted">Default: Rs. 160 per km (can be changed)</small>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Additional Transport Cost (Rs.)</label>
+                                <input type="number" class="form-control" name="additional_transport_cost" id="additional_transport_cost"
+                                       step="0.1" min="0" max="1000000"
+                                       value="{% if form_data %}{{ form_data.additional_transport_cost|default(0) }}{% else %}0{% endif %}">
+                                <small class="text-muted">Fixed extra charge (e.g., freezer/refrigerated vehicle)</small>
+                            </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3" id="cultivation_cost_container">
                                 <label class="form-label" id="cultivation_cost_label">
                                     {% if form_data and form_data.user_role == 'seller' %}
@@ -1482,6 +1491,7 @@ function resetFormAndResults() {
     const fieldsToClear = [
         'user_role',
         'transport_cost',
+        'additional_transport_cost',
         'cultivation_cost',
         'item',
         'price_type',

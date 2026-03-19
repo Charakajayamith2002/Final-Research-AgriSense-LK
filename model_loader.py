@@ -1010,6 +1010,7 @@ class ModelLoader:
 
             user_location = (input_data['latitude'], input_data['longitude'])
             transport_cost_per_km = input_data.get('transport_cost_per_km', 160)
+            additional_transport_cost = float(input_data.get('additional_transport_cost', 0))
 
             # Get quantity and unit
             quantity = float(input_data.get('quantity', 1))
@@ -1044,7 +1045,8 @@ class ModelLoader:
                 try:
                     # Calculate distance
                     distance = geodesic(user_location, coords).km
-                    transport_cost_total = distance * transport_cost_per_km
+                    base_transport_cost = distance * transport_cost_per_km
+                    transport_cost_total = base_transport_cost + additional_transport_cost
 
                     # Get predicted price per kg
                     predicted_price_per_kg = self._estimate_price(input_data['item'], market, input_data['price_type'])
@@ -1060,6 +1062,8 @@ class ModelLoader:
                         'market': market,
                         'predicted_price': round(predicted_price_per_kg, 2),
                         'distance_km': round(distance, 2),
+                        'base_transport_cost': round(base_transport_cost, 2),
+                        'additional_transport_cost': round(additional_transport_cost, 2),
                         'transport_cost': round(transport_cost_total, 2),
                         'total_cost': round(total_cost, 2),
                         'total_price': round(total_price, 2),
@@ -1080,7 +1084,8 @@ class ModelLoader:
                 for rec in recommendations:
                     rec['net_advantage'] = round(reference_cost - rec['total_cost'], 2)
                     rec['explanation'] = self._generate_market_explanation_buyer(
-                        rec['predicted_price'], quantity_kg, rec['transport_cost'], rec['distance'], rec['net_advantage']
+                        rec['predicted_price'], quantity_kg, rec['transport_cost'], rec['distance'],
+                        rec['net_advantage'], rec['base_transport_cost'], rec['additional_transport_cost']
                     )
 
                 # Higher advantage (more savings) is better
@@ -1091,7 +1096,9 @@ class ModelLoader:
                     profit = rec['total_price'] - (rec['cultivation_cost'] + rec['transport_cost'])
                     rec['net_advantage'] = round(profit, 2)
                     rec['explanation'] = self._generate_market_explanation_seller(
-                        rec['predicted_price'], quantity_kg, rec['cultivation_cost'], rec['transport_cost'], rec['distance'], rec['net_advantage']
+                        rec['predicted_price'], quantity_kg, rec['cultivation_cost'], rec['transport_cost'],
+                        rec['distance'], rec['net_advantage'], rec['base_transport_cost'],
+                        rec['additional_transport_cost']
                     )
 
                 # Higher profit is better
@@ -1112,19 +1119,24 @@ class ModelLoader:
         except Exception as e:
             raise Exception(f"Component 2 prediction error: {str(e)}")
 
-    def _generate_market_explanation_buyer(self, price_per_kg, quantity_kg, transport_cost, distance, net_advantage):
+    def _generate_market_explanation_buyer(self, price_per_kg, quantity_kg, transport_cost, distance, net_advantage,
+                                           base_transport_cost=0, additional_transport_cost=0):
         """Generate explanation for buyers"""
         total_price = price_per_kg * quantity_kg
         explanation = f"Buying {quantity_kg:.2f} kg: Total cost Rs.{total_price:.2f} (Price: Rs.{price_per_kg:.2f}/kg × {quantity_kg:.2f} kg) + Transport: Rs.{transport_cost:.2f}"
+        if additional_transport_cost > 0:
+            explanation += f" [Distance: Rs.{base_transport_cost:.2f} + Additional: Rs.{additional_transport_cost:.2f}]"
         explanation += f" (Distance: {distance:.1f} km)"
         return explanation
 
     def _generate_market_explanation_seller(self, price_per_kg, quantity_kg, cultivation_cost, transport_cost, distance,
-                                            net_advantage):
+                                            net_advantage, base_transport_cost=0, additional_transport_cost=0):
         """Generate explanation for sellers"""
         total_price = price_per_kg * quantity_kg
         total_cost = cultivation_cost + transport_cost
         explanation = f"Selling {quantity_kg:.2f} kg: Revenue Rs.{total_price:.2f} (Price: Rs.{price_per_kg:.2f}/kg × {quantity_kg:.2f} kg) - Costs: Rs.{total_cost:.2f} (Cultivation: Rs.{cultivation_cost:.2f} + Transport: Rs.{transport_cost:.2f})"
+        if additional_transport_cost > 0:
+            explanation += f" [Transport split: Distance Rs.{base_transport_cost:.2f} + Additional Rs.{additional_transport_cost:.2f}]"
         explanation += f" (Distance: {distance:.1f} km)"
         return explanation
 
