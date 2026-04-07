@@ -1,1046 +1,636 @@
 {% extends "base.html" %}
-
 {% block title %}Cultivation Targeting{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-    :root {
-        --primary-color: #2e7d32;
-        --primary-light: #4caf50;
-        --primary-dark: #1b5e20;
-        --secondary-color: #ff8f00;
-        --accent-color: #0277bd;
-        --light-bg: #f8f9fa;
-        --dark-text: #263238;
-        --border-radius: 12px;
-        --box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-    }
+:root{--g50:#f0faf0;--g100:#d6f0d6;--g200:#b0deb0;--g300:#7ec87e;--g400:#4fad4f;--g500:#34912f;--g600:#2a7525;--g700:#1e571a;--g800:#163f12;--white:#fff;--td:#1a2e1a;--tm:#3d5e3a;--tmut:#6b8f65;--bdr:#cde8cd;--sm:0 2px 8px rgba(52,145,47,.08);--md:0 6px 24px rgba(52,145,47,.12);--r:13px;--gold:#d4a847}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--td);min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:0 28px}
 
-    body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e9f5e9 100%);
-    }
+/* ── HERO ── */
+.page-hero{background:linear-gradient(135deg,var(--g700),var(--g500));padding:48px 0 42px;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:54px 54px}
+.hero-glow{position:absolute;top:-80px;right:-60px;width:320px;height:320px;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 65%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-80px;left:8%;width:240px;height:240px;background:radial-gradient(circle,rgba(212,168,71,.15),transparent 65%);pointer-events:none}
+.hero-inner{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:5px 14px;border-radius:100px;margin-bottom:14px}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--g200);border-radius:50%;animation:pulse 2s infinite}
+.page-hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.5vw,2.5rem);font-weight:900;color:#fff;line-height:1.15;margin-bottom:10px}
+.page-hero h1 em{color:var(--g200);font-style:italic}
+.page-hero p{font-size:.93rem;color:rgba(255,255,255,.72);font-weight:300;line-height:1.7;max-width:480px}
+.hero-steps{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:10px 20px;font-size:.8rem;color:rgba(255,255,255,.8);backdrop-filter:blur(8px);white-space:nowrap;flex-shrink:0}
+.hero-steps strong{color:var(--g200)}
 
-    .page-hero {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        border-radius: var(--border-radius);
-        padding: 2rem 1.5rem;
-        color: #fff;
-        margin-bottom: 1.75rem;
-        box-shadow: var(--box-shadow);
-        position: relative;
-        overflow: hidden;
-    }
+/* ── PAGE BODY ── */
+.page-body{padding:32px 0 60px}
+.page-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
 
-    .page-hero::before {
-        content: '';
-        position: absolute;
-        top: -40%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 50%;
-        z-index: 0;
-    }
+/* ── CARDS ── */
+.form-card,.result-card,.weather-card-wrap,.info-card{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--md);overflow:hidden;margin-bottom:20px}
+.fc-header{padding:17px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fc-header.green{background:linear-gradient(90deg,var(--g600),var(--g400))}
+.fc-header.dark{background:var(--g700)}
+.fc-header.amber{background:linear-gradient(90deg,#92400e,#b45309)}
+.fc-header.slate{background:#374151}
+.fc-header-left{display:flex;align-items:center;gap:11px}
+.fc-header .hi{width:32px;height:32px;background:rgba(255,255,255,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.88rem}
+.fc-header h3{font-size:.9rem;font-weight:600;color:#fff}
+.fc-body{padding:26px}
 
-    .page-hero::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 250px;
-        height: 250px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 50%;
-        z-index: 0;
-    }
+/* ── FORM ── */
+.fsec-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--g100)}
+.fields-grid{display:grid;gap:14px}
+.fields-grid.c2{grid-template-columns:1fr 1fr}
+.fields-grid.c3{grid-template-columns:1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;position:relative}
+.form-label{font-size:.77rem;font-weight:600;color:var(--tm);letter-spacing:.02em;margin-bottom:5px;display:block}
+.form-control,.form-select{width:100%;border:1.5px solid var(--bdr);border-radius:9px;padding:9px 13px;font-family:'DM Sans',sans-serif;font-size:.875rem;color:var(--td);background:var(--g50);transition:border-color .2s,box-shadow .2s,background .2s;appearance:none;-webkit-appearance:none}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 11 11'%3E%3Cpath fill='%232a7525' d='M5.5 7.5L1 2.5h9z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.form-control:focus,.form-select:focus{outline:none;border-color:var(--g400);box-shadow:0 0 0 3px rgba(79,173,79,.15);background:#fff}
+.form-control::placeholder{color:#a8c4a4}
+.form-hint{font-size:.71rem;color:var(--tmut);margin-top:3px}
+.sec-divider{height:1px;background:var(--g100);margin:20px 0}
 
-    .page-hero h2 {
-        position: relative;
-        z-index: 1;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-    }
+.loc-alert{background:var(--g50);border:1px solid var(--g200);border-left:3px solid var(--g400);border-radius:9px;padding:11px 15px;font-size:.82rem;color:var(--tm);display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.loc-alert i{color:var(--g500);flex-shrink:0}
+.btn-loc{display:inline-flex;align-items:center;gap:6px;background:var(--g600);border:none;color:#fff;border-radius:7px;padding:6px 12px;font-size:.77rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-loc:hover{background:var(--g500)}
 
-    .page-hero p {
-        position: relative;
-        font-size: 1.2rem;
-        font-weight: 400;
-        z-index: 1;
-        opacity: 0.9;
-    }
+/* form actions */
+.form-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn-submit{flex:1;min-width:160px;background:linear-gradient(135deg,var(--g600),var(--g400));color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:.93rem;font-weight:600;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 4px 14px rgba(42,117,37,.3)}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(42,117,37,.4)}
+.btn-reset{background:var(--g50);color:var(--tmut);border:1.5px solid var(--bdr);border-radius:10px;padding:12px 20px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.btn-reset:hover{border-color:var(--g300);color:var(--td);background:var(--g100)}
 
-    .card {
-        border: none;
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow);
-        transition: transform 0.3s, box-shadow 0.3s;
-        overflow: hidden;
-        background: white;
-        margin-bottom: 15px;
-    }
+/* ── WEATHER SIDEBAR CARD ── */
+.weather-hero{background:linear-gradient(135deg,var(--g700),var(--g600));border-radius:var(--r);padding:22px;margin-bottom:18px;position:relative;overflow:hidden}
+.weather-hero::after{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,255,255,.1),transparent 65%);pointer-events:none}
+.wh-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:4px}
+.wh-temp{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;color:#fff;line-height:1;margin-bottom:4px;position:relative;z-index:1}
+.wh-desc{font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:16px;position:relative;z-index:1}
+.wh-coords{font-size:.72rem;color:rgba(255,255,255,.45);margin-top:4px}
+.wh-icon{position:absolute;top:18px;right:22px;font-size:2.5rem;color:rgba(255,255,255,.25);z-index:0}
+.wh-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0}
+.wh-metric{background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px}
+.wh-metric .lbl{font-size:.67rem;color:rgba(255,255,255,.55);display:block;margin-bottom:3px}
+.wh-metric .val{font-size:.88rem;font-weight:700;color:#fff}
+.wh-impact{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)}
+.wh-impact-title{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.wi-item{border-left:3px solid transparent;padding:6px 10px;margin-bottom:5px;border-radius:0 6px 6px 0;font-size:.77rem}
+.wi-item:last-child{margin-bottom:0}
+.wi-pos{border-color:#4ade80;background:rgba(74,222,128,.1);color:#bbf7d0}
+.wi-cau{border-color:#fbbf24;background:rgba(251,191,36,.1);color:#fde68a}
+.wi-neg{border-color:#f87171;background:rgba(248,113,113,.1);color:#fecaca}
 
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.15);
-    }
+/* ── CROP RECOMMENDATION CARDS ── */
+.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.crop-card{background:var(--white);border:1.5px solid var(--bdr);border-radius:12px;padding:18px;transition:all .25s;box-shadow:var(--sm)}
+.crop-card:hover{transform:translateY(-4px);box-shadow:var(--md);border-color:var(--g300)}
+.crop-card.top1{border-color:#f59e0b;box-shadow:0 4px 16px rgba(245,158,11,.15)}
+.crop-card.top2{border-color:var(--g300)}
+.crop-card.top3{border-color:#f97316}
+.crop-rank-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.crop-rank-badge{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0}
+.crb-1{background:#f59e0b;color:#fff}
+.crb-2{background:var(--g400);color:#fff}
+.crb-3{background:#f97316;color:#fff}
+.crb-r{background:var(--bdr);color:var(--tm)}
+.crop-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--td);flex:1}
+.crop-score-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.badge-score{display:inline-flex;align-items:center;gap:4px;background:var(--g100);color:var(--g600);border:1px solid var(--g200);border-radius:100px;font-size:.69rem;font-weight:700;padding:3px 9px}
+.badge-risk-low{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.badge-risk-med{background:#fef9c3;color:#854d0e;border-color:#fde047}
+.badge-risk-hi{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.crop-temp-note{background:var(--g50);border:1px solid var(--g200);border-radius:7px;padding:7px 10px;font-size:.75rem;color:var(--tm);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.crop-temp-note i{color:var(--g500)}
+.prog-wrap{margin-bottom:8px}
+.prog-row{display:flex;justify-content:space-between;font-size:.72rem;color:var(--tmut);margin-bottom:3px}
+.prog-track{height:6px;background:var(--g100);border-radius:3px;overflow:hidden}
+.prog-fill-green{height:100%;background:linear-gradient(90deg,var(--g500),var(--g300));border-radius:3px}
+.prog-fill-red{height:100%;background:linear-gradient(90deg,#ef4444,#f87171);border-radius:3px}
+.prog-fill-amber{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:3px}
+.crop-details{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--g100)}
+.crop-det-cell .lbl{font-size:.68rem;color:var(--tmut);display:block}
+.crop-det-cell .val{font-size:.8rem;font-weight:600;color:var(--td)}
+.crop-weather-note{margin-top:10px;padding-top:10px;border-top:1px solid var(--g100);font-size:.73rem;color:var(--tmut);display:flex;gap:6px;align-items:flex-start}
+.crop-weather-note i{color:var(--g400);flex-shrink:0;margin-top:2px}
 
-    .card-header {
-        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
-        color: white;
-        font-weight: 600;
-        border-bottom: none;
-    }
+/* ── RIGHT SIDEBAR RESULTS ── */
+.result-summary-card{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--md);overflow:hidden;margin-bottom:18px}
+.sc-header{padding:15px 20px;display:flex;align-items:center;gap:9px}
+.sc-header.green{background:linear-gradient(90deg,var(--g600),var(--g400))}
+.sc-header.info-h{background:var(--g500)}
+.sc-header .hi{width:30px;height:30px;background:rgba(255,255,255,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.83rem}
+.sc-header h3{font-size:.87rem;font-weight:600;color:#fff}
+.sc-body{padding:18px 20px}
 
-    .form-label {
-        font-weight: 600;
-        color: var(--dark-text);
-    }
+.result-season-hero{text-align:center;background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:16px;margin-bottom:14px}
+.rsh-season{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);margin-bottom:4px}
+.rsh-month{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:var(--g600)}
+.rsh-sub{font-size:.77rem;color:var(--tmut);margin-top:2px}
 
-    .form-control, .form-select {
-        border-radius: 10px;
-        border: 1px solid #e0e0e0;
-        padding: 0.65rem 1rem;
-        transition: all 0.25s;
-    }
+.top-pick-card{background:linear-gradient(135deg,var(--g50),var(--white));border:1.5px solid #f59e0b;border-radius:10px;padding:15px;margin-bottom:14px}
+.tp-tag{display:inline-flex;align-items:center;gap:6px;background:#f59e0b;color:#fff;font-size:.67rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:100px;margin-bottom:9px}
+.tp-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--td);margin-bottom:10px}
+.tp-scores{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.tp-score-cell .lbl{font-size:.67rem;color:var(--tmut);display:block;margin-bottom:1px}
+.tp-score-cell .val-green{font-weight:700;color:var(--g500)}
+.tp-score-cell .val-red{font-weight:700;color:#e53e3e}
+.tp-timeline{font-size:.78rem;color:var(--tm);display:flex;align-items:center;gap:6px}
+.tp-timeline i{color:var(--g400)}
 
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
-    }
+.quick-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.qs-cell{background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:10px 12px}
+.qs-cell .lbl{font-size:.67rem;color:var(--tmut);display:block;margin-bottom:2px}
+.qs-cell .val{font-weight:700;font-size:.88rem;color:var(--td)}
 
-    .btn-info {
-        background: linear-gradient(135deg, var(--accent-color), #006c9a);
-        border: none;
-        color: white;
-        border-radius: 10px;
-        padding: 0.75rem 1.25rem;
-        transition: all 0.3s;
-    }
+.weather-tips{background:var(--g50);border:1px solid var(--g200);border-left:3px solid var(--g400);border-radius:8px;padding:12px 14px;font-size:.8rem;color:var(--tm);line-height:1.65}
+.weather-tips strong{color:var(--g600);display:block;margin-bottom:5px}
 
-    .btn-info:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-    }
+/* About card */
+.about-list{list-style:none;margin:0;padding:0}
+.about-list li{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;color:var(--tm);padding:5px 0;border-bottom:1px solid var(--g100)}
+.about-list li:last-child{border-bottom:none}
+.about-list li i{color:var(--g400);flex-shrink:0;margin-top:3px;font-size:.75rem}
 
-    .btn-secondary {
-        background: linear-gradient(135deg, #757575, #616161);
-        border: none;
-        color: white;
-        border-radius: 10px;
-        padding: 0.75rem 1.25rem;
-    }
+/* ── WEATHER FORECAST TABLE ── */
+.forecast-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.forecast-table thead th{background:var(--g50);color:var(--tm);font-weight:700;font-size:.69rem;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--bdr);text-align:left}
+.forecast-table tbody td{padding:10px 12px;border-bottom:1px solid var(--g50);color:var(--td)}
+.forecast-table tbody tr:last-child td{border-bottom:none}
+.forecast-table tbody tr:hover td{background:var(--g50)}
+.cond-badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:.68rem;font-weight:700}
+.cb-exc{background:var(--g100);color:var(--g600)}
+.cb-good{background:#d1fae5;color:#065f46}
+.cb-mon{background:#fef9c3;color:#854d0e}
+.cb-hum{background:#fee2e2;color:#991b1b}
 
-    .image-preview {
-        max-width: 300px;
-        max-height: 300px;
-        border: 2px dashed #ddd;
-        border-radius: 10px;
-        padding: 10px;
-        margin: 0 auto;
-        display: block;
-    }
+/* ── ANIMATIONS ── */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeUp .45s ease both}
 
-    .prediction-card {
-        border-left: 5px solid var(--primary-color);
-        transition: transform 0.3s;
-        margin-bottom: 0;
-    }
-
-    .prediction-card:hover {
-        transform: translateY(-5px);
-    }
-
-    .mb-4 {
-        margin-bottom: 15px !important;
-    }
-
-    .mt-4 {
-        margin-top: 15px !important;
-    }
-
-    .table-sm td, .table-sm th {
-        padding: 0.4rem;
-    }
-
-    @media (max-width: 768px) {
-        .col-lg-8, .col-lg-4 {
-            padding-left: 5px;
-            padding-right: 5px;
-        }
-
-        .price-table {
-            font-size: 0.9rem;
-        }
-    }
-
-    /* Cultivation Targeting specific styling */
-    .weather-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px;
-    }
-
-    .weather-icon {
-        font-size: 3rem;
-        margin-bottom: 10px;
-    }
-
-    .temperature-display {
-        font-size: 3rem;
-        font-weight: bold;
-        line-height: 1;
-    }
-
-    .weather-metric {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 8px;
-    }
-
-    .weather-impact {
-        border-left: 4px solid;
-        padding-left: 10px;
-        margin: 5px 0;
-    }
-
-    .impact-positive { border-color: #28a745; }
-    .impact-caution { border-color: #ffc107; }
-    .impact-negative { border-color: #dc3545; }
-
-    .location-group {
-        position: relative;
-    }
-
-    .location-btn {
-        position: absolute;
-        right: 10px;
-        top: 35px;
-        z-index: 10;
-    }
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){.page-grid{grid-template-columns:1fr}.crop-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.fields-grid.c2,.fields-grid.c3{grid-template-columns:1fr 1fr}.hero-steps{display:none}.crop-grid{grid-template-columns:1fr}}
+@media(max-width:540px){.fields-grid.c2,.fields-grid.c3{grid-template-columns:1fr}.container{padding:0 16px}}
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- ═══════════  HERO  ═══════════ -->
 <div class="page-hero">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start">
-        <div>
-            <h2 class="mb-2"><i class="fas fa-seedling me-2"></i>Cultivation Targeting</h2>
-            <p class="mb-0">Get crop recommendations based on weather, land conditions, and risk tolerance.</p>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div class="animate-in">
+        <div class="hero-badge"><i class="fas fa-seedling"></i> Seasonal Intel</div>
+        <h1>Cultivation<br><em>Targeting</em></h1>
+        <p>Get crop recommendations powered by real-time weather, soil conditions, market trends, and your risk tolerance.</p>
+      </div>
+      <div class="animate-in" style="animation-delay:.12s">
+        <div class="hero-steps">
+          <strong>Enter Location</strong> → <strong>Choose Settings</strong> → <strong>Get Recommendations</strong>
         </div>
-        <div class="mt-3 mt-md-0">
-            <span class="badge bg-white text-success py-2 px-3 shadow-sm">Enter Location → Choose Settings → Get Recommendations</span>
-        </div>
+      </div>
     </div>
+  </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0"><i class="fas fa-seedling me-2"></i>Cultivation Targeting</h3>
+<!-- ═══════════  PAGE BODY  ═══════════ -->
+<div class="page-body">
+  <div class="container">
+    <div class="page-grid">
+
+      <!-- ══ LEFT COLUMN ══ -->
+      <div>
+
+        <!-- FORM CARD -->
+        <div class="form-card animate-in">
+          <div class="fc-header green">
+            <div class="fc-header-left">
+              <div class="hi"><i class="fas fa-seedling"></i></div>
+              <h3>Cultivation Parameters</h3>
             </div>
-            <div class="card-body">
-                {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                {% endif %}
+          </div>
+          <div class="fc-body">
+            {% if error %}<div style="background:#fff5f5;border:1px solid #fecaca;border-left:3px solid #ef4444;border-radius:9px;padding:12px 15px;font-size:.85rem;color:#991b1b;margin-bottom:16px;"><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>{{ error }}</div>{% endif %}
 
-                <form method="POST" id="cultivationForm">
-                    <!-- Location Input Section -->
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <h5 class="border-bottom pb-2 mb-3">Location Information</h5>
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Enter coordinates for accurate weather-based recommendations
-                            </div>
-                        </div>
+            <form method="POST" id="cultivationForm">
 
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Latitude *</label>
-                            <div class="location-group">
-                                <input type="number" class="form-control" name="latitude" id="latitude"
-                                       step="0.000001" required
-                                       value="{% if form_data and form_data.latitude %}{{ form_data.latitude }}{% else %}7.75{% endif %}">
-                                <button type="button" class="btn btn-outline-info btn-sm location-btn" onclick="useCurrentLocation()">
-                                    <i class="fas fa-location-arrow"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">Example: 7.75 for Sri Lanka</small>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Longitude *</label>
-                            <input type="number" class="form-control" name="longitude" id="longitude"
-                                   step="0.000001" required
-                                   value="{% if form_data and form_data.longitude %}{{ form_data.longitude }}{% else %}80.75{% endif %}">
-                            <small class="text-muted">Example: 80.75 for Sri Lanka</small>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <!-- Basic Parameters -->
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Month *</label>
-                            <select class="form-select" name="month" id="monthSelect" required>
-                                {% for i in range(1, 13) %}
-                                <option value="{{ i }}" {% if form_data and form_data.month == i %}selected{% endif %}>
-                                    {{ ['January','February','March','April','May','June','July','August','September','October','November','December'][i-1] }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Category *</label>
-                            <select class="form-select" name="category" required>
-                                <option value="All" {% if form_data and form_data.category == 'All' %}selected{% endif %}>All Categories</option>
-                                <option value="Vegetables" {% if form_data and form_data.category == 'Vegetables' %}selected{% endif %}>Vegetables</option>
-                                <option value="Fruits" {% if form_data and form_data.category == 'Fruits' %}selected{% endif %}>Fruits</option>
-                                <option value="Rice" {% if form_data and form_data.category == 'Rice' %}selected{% endif %}>Rice</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Risk Tolerance *</label>
-                            <select class="form-select" name="risk_tolerance" required>
-                                <option value="low" {% if form_data and form_data.risk_tolerance == 'low' %}selected{% endif %}>Low (Conservative)</option>
-                                <option value="medium" {% if form_data and form_data.risk_tolerance == 'medium' %}selected{% endif %}>Medium (Balanced)</option>
-                                <option value="high" {% if form_data and form_data.risk_tolerance == 'high' %}selected{% endif %}>High (Aggressive)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Previous Profitability (%)</label>
-                            <input type="number" class="form-control" name="previous_profitability"
-                                   min="0" max="100" step="0.1"
-                                   value="{% if form_data %}{{ form_data.previous_profitability }}{% else %}20{% endif %}">
-                            <small class="text-muted">Your average profitability from previous crops</small>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Available Budget (Rs.)</label>
-                            <input type="number" class="form-control" name="budget"
-                                   min="1000" step="1000"
-                                   value="{% if form_data %}{{ form_data.budget }}{% else %}10000{% endif %}">
-                            <small class="text-muted">Your cultivation budget for the season</small>
-                        </div>
-                    </div>
-
-                    <!-- Additional Parameters -->
-                    <div class="mb-4">
-                        <h5 class="border-bottom pb-2">Additional Parameters</h5>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Land Size (Acres)</label>
-                                <input type="number" class="form-control" name="land_size"
-                                       min="0.1" step="0.1"
-                                       value="{% if form_data and form_data.land_size %}{{ form_data.land_size }}{% else %}1{% endif %}">
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Water Availability</label>
-                                <select class="form-select" name="water_availability">
-                                    <option value="high" {% if form_data and form_data.water_availability == 'high' %}selected{% endif %}>High</option>
-                                    <option value="medium" {% if form_data and form_data.water_availability == 'medium' %}selected{% endif %}>Medium</option>
-                                    <option value="low" {% if form_data and form_data.water_availability == 'low' %}selected{% endif %}>Low</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Soil Type</label>
-                                <select class="form-select" name="soil_type">
-                                    <option value="clay" {% if form_data and form_data.soil_type == 'clay' %}selected{% endif %}>Clay</option>
-                                    <option value="loam" {% if form_data and form_data.soil_type == 'loam' %}selected{% endif %}>Loam</option>
-                                    <option value="sandy" {% if form_data and form_data.soil_type == 'sandy' %}selected{% endif %}>Sandy</option>
-                                    <option value="clay_loam" {% if form_data and form_data.soil_type == 'clay_loam' %}selected{% endif %}>Clay Loam</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-info btn-lg">
-                            <i class="fas fa-search me-2"></i>Get Cultivation Recommendations
-                        </button>
-                        <button type="button" id="refreshBtn" class="btn btn-secondary btn-lg mt-2">
-                            <i class="fas fa-sync-alt me-2"></i>Refresh / Clear
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {% if recommendations and recommendations.recommendations %}
-        <!-- All Recommendations -->
-        <div class="card mt-3">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Crop Recommendations</h5>
-            </div>
-            <div class="card-body">
-                <!-- Weather Conditions Summary -->
-                <div class="alert alert-primary mb-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h6 class="mb-1"><i class="fas fa-temperature-high me-2"></i>Current Growing Conditions</h6>
-                            <p class="mb-0 small">
-                                Temperature: 21.1°C | Humidity: 83% | Wind: 5.8 km/h |
-                                Soil Temperature: 24.0°C | Precipitation: 0.00 mm
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <span class="badge bg-success">Favorable Conditions</span>
-                        </div>
-                    </div>
+              <!-- Location -->
+              <div class="fsec-title"><i class="fas fa-map-marker-alt"></i> Location</div>
+              <div class="loc-alert">
+                <i class="fas fa-info-circle"></i>
+                <span>Enter coordinates for accurate weather-based recommendations.</span>
+                <button type="button" class="btn-loc" onclick="useCurrentLocation()">
+                  <i class="fas fa-location-arrow"></i> Use My Location
+                </button>
+              </div>
+              <div class="fields-grid c2" style="margin-bottom:4px;">
+                <div class="fg">
+                  <label class="form-label">Latitude *</label>
+                  <input type="number" class="form-control" name="latitude" id="latitude" step="0.000001" required value="{% if form_data and form_data.latitude %}{{ form_data.latitude }}{% else %}7.75{% endif %}">
+                  <span class="form-hint">e.g. 7.75 for central Sri Lanka</span>
                 </div>
+                <div class="fg">
+                  <label class="form-label">Longitude *</label>
+                  <input type="number" class="form-control" name="longitude" id="longitude" step="0.000001" required value="{% if form_data and form_data.longitude %}{{ form_data.longitude }}{% else %}80.75{% endif %}">
+                  <span class="form-hint">e.g. 80.75 for central Sri Lanka</span>
+                </div>
+              </div>
 
-                <div class="row g-3">
-                    {% for rec in recommendations.recommendations %}
-                    <div class="col-md-6">
-                        <div class="card crop-card h-100 {% if rec.rank == 1 %}border-warning{% elif rec.rank == 2 %}border-secondary{% elif rec.rank == 3 %}border-danger{% endif %}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="card-title mb-1">
-                                            <span class="badge {% if rec.rank == 1 %}bg-warning{% elif rec.rank == 2 %}bg-secondary{% else %}bg-danger{% endif %} me-2">
-                                                #{{ rec.rank }}
-                                            </span>
-                                            {{ rec.crop }}
-                                        </h5>
-                                        <div class="mb-2">
-                                            <span class="badge bg-success me-2">
-                                                Score: {{ "%.2f"|format(rec.recommendation_score) }}
-                                            </span>
-                                            <span class="badge {% if rec.risk_score < 0.3 %}bg-success{% elif rec.risk_score < 0.6 %}bg-warning{% else %}bg-danger{% endif %}">
-                                                Risk: {{ "%.2f"|format(rec.risk_score) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+              <div class="sec-divider"></div>
 
-                                <!-- Weather Compatibility -->
-                                <div class="alert alert-sm alert-light mb-3">
-                                    <div class="row small">
-                                        <div class="col-6">
-                                            <i class="fas fa-thermometer-half me-1 text-info"></i>
-                                            <strong>Temp Match:</strong>
-                                        </div>
-                                        <div class="col-6 text-end">
-                                            {% if rec.temp_requirement == 'cool' %}
-                                                <span class="badge bg-info">Cool Climate Crop</span>
-                                            {% elif rec.temp_requirement == 'warm' %}
-                                                <span class="badge bg-warning">Warm Climate Crop</span>
-                                            {% else %}
-                                                <span class="badge bg-success">Adaptable</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Progress Bars -->
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small>Profitability</small>
-                                        <small>{{ "%.0f"|format(rec.profitability_score * 100) }}%</small>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar bg-success"
-                                             style="width: {{ rec.profitability_score * 100 }}%"></div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small>Risk Level</small>
-                                        <small>{{ "%.0f"|format(rec.risk_score * 100) }}%</small>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar {% if rec.risk_score < 0.3 %}bg-success{% elif rec.risk_score < 0.6 %}bg-warning{% else %}bg-danger{% endif %}"
-                                             style="width: {{ rec.risk_score * 100 }}%"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Details -->
-                                <div class="row small mb-3">
-                                    <div class="col-6">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        <strong>Timeline:</strong>
-                                    </div>
-                                    <div class="col-6">
-                                        {{ rec.planting_timeline }}
-                                    </div>
-                                </div>
-
-                                <div class="row small">
-                                    <div class="col-6">
-                                        <i class="fas fa-money-bill-wave me-1"></i>
-                                        <strong>Revenue:</strong>
-                                    </div>
-                                    <div class="col-6">
-                                        Rs. {{ rec.expected_revenue }}
-                                    </div>
-                                </div>
-
-                                <!-- Weather Impact Note -->
-                                {% if rec.weather_note %}
-                                <div class="mt-2 pt-2 border-top">
-                                    <small class="text-muted">
-                                        <i class="fas fa-cloud-sun me-1"></i>
-                                        {{ rec.weather_note }}
-                                    </small>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+              <!-- Basic Parameters -->
+              <div class="fsec-title"><i class="fas fa-sliders-h"></i> Core Parameters</div>
+              <div class="fields-grid c3" style="margin-bottom:14px;">
+                <div class="fg">
+                  <label class="form-label">Month *</label>
+                  <select class="form-select" name="month" id="monthSelect" required>
+                    {% for i in range(1,13) %}
+                    <option value="{{ i }}" {% if form_data and form_data.month==i %}selected{% endif %}>
+                      {{ ['January','February','March','April','May','June','July','August','September','October','November','December'][i-1] }}
+                    </option>
                     {% endfor %}
+                  </select>
                 </div>
-            </div>
+                <div class="fg">
+                  <label class="form-label">Category *</label>
+                  <select class="form-select" name="category" required>
+                    <option value="All" {% if form_data and form_data.category=='All' %}selected{% endif %}>All Categories</option>
+                    <option value="Vegetables" {% if form_data and form_data.category=='Vegetables' %}selected{% endif %}>Vegetables</option>
+                    <option value="Fruits" {% if form_data and form_data.category=='Fruits' %}selected{% endif %}>Fruits</option>
+                    <option value="Rice" {% if form_data and form_data.category=='Rice' %}selected{% endif %}>Rice</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="form-label">Risk Tolerance *</label>
+                  <select class="form-select" name="risk_tolerance" required>
+                    <option value="low" {% if form_data and form_data.risk_tolerance=='low' %}selected{% endif %}>Low (Conservative)</option>
+                    <option value="medium" {% if form_data and form_data.risk_tolerance=='medium' %}selected{% endif %}>Medium (Balanced)</option>
+                    <option value="high" {% if form_data and form_data.risk_tolerance=='high' %}selected{% endif %}>High (Aggressive)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid c2" style="margin-bottom:4px;">
+                <div class="fg">
+                  <label class="form-label">Previous Profitability (%)</label>
+                  <input type="number" class="form-control" name="previous_profitability" min="0" max="100" step="0.1" value="{% if form_data %}{{ form_data.previous_profitability }}{% else %}20{% endif %}">
+                  <span class="form-hint">Your average profitability from previous crops</span>
+                </div>
+                <div class="fg">
+                  <label class="form-label">Available Budget (Rs.)</label>
+                  <input type="number" class="form-control" name="budget" min="1000" step="1000" value="{% if form_data %}{{ form_data.budget }}{% else %}10000{% endif %}">
+                  <span class="form-hint">Your cultivation budget for the season</span>
+                </div>
+              </div>
+
+              <div class="sec-divider"></div>
+
+              <!-- Additional -->
+              <div class="fsec-title"><i class="fas fa-leaf"></i> Field Conditions</div>
+              <div class="fields-grid c3">
+                <div class="fg">
+                  <label class="form-label">Land Size (Acres)</label>
+                  <input type="number" class="form-control" name="land_size" min="0.1" step="0.1" value="{% if form_data and form_data.land_size %}{{ form_data.land_size }}{% else %}1{% endif %}">
+                </div>
+                <div class="fg">
+                  <label class="form-label">Water Availability</label>
+                  <select class="form-select" name="water_availability">
+                    <option value="high" {% if form_data and form_data.water_availability=='high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if form_data and form_data.water_availability=='medium' %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if form_data and form_data.water_availability=='low' %}selected{% endif %}>Low</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="form-label">Soil Type</label>
+                  <select class="form-select" name="soil_type">
+                    <option value="clay" {% if form_data and form_data.soil_type=='clay' %}selected{% endif %}>Clay</option>
+                    <option value="loam" {% if form_data and form_data.soil_type=='loam' %}selected{% endif %}>Loam</option>
+                    <option value="sandy" {% if form_data and form_data.soil_type=='sandy' %}selected{% endif %}>Sandy</option>
+                    <option value="clay_loam" {% if form_data and form_data.soil_type=='clay_loam' %}selected{% endif %}>Clay Loam</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:22px;">
+                <div class="form-actions">
+                  <button type="submit" class="btn-submit">
+                    <i class="fas fa-search"></i> Get Recommendations
+                  </button>
+                  <button type="button" class="btn-reset" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Clear
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
         </div>
 
-        <!-- Detailed Weather Forecast -->
-        <div class="card mt-3">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-cloud-sun-rain me-2"></i>7-Day Weather Forecast for Cultivation Planning</h5>
+        <!-- CROP RESULTS -->
+        {% if recommendations and recommendations.recommendations %}
+        <div class="form-card animate-in" style="animation-delay:.08s;">
+          <div class="fc-header dark">
+            <div class="fc-header-left">
+              <div class="hi"><i class="fas fa-list"></i></div>
+              <h3>All Crop Recommendations</h3>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Max Temp</th>
-                                <th>Min Temp</th>
-                                <th>Humidity</th>
-                                <th>Precipitation</th>
-                                <th>Wind Speed</th>
-                                <th>Growing Conditions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2026-01-16</td>
-                                <td>26.9°C</td>
-                                <td>19.0°C</td>
-                                <td>63-90%</td>
-                                <td>0.00 mm</td>
-                                <td>13.7 km/h</td>
-                                <td><span class="badge bg-success">Excellent</span></td>
-                            </tr>
-                            <tr>
-                                <td>2026-01-17</td>
-                                <td>26.2°C</td>
-                                <td>18.9°C</td>
-                                <td>57-84%</td>
-                                <td>0.00 mm</td>
-                                <td>10.8 km/h</td>
-                                <td><span class="badge bg-success">Good</span></td>
-                            </tr>
-                            <tr>
-                                <td>2026-01-18</td>
-                                <td>26.5°C</td>
-                                <td>17.5°C</td>
-                                <td>57-85%</td>
-                                <td>0.00 mm</td>
-                                <td>8.9 km/h</td>
-                                <td><span class="badge bg-success">Good</span></td>
-                            </tr>
-                            <tr>
-                                <td>2026-01-19</td>
-                                <td>26.0°C</td>
-                                <td>17.6°C</td>
-                                <td>63-85%</td>
-                                <td>0.00 mm</td>
-                                <td>7.9 km/h</td>
-                                <td><span class="badge bg-warning">Monitor</span></td>
-                            </tr>
-                            <tr>
-                                <td>2026-01-20</td>
-                                <td>26.3°C</td>
-                                <td>16.1°C</td>
-                                <td>59-85%</td>
-                                <td>0.00 mm</td>
-                                <td>9.4 km/h</td>
-                                <td><span class="badge bg-success">Good</span></td>
-                            </tr>
-                            <tr>
-                                <td>2026-01-21</td>
-                                <td>26.3°C</td>
-                                <td>16.5°C</td>
-                                <td>61-97%</td>
-                                <td>0.00 mm</td>
-                                <td>9.4 km/h</td>
-                                <td><span class="badge bg-warning">High Humidity</span></td>
-                            </tr>
-                            <tr>
-                                <td>2026-01-22</td>
-                                <td>27.4°C</td>
-                                <td>17.5°C</td>
-                                <td>63-98%</td>
-                                <td>0.00 mm</td>
-                                <td>10.0 km/h</td>
-                                <td><span class="badge bg-warning">Very Humid</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-3 pt-3 border-top">
-                    <h6><i class="fas fa-lightbulb me-2"></i>Forecast Insights:</h6>
-                    <ul class="small mb-0">
-                        <li>Consistent temperatures ideal for most crops</li>
-                        <li>No precipitation expected for next 7 days - plan irrigation</li>
-                        <li>Increasing humidity towards end of week - monitor for fungal diseases</li>
-                        <li>Soil temperature stable at ~24°C - good for root development</li>
-                    </ul>
-                </div>
+          </div>
+          <div class="fc-body">
+            <!-- Conditions summary -->
+            <div style="background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);margin-bottom:3px;">Current Growing Conditions</div>
+                <div style="font-size:.82rem;color:var(--tm);">Temperature: 21.1°C &nbsp;·&nbsp; Humidity: 83% &nbsp;·&nbsp; Wind: 5.8 km/h &nbsp;·&nbsp; Soil Temp: 24.0°C</div>
+              </div>
+              <span style="background:var(--g500);color:#fff;font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:100px;">Favorable</span>
             </div>
-        </div>
-        {% endif %}
-    </div>
 
-    <div class="col-lg-4">
-        <!-- Current Weather Section -->
-        <div class="card weather-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5 class="mb-2"><i class="fas fa-cloud-sun me-2"></i>Current Weather</h5>
-                        <div class="temperature-display mb-2">30.1°C</div>
-                        <p class="mb-0" id="weatherCondition">Clear sky with mild conditions</p>
-                    </div>
-                    <div class="text-end">
-                        <div class="weather-icon">
-                            <i class="fas fa-sun" id="weatherIcon"></i>
-                        </div>
-                        <small id="coordinates">Lat: 7.75°N, Lon: 80.75°E</small>
-                    </div>
+            <div class="crop-grid">
+              {% for rec in recommendations.recommendations %}
+              <div class="crop-card {% if rec.rank==1 %}top1{% elif rec.rank==2 %}top2{% elif rec.rank==3 %}top3{% endif %}">
+                <div class="crop-rank-row">
+                  <span class="crop-rank-badge crb-{% if rec.rank==1 %}1{% elif rec.rank==2 %}2{% elif rec.rank==3 %}3{% else %}r{% endif %}">{{ rec.rank }}</span>
+                  <span class="crop-name">{{ rec.crop }}</span>
                 </div>
-
-                <!-- Weather Metrics -->
-                <div class="row mt-3">
-                    <div class="col-6">
-                        <div class="weather-metric">
-                            <small class="d-block">Humidity</small>
-                            <strong id="humidityValue">49%</strong>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="weather-metric">
-                            <small class="d-block">Wind Speed</small>
-                            <strong id="windSpeedValue">11.2 km/h</strong>
-                        </div>
-                    </div>
+                <div class="crop-score-badges">
+                  <span class="badge-score"><i class="fas fa-star"></i> {{ "%.2f"|format(rec.recommendation_score) }}</span>
+                  <span class="badge-score {% if rec.risk_score < 0.3 %}badge-risk-low{% elif rec.risk_score < 0.6 %}badge-risk-med{% else %}badge-risk-hi{% endif %}">
+                    Risk: {{ "%.2f"|format(rec.risk_score) }}
+                  </span>
                 </div>
-                <div class="row">
-                    <div class="col-6">
-                        <div class="weather-metric">
-                            <small class="d-block">Precipitation</small>
-                            <strong id="precipitationValue">0.00 mm</strong>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="weather-metric">
-                            <small class="d-block">Soil Temp</small>
-                            <strong id="soilTempValue">24.0°C</strong>
-                        </div>
-                    </div>
+                <div class="crop-temp-note">
+                  <i class="fas fa-thermometer-half"></i>
+                  {% if rec.temp_requirement=='cool' %}Cool Climate Crop
+                  {% elif rec.temp_requirement=='warm' %}Warm Climate Crop
+                  {% else %}Adaptable to Most Conditions{% endif %}
                 </div>
-
-                <!-- Weather Impact Analysis -->
-                <div class="mt-3 pt-3 border-top border-white border-opacity-25">
-                    <h6 class="mb-2"><i class="fas fa-chart-line me-1"></i>Cultivation Impact</h6>
-                    <div id="weatherImpact">
-                        <div class="weather-impact impact-positive">
-                            <small class="d-block"><strong>Favorable:</strong> Ideal temperature for most crops</small>
-                        </div>
-                        <div class="weather-impact impact-caution">
-                            <small class="d-block"><strong>Monitor:</strong> High humidity may increase fungal risk</small>
-                        </div>
-                        <div class="weather-impact impact-positive">
-                            <small class="d-block"><strong>Good:</strong> Low wind speed protects young plants</small>
-                        </div>
-                    </div>
+                <div class="prog-wrap">
+                  <div class="prog-row"><span>Profitability</span><span>{{ "%.0f"|format(rec.profitability_score*100) }}%</span></div>
+                  <div class="prog-track"><div class="prog-fill-green" style="width:{{ rec.profitability_score*100 }}%"></div></div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Results Section -->
-        {% if recommendations %}
-        <div class="card mt-3">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Recommendation Results</h4>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <h5 id="seasonDisplay">{{ recommendations.season }} Season</h5>
-                    <h2 class="text-warning">Optimal Month: {{ recommendations.optimal_month }}</h2>
-                    <p class="text-muted">{{ recommendations.total_recommendations }} crops recommended</p>
+                <div class="prog-wrap">
+                  <div class="prog-row"><span>Risk Level</span><span>{{ "%.0f"|format(rec.risk_score*100) }}%</span></div>
+                  <div class="prog-track"><div class="{% if rec.risk_score < 0.3 %}prog-fill-green{% elif rec.risk_score < 0.6 %}prog-fill-amber{% else %}prog-fill-red{% endif %}" style="width:{{ rec.risk_score*100 }}%"></div></div>
                 </div>
-
-                <!-- Top Recommendation -->
-                {% if recommendations.recommendations %}
-                <div class="card border-warning mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <span class="badge bg-warning me-2">TOP PICK</span>
-                            {{ recommendations.recommendations[0].crop }}
-                        </h5>
-
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <small class="text-muted">Profitability Score</small><br>
-                                <strong class="text-success">{{ "%.2f"|format(recommendations.recommendations[0].profitability_score) }}/1.0</strong>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Risk Score</small><br>
-                                <strong class="text-danger">{{ "%.2f"|format(recommendations.recommendations[0].risk_score) }}/1.0</strong>
-                            </div>
-                        </div>
-
-                        <div class="profitability-bar">
-                            <div class="text-center text-white small py-1">
-                                Recommendation Score: {{ "%.2f"|format(recommendations.recommendations[0].recommendation_score) }}
-                            </div>
-                        </div>
-
-                        <p class="mb-0 small">
-                            <i class="fas fa-calendar me-1"></i>
-                            {{ recommendations.recommendations[0].planting_timeline }}
-                        </p>
-                    </div>
+                <div class="crop-details">
+                  <div class="crop-det-cell"><span class="lbl"><i class="fas fa-calendar" style="margin-right:3px;"></i>Timeline</span><span class="val">{{ rec.planting_timeline }}</span></div>
+                  <div class="crop-det-cell"><span class="lbl"><i class="fas fa-money-bill-wave" style="margin-right:3px;"></i>Revenue</span><span class="val">Rs. {{ rec.expected_revenue }}</span></div>
                 </div>
+                {% if rec.weather_note %}
+                <div class="crop-weather-note"><i class="fas fa-cloud-sun"></i><span>{{ rec.weather_note }}</span></div>
                 {% endif %}
-
-                <!-- Quick Stats -->
-                <div class="mb-4">
-                    <h6>Quick Statistics</h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Avg. Profitability</small><br>
-                            <strong>
-                                {{ "%.2f"|format(recommendations.recommendations|map(attribute='profitability_score')|sum / recommendations.recommendations|length) }}
-                            </strong>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted">Avg. Risk</small><br>
-                            <strong>
-                                {{ "%.2f"|format(recommendations.recommendations|map(attribute='risk_score')|sum / recommendations.recommendations|length) }}
-                            </strong>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Weather-Adjusted Seasonal Tips -->
-                <div class="alert alert-info">
-                    <h6><i class="fas fa-cloud-sun-rain me-2"></i>Weather-Adjusted Tips</h6>
-                    <p class="mb-0 small">
-                        {% if weather_analysis %}
-                            {% if weather_analysis.temperature_category == "cold" %}
-                            Current cool temperatures ({{ weather_analysis.current_temp }}°C) are ideal for leafy vegetables.
-                            {% elif weather_analysis.temperature_category == "hot" %}
-                            Warm conditions ({{ weather_analysis.current_temp }}°C) favor heat-loving crops.
-                            {% else %}
-                            Mild temperatures ({{ weather_analysis.current_temp }}°C) support most crops.
-                            {% endif %}
-
-                            {% if weather_analysis.humidity > 80 %}
-                            High humidity may increase fungal disease risk - consider preventive measures.
-                            {% endif %}
-
-                            {% if weather_analysis.precipitation > 5 %}
-                            Rainfall is adequate; adjust irrigation accordingly.
-                            {% elif weather_analysis.precipitation < 2 %}
-                            Low precipitation - plan for supplemental irrigation.
-                            {% endif %}
-                        {% else %}
-                            {% if recommendations.season == "Winter" %}
-                            Focus on leafy vegetables like cabbage and spinach. Reduce water-intensive crops.
-                            {% elif recommendations.season == "Spring" %}
-                            Ideal for most vegetables. Consider staggered planting for continuous harvest.
-                            {% elif recommendations.season == "Summer" %}
-                            Plant drought-resistant crops. Increase irrigation frequency.
-                            {% else %}
-                            Prepare for harvest season. Plan for crop rotation and soil preparation.
-                            {% endif %}
-                        {% endif %}
-                    </p>
-                </div>
+              </div>
+              {% endfor %}
             </div>
+          </div>
+        </div>
+
+        <!-- FORECAST TABLE -->
+        <div class="form-card animate-in" style="animation-delay:.12s;">
+          <div class="fc-header slate">
+            <div class="fc-header-left">
+              <div class="hi"><i class="fas fa-cloud-sun-rain"></i></div>
+              <h3>7-Day Weather Forecast</h3>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="forecast-table">
+              <thead>
+                <tr><th>Date</th><th>Max</th><th>Min</th><th>Humidity</th><th>Precip.</th><th>Wind</th><th>Conditions</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>2026-01-16</td><td>26.9°C</td><td>19.0°C</td><td>63–90%</td><td>0.00 mm</td><td>13.7 km/h</td><td><span class="cond-badge cb-exc">Excellent</span></td></tr>
+                <tr><td>2026-01-17</td><td>26.2°C</td><td>18.9°C</td><td>57–84%</td><td>0.00 mm</td><td>10.8 km/h</td><td><span class="cond-badge cb-good">Good</span></td></tr>
+                <tr><td>2026-01-18</td><td>26.5°C</td><td>17.5°C</td><td>57–85%</td><td>0.00 mm</td><td>8.9 km/h</td><td><span class="cond-badge cb-good">Good</span></td></tr>
+                <tr><td>2026-01-19</td><td>26.0°C</td><td>17.6°C</td><td>63–85%</td><td>0.00 mm</td><td>7.9 km/h</td><td><span class="cond-badge cb-mon">Monitor</span></td></tr>
+                <tr><td>2026-01-20</td><td>26.3°C</td><td>16.1°C</td><td>59–85%</td><td>0.00 mm</td><td>9.4 km/h</td><td><span class="cond-badge cb-good">Good</span></td></tr>
+                <tr><td>2026-01-21</td><td>26.3°C</td><td>16.5°C</td><td>61–97%</td><td>0.00 mm</td><td>9.4 km/h</td><td><span class="cond-badge cb-hum">High Humidity</span></td></tr>
+                <tr><td>2026-01-22</td><td>27.4°C</td><td>17.5°C</td><td>63–98%</td><td>0.00 mm</td><td>10.0 km/h</td><td><span class="cond-badge cb-hum">Very Humid</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:16px 22px;border-top:1px solid var(--g100);">
+            <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);margin-bottom:8px;"><i class="fas fa-lightbulb" style="margin-right:6px;"></i>Forecast Insights</div>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+              <li style="font-size:.8rem;color:var(--tm);display:flex;gap:8px;"><i class="fas fa-check-circle" style="color:var(--g400);margin-top:2px;flex-shrink:0;"></i>Consistent temperatures ideal for most crops</li>
+              <li style="font-size:.8rem;color:var(--tm);display:flex;gap:8px;"><i class="fas fa-tint-slash" style="color:#f59e0b;margin-top:2px;flex-shrink:0;"></i>No precipitation expected — plan supplemental irrigation</li>
+              <li style="font-size:.8rem;color:var(--tm);display:flex;gap:8px;"><i class="fas fa-exclamation-circle" style="color:#f97316;margin-top:2px;flex-shrink:0;"></i>Increasing humidity towards end of week — monitor for fungal diseases</li>
+              <li style="font-size:.8rem;color:var(--tm);display:flex;gap:8px;"><i class="fas fa-seedling" style="color:var(--g400);margin-top:2px;flex-shrink:0;"></i>Soil temperature stable at ~24°C — good for root development</li>
+            </ul>
+          </div>
         </div>
         {% endif %}
 
-        <!-- Information Card -->
-        <div class="card mt-3">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About Cultivation Targeting</h5>
+      </div>
+      <!-- /LEFT COLUMN -->
+
+      <!-- ══ RIGHT SIDEBAR ══ -->
+      <div>
+
+        <!-- WEATHER CARD -->
+        <div class="weather-hero animate-in">
+          <i class="wh-icon fas fa-sun"></i>
+          <div class="wh-label">Current Weather</div>
+          <div class="wh-temp" id="temperature-display">30.1°C</div>
+          <div class="wh-desc" id="weatherCondition">Clear sky with mild conditions</div>
+          <div class="wh-coords" id="coordinates">Lat: 7.75°N, Lon: 80.75°E</div>
+          <div class="wh-metrics">
+            <div class="wh-metric"><span class="lbl">Humidity</span><span class="val" id="humidityValue">49%</span></div>
+            <div class="wh-metric"><span class="lbl">Wind Speed</span><span class="val" id="windSpeedValue">11.2 km/h</span></div>
+            <div class="wh-metric"><span class="lbl">Precipitation</span><span class="val" id="precipitationValue">0.00 mm</span></div>
+            <div class="wh-metric"><span class="lbl">Soil Temp</span><span class="val" id="soilTempValue">24.0°C</span></div>
+          </div>
+          <div class="wh-impact">
+            <div class="wh-impact-title"><i class="fas fa-chart-line"></i> Cultivation Impact</div>
+            <div id="weatherImpact">
+              <div class="wi-item wi-pos"><strong>Favorable:</strong> Ideal temperature for most crops</div>
+              <div class="wi-item wi-cau"><strong>Monitor:</strong> High humidity may increase fungal risk</div>
+              <div class="wi-item wi-pos"><strong>Good:</strong> Low wind speed protects young plants</div>
             </div>
-            <div class="card-body">
-                <p class="small">
-                    Our AI model considers:
-                </p>
-                <ul class="small mb-0">
-                    <li>Seasonal market trends</li>
-                    <li>Historical price patterns</li>
-                    <li><strong>Real-time weather conditions</strong></li>
-                    <li>Soil conditions</li>
-                    <li>Risk factors and profitability</li>
-                    <li>Resource requirements</li>
-                </ul>
-                <div class="mt-3">
-                    <small class="text-muted">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        Weather data from Open-Meteo API. Recommendations consider current conditions.
-                    </small>
-                </div>
-            </div>
+          </div>
         </div>
+
+        <!-- RESULTS SUMMARY -->
+        {% if recommendations %}
+        <div class="result-summary-card animate-in" style="animation-delay:.1s;">
+          <div class="sc-header green">
+            <div class="hi"><i class="fas fa-chart-bar"></i></div>
+            <h3>Recommendation Summary</h3>
+          </div>
+          <div class="sc-body">
+
+            <div class="result-season-hero">
+              <div class="rsh-season" id="seasonDisplay">{{ recommendations.season }} Season</div>
+              <div class="rsh-month">{{ recommendations.optimal_month }}</div>
+              <div class="rsh-sub">{{ recommendations.total_recommendations }} crops recommended</div>
+            </div>
+
+            {% if recommendations.recommendations %}
+            <div class="top-pick-card">
+              <div class="tp-tag"><i class="fas fa-crown"></i> Top Pick</div>
+              <div class="tp-name">{{ recommendations.recommendations[0].crop }}</div>
+              <div class="tp-scores">
+                <div class="tp-score-cell"><span class="lbl">Profitability</span><span class="val-green">{{ "%.2f"|format(recommendations.recommendations[0].profitability_score) }} / 1.0</span></div>
+                <div class="tp-score-cell"><span class="lbl">Risk Score</span><span class="val-red">{{ "%.2f"|format(recommendations.recommendations[0].risk_score) }} / 1.0</span></div>
+              </div>
+              <div class="tp-timeline"><i class="fas fa-calendar"></i> {{ recommendations.recommendations[0].planting_timeline }}</div>
+            </div>
+
+            <div class="quick-stats">
+              <div class="qs-cell"><span class="lbl">Avg. Profitability</span><span class="val">{{ "%.2f"|format(recommendations.recommendations|map(attribute='profitability_score')|sum / recommendations.recommendations|length) }}</span></div>
+              <div class="qs-cell"><span class="lbl">Avg. Risk</span><span class="val">{{ "%.2f"|format(recommendations.recommendations|map(attribute='risk_score')|sum / recommendations.recommendations|length) }}</span></div>
+            </div>
+            {% endif %}
+
+            <div class="weather-tips">
+              <strong><i class="fas fa-cloud-sun-rain" style="margin-right:6px;"></i>Weather-Adjusted Tips</strong>
+              {% if weather_analysis %}
+                {% if weather_analysis.temperature_category=="cold" %}Current cool temperatures ({{ weather_analysis.current_temp }}°C) are ideal for leafy vegetables.
+                {% elif weather_analysis.temperature_category=="hot" %}Warm conditions ({{ weather_analysis.current_temp }}°C) favour heat-loving crops.
+                {% else %}Mild temperatures ({{ weather_analysis.current_temp }}°C) support most crop types.{% endif %}
+                {% if weather_analysis.humidity > 80 %} High humidity detected — consider preventive fungal measures.{% endif %}
+                {% if weather_analysis.precipitation < 2 %} Low precipitation — plan for supplemental irrigation.{% endif %}
+              {% else %}
+                {% if recommendations.season=="Winter" %}Focus on leafy vegetables like cabbage. Reduce water-intensive crops.
+                {% elif recommendations.season=="Spring" %}Ideal for most vegetables. Consider staggered planting.
+                {% elif recommendations.season=="Summer" %}Plant drought-resistant crops. Increase irrigation frequency.
+                {% else %}Prepare for harvest season. Plan crop rotation and soil preparation.{% endif %}
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div style="background:var(--white);border:2px dashed var(--g200);border-radius:var(--r);padding:48px 24px;text-align:center;margin-bottom:18px;" class="animate-in">
+          <div style="width:60px;height:60px;background:var(--g100);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--g500);margin:0 auto 14px;"><i class="fas fa-seedling"></i></div>
+          <h4 style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--td);margin-bottom:7px;">Results appear here</h4>
+          <p style="font-size:.82rem;color:var(--tmut);line-height:1.6;">Submit the form to get AI-powered crop recommendations based on current weather and market data.</p>
+        </div>
+        {% endif %}
+
+        <!-- ABOUT CARD -->
+        <div class="result-summary-card animate-in" style="animation-delay:.14s;">
+          <div class="sc-header info-h">
+            <div class="hi"><i class="fas fa-info-circle"></i></div>
+            <h3>About Cultivation Targeting</h3>
+          </div>
+          <div class="sc-body">
+            <p style="font-size:.8rem;color:var(--tmut);margin-bottom:12px;">Our AI model considers multiple factors to optimize your crop selection:</p>
+            <ul class="about-list">
+              <li><i class="fas fa-chart-line"></i>Seasonal market trends & pricing</li>
+              <li><i class="fas fa-cloud-sun"></i>Real-time weather conditions</li>
+              <li><i class="fas fa-seedling"></i>Soil type & water availability</li>
+              <li><i class="fas fa-exclamation-triangle"></i>Risk factors & profitability scores</li>
+              <li><i class="fas fa-coins"></i>Resource requirements & budget</li>
+              <li><i class="fas fa-calendar-alt"></i>Seasonal planting timelines</li>
+            </ul>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--g100);font-size:.73rem;color:var(--tmut);display:flex;align-items:flex-start;gap:7px;">
+              <i class="fas fa-satellite" style="color:var(--g400);margin-top:2px;flex-shrink:0;"></i>
+              Weather data sourced from Open-Meteo API. Recommendations account for current field conditions.
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /RIGHT SIDEBAR -->
+
     </div>
+  </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Month name array for display
-const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-];
+const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-// Function to get current location
-function useCurrentLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude.toFixed(6);
-                const lon = position.coords.longitude.toFixed(6);
-
-                document.getElementById('latitude').value = lat;
-                document.getElementById('longitude').value = lon;
-
-                // Update coordinates display
-                document.getElementById('coordinates').textContent = `Lat: ${lat}°N, Lon: ${lon}°E`;
-
-                // Show success message
-                showToast('Location updated successfully!', 'success');
-
-                // Simulate weather update based on new location
-                updateWeatherForLocation(lat, lon);
-            },
-            (error) => {
-                let errorMessage = 'Unable to retrieve your location. Please enable location services.';
-                if (error.code === error.PERMISSION_DENIED) {
-                    errorMessage = 'Location permission denied. Please allow location access.';
-                } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    errorMessage = 'Location information unavailable.';
-                } else if (error.code === error.TIMEOUT) {
-                    errorMessage = 'Location request timed out.';
-                }
-
-                showToast(errorMessage, 'danger');
-                console.error('Geolocation error:', error);
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
-    } else {
-        showToast('Geolocation is not supported by your browser.', 'warning');
-    }
+function useCurrentLocation(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const lat=pos.coords.latitude.toFixed(6);
+      const lon=pos.coords.longitude.toFixed(6);
+      document.getElementById('latitude').value=lat;
+      document.getElementById('longitude').value=lon;
+      document.getElementById('coordinates').textContent=`Lat: ${lat}°N, Lon: ${lon}°E`;
+      showToast('Location updated successfully!','success');
+      updateWeatherForLocation(lat,lon);
+    },err=>{
+      const msgs={1:'Location permission denied. Please allow location access.',2:'Location information unavailable.',3:'Location request timed out.'};
+      showToast(msgs[err.code]||'Unable to retrieve location.','danger');
+    },{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+  }else{showToast('Geolocation is not supported by your browser.','warning');}
 }
 
-// Function to simulate weather update based on location
-function updateWeatherForLocation(lat, lon) {
-    // In a real application, this would make an API call to get weather data
-    // For now, we'll simulate with different data based on coordinates
-
-    // Update coordinates display
-    document.getElementById('coordinates').textContent = `Lat: ${lat}°N, Lon: ${lon}°E`;
-
-    // Simulate different weather based on latitude
-    const latNum = parseFloat(lat);
-    let temp = 21.1;
-    let humidity = 83;
-    let condition = "Clear sky with mild conditions";
-    let icon = "fa-sun";
-
-    if (latNum > 8) {
-        // Northern regions
-        temp = 23.5;
-        humidity = 75;
-        condition = "Partly cloudy with warm conditions";
-        icon = "fa-cloud-sun";
-    } else if (latNum < 7) {
-        // Southern regions
-        temp = 19.8;
-        humidity = 88;
-        condition = "Mostly clear with cool conditions";
-        icon = "fa-sun";
-    }
-
-    // Update weather display
-    document.getElementById('temperature-display').textContent = `${temp}°C`;
-    document.getElementById('weatherCondition').textContent = condition;
-    document.getElementById('weatherIcon').className = `fas ${icon}`;
-    document.getElementById('humidityValue').textContent = `${humidity}%`;
-
-    // Update impact analysis
-    updateWeatherImpact(temp, humidity);
+function updateWeatherForLocation(lat,lon){
+  document.getElementById('coordinates').textContent=`Lat: ${lat}°N, Lon: ${lon}°E`;
+  const latN=parseFloat(lat);
+  let temp=21.1,humidity=83,cond='Clear sky with mild conditions',icon='fa-sun';
+  if(latN>8){temp=23.5;humidity=75;cond='Partly cloudy, warm conditions';icon='fa-cloud-sun';}
+  else if(latN<7){temp=19.8;humidity=88;cond='Mostly clear, cool conditions';icon='fa-sun';}
+  const td=document.getElementById('temperature-display');
+  if(td)td.textContent=`${temp}°C`;
+  const wc=document.getElementById('weatherCondition');
+  if(wc)wc.textContent=cond;
+  const wi=document.querySelector('.wh-icon');
+  if(wi)wi.className=`wh-icon fas ${icon}`;
+  const hv=document.getElementById('humidityValue');
+  if(hv)hv.textContent=`${humidity}%`;
+  updateWeatherImpact(temp,humidity);
 }
 
-// Function to update weather impact analysis
-function updateWeatherImpact(temp, humidity) {
-    let impactHTML = '';
-
-    if (temp >= 18 && temp <= 28) {
-        impactHTML += '<div class="weather-impact impact-positive">';
-        impactHTML += '<small class="d-block"><strong>Favorable:</strong> Ideal temperature for most crops</small>';
-        impactHTML += '</div>';
-    } else if (temp < 15) {
-        impactHTML += '<div class="weather-impact impact-negative">';
-        impactHTML += '<small class="d-block"><strong>Warning:</strong> Low temperatures may slow growth</small>';
-        impactHTML += '</div>';
-    } else if (temp > 32) {
-        impactHTML += '<div class="weather-impact impact-caution">';
-        impactHTML += '<small class="d-block"><strong>Heat Alert:</strong> High temperatures may stress plants</small>';
-        impactHTML += '</div>';
-    }
-
-    if (humidity > 80) {
-        impactHTML += '<div class="weather-impact impact-caution">';
-        impactHTML += '<small class="d-block"><strong>Monitor:</strong> High humidity may increase fungal risk</small>';
-        impactHTML += '</div>';
-    } else if (humidity < 40) {
-        impactHTML += '<div class="weather-impact impact-caution">';
-        impactHTML += '<small class="d-block"><strong>Irrigation Needed:</strong> Low humidity increases water requirements</small>';
-        impactHTML += '</div>';
-    }
-
-    impactHTML += '<div class="weather-impact impact-positive">';
-    impactHTML += '<small class="d-block"><strong>Good:</strong> Low wind speed protects young plants</small>';
-    impactHTML += '</div>';
-
-    document.getElementById('weatherImpact').innerHTML = impactHTML;
+function updateWeatherImpact(temp,humidity){
+  let html='';
+  if(temp>=18&&temp<=28){html+='<div class="wi-item wi-pos"><strong>Favorable:</strong> Ideal temperature for most crops</div>';}
+  else if(temp<15){html+='<div class="wi-item wi-neg"><strong>Warning:</strong> Low temperatures may slow growth</div>';}
+  else if(temp>32){html+='<div class="wi-item wi-cau"><strong>Heat Alert:</strong> High temperatures may stress plants</div>';}
+  if(humidity>80){html+='<div class="wi-item wi-cau"><strong>Monitor:</strong> High humidity may increase fungal risk</div>';}
+  else if(humidity<40){html+='<div class="wi-item wi-cau"><strong>Irrigation:</strong> Low humidity increases water requirements</div>';}
+  html+='<div class="wi-item wi-pos"><strong>Good:</strong> Low wind speed protects young plants</div>';
+  const wi=document.getElementById('weatherImpact');if(wi)wi.innerHTML=html;
 }
 
-// Function to show toast notification
-function showToast(message, type = 'info') {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-bg-${type} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-
-    const icon = type === 'success' ? 'fa-check-circle' :
-                 type === 'danger' ? 'fa-exclamation-circle' :
-                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body d-flex align-items-center">
-                <i class="fas ${icon} me-2"></i>
-                ${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-
-    // Add to container
-    const container = document.getElementById('toastContainer') || createToastContainer();
-    container.appendChild(toast);
-
-    // Initialize and show
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
-
-    // Remove after hide
-    toast.addEventListener('hidden.bs.toast', function () {
-        toast.remove();
-    });
+function showToast(msg,type='info'){
+  let tc=document.getElementById('_toastC');
+  if(!tc){tc=document.createElement('div');tc.id='_toastC';tc.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;';document.body.appendChild(tc);}
+  const bg={success:'var(--g600)',warning:'#7a5a00',danger:'#991b1b',info:'var(--g700)'}[type]||'var(--g700)';
+  const ic={success:'fa-check-circle',warning:'fa-exclamation-triangle',danger:'fa-exclamation-circle',info:'fa-info-circle'}[type]||'fa-info-circle';
+  const t=document.createElement('div');
+  t.style.cssText=`background:${bg};color:#fff;padding:12px 18px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.84rem;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:300px;animation:fadeUp .3s ease;`;
+  t.innerHTML=`<i class="fas ${ic}"></i><span>${msg}</span>`;
+  tc.appendChild(t);
+  setTimeout(()=>{t.style.cssText+=';opacity:0;transform:translateY(8px);transition:all .3s;';setTimeout(()=>t.remove(),300);},3500);
 }
 
-// Function to create toast container if it doesn't exist
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-    container.style.zIndex = '1050';
-    document.body.appendChild(container);
-    return container;
-}
+document.addEventListener('DOMContentLoaded',()=>{
+  const ms=document.getElementById('monthSelect');
+  if(ms){ms.addEventListener('change',function(){const sd=document.getElementById('seasonDisplay');if(sd)sd.textContent=`${monthNames[this.value-1]} Season`;});}
 
-// Update seasonal information when month changes
-document.getElementById('monthSelect').addEventListener('change', function() {
-    const month = parseInt(this.value);
-    const seasonDisplay = document.getElementById('seasonDisplay');
-    if (seasonDisplay) {
-        seasonDisplay.textContent = `${monthNames[month-1]} Season`;
-    }
-});
+  const latI=document.getElementById('latitude');const lonI=document.getElementById('longitude');
+  function updateCoords(){const l=latI.value;const o=lonI.value;if(l&&o){const c=document.getElementById('coordinates');if(c)c.textContent=`Lat: ${l}°N, Lon: ${o}°E`;}}
+  if(latI)latI.addEventListener('change',updateCoords);
+  if(lonI)lonI.addEventListener('change',updateCoords);
 
-// Add event listener for location input changes
-document.getElementById('latitude').addEventListener('change', updateLocationDisplay);
-document.getElementById('longitude').addEventListener('change', updateLocationDisplay);
+  const rb=document.getElementById('refreshBtn');
+  if(rb)rb.addEventListener('click',()=>window.location.href=window.location.pathname);
 
-function updateLocationDisplay() {
-    const lat = document.getElementById('latitude').value;
-    const lon = document.getElementById('longitude').value;
-
-    if (lat && lon) {
-        document.getElementById('coordinates').textContent = `Lat: ${lat}°N, Lon: ${lon}°E`;
-    }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Add temperature display ID if not exists
-    const tempDisplay = document.querySelector('.temperature-display');
-    if (tempDisplay && !tempDisplay.id) {
-        tempDisplay.id = 'temperature-display';
-    }
-
-    // Initialize month selector
-    const monthSelect = document.getElementById('monthSelect');
-    if (monthSelect) {
-        monthSelect.dispatchEvent(new Event('change'));
-    }
-
-    // Initialize location display
-    updateLocationDisplay();
-
-    // Hook refresh/clear button
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            window.location.href = window.location.pathname;
-        });
-    }
-
-    // Add validation for form submission
-    document.getElementById('cultivationForm').addEventListener('submit', function(e) {
-        const lat = parseFloat(document.getElementById('latitude').value);
-        const lon = parseFloat(document.getElementById('longitude').value);
-
-        if (isNaN(lat) || isNaN(lon)) {
-            e.preventDefault();
-            showToast('Please enter valid latitude and longitude coordinates.', 'warning');
-            return;
-        }
-
-        // Add hidden field for weather API call
-        if (!document.querySelector('input[name="fetch_weather"]')) {
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = 'fetch_weather';
-            hiddenField.value = 'true';
-            this.appendChild(hiddenField);
-        }
-    });
+  const cf=document.getElementById('cultivationForm');
+  if(cf){cf.addEventListener('submit',function(e){
+    const lat=parseFloat(document.getElementById('latitude').value);
+    const lon=parseFloat(document.getElementById('longitude').value);
+    if(isNaN(lat)||isNaN(lon)){e.preventDefault();showToast('Please enter valid latitude and longitude coordinates.','warning');return;}
+    if(!this.querySelector('input[name="fetch_weather"]')){const h=document.createElement('input');h.type='hidden';h.name='fetch_weather';h.value='true';this.appendChild(h);}
+  });}
 });
 </script>
 {% endblock %}

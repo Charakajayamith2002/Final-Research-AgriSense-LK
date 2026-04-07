@@ -1,194 +1,226 @@
 {% extends "base.html" %}
-
 {% block title %}Market Opportunity Ranking{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <style>
-    :root {
-        --primary-color: #2e7d32;
-        --primary-light: #4caf50;
-        --primary-dark: #1b5e20;
-        --secondary-color: #ff8f00;
-        --accent-color: #0277bd;
-        --light-bg: #f8f9fa;
-        --dark-text: #263238;
-        --border-radius: 12px;
-        --box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-    }
+/* ── ROOT TOKENS ── */
+:root {
+  --g50:#f0faf0; --g100:#d6f0d6; --g200:#b0deb0; --g300:#7ec87e;
+  --g400:#4fad4f; --g500:#34912f; --g600:#2a7525; --g700:#1e571a;
+  --g800:#163f12; --white:#fff; --td:#1a2e1a; --tm:#3d5e3a;
+  --tmut:#6b8f65; --bdr:#cde8cd;
+  --sm:0 2px 8px rgba(52,145,47,.08);
+  --md:0 6px 24px rgba(52,145,47,.12);
+  --r:13px
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
+body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td); min-height:100vh }
+.container { max-width:1200px; margin:0 auto; padding:0 28px }
 
-    /* Page background similar to Profitable Strategy page */
-    body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e9f5e9 100%);
-    }
+/* ── HERO ── */
+.page-hero { background:linear-gradient(135deg,var(--g700),var(--g500)); padding:48px 0 42px; position:relative; overflow:hidden }
+.page-hero::before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px); background-size:54px 54px }
+.hero-glow { position:absolute; top:-80px; right:-60px; width:320px; height:320px; background:radial-gradient(circle,rgba(255,255,255,.12),transparent 65%); pointer-events:none }
+.hero-inner { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap }
+.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:.72rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; padding:5px 14px; border-radius:100px; margin-bottom:14px }
+.hero-badge::before { content:''; width:6px; height:6px; background:var(--g200); border-radius:50%; animation:pulse 2s infinite }
+.page-hero h1 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.5rem); font-weight:900; color:#fff; line-height:1.15; margin-bottom:10px }
+.page-hero h1 em { color:var(--g200); font-style:italic }
+.page-hero p { font-size:.93rem; color:rgba(255,255,255,.72); font-weight:300; line-height:1.7; max-width:480px }
+.hero-steps { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:100px; padding:10px 20px; font-size:.8rem; color:rgba(255,255,255,.8); backdrop-filter:blur(8px); white-space:nowrap; flex-shrink:0 }
+.hero-steps strong { color:var(--g200) }
 
-    .page-hero {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        border-radius: var(--border-radius);
-        padding: 2rem 1.5rem;
-        color: #fff;
-        margin-bottom: 1.75rem;
-        box-shadow: var(--box-shadow);
-        position: relative;
-        overflow: hidden;
-    }
+/* ── PAGE BODY ── */
+.page-body { padding:32px 0 60px }
+.page-grid { display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start }
 
-    .page-hero::before {
-        content: '';
-        position: absolute;
-        top: -40%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 50%;
-        z-index: 0;
-    }
+/* ── FORM CARD ── */
+.form-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--md); overflow:hidden; margin-bottom:20px }
+.fc-header { background:linear-gradient(90deg,var(--g600),var(--g400)); padding:17px 26px; display:flex; align-items:center; justify-content:space-between; gap:12px }
+.fc-header-left { display:flex; align-items:center; gap:11px }
+.fc-header .hi { width:32px; height:32px; background:rgba(255,255,255,.18); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.88rem }
+.fc-header h3 { font-size:.9rem; font-weight:600; color:#fff }
+.fc-body { padding:26px }
 
-    .page-hero::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 250px;
-        height: 250px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 50%;
-        z-index: 0;
-    }
+/* ── FORM ELEMENTS ── */
+.fsec-title { font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--g500); display:flex; align-items:center; gap:8px; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--g100) }
+.fields-grid { display:grid; gap:14px }
+.fields-grid.c2 { grid-template-columns:1fr 1fr }
+.fields-grid.c3 { grid-template-columns:1fr 1fr 1fr }
+.fg { display:flex; flex-direction:column }
+.form-label { font-size:.77rem; font-weight:600; color:var(--tm); letter-spacing:.02em; margin-bottom:5px; display:block }
+.req::after { content:' *'; color:#e53e3e }
+.form-control, .form-select { width:100%; border:1.5px solid var(--bdr); border-radius:9px; padding:9px 13px; font-family:'DM Sans',sans-serif; font-size:.875rem; color:var(--td); background:var(--g50); transition:border-color .2s,box-shadow .2s,background .2s; appearance:none; -webkit-appearance:none }
+.form-select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 11 11'%3E%3Cpath fill='%232a7525' d='M5.5 7.5L1 2.5h9z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px }
+.form-control:focus, .form-select:focus { outline:none; border-color:var(--g400); box-shadow:0 0 0 3px rgba(79,173,79,.15); background:#fff }
+.form-control::placeholder { color:#a8c4a4 }
+.form-hint { font-size:.71rem; color:var(--tmut); margin-top:3px }
+.sec-divider { height:1px; background:var(--g100); margin:20px 0 }
 
-    .page-hero h2 {
-        position: relative;
-        z-index: 1;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-    }
+/* Alert banner */
+.loc-alert { background:var(--g50); border:1px solid var(--g200); border-left:3px solid var(--g400); border-radius:9px; padding:11px 15px; font-size:.82rem; color:var(--tm); display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap }
+.loc-alert i { color:var(--g500); flex-shrink:0 }
+.error-alert { background:#fff5f5; border:1px solid #fecaca; border-left:3px solid #ef4444; border-radius:9px; padding:12px 15px; font-size:.85rem; color:#991b1b; margin-bottom:16px }
 
-    .page-hero p {
-        position: relative;
-        z-index: 1;
-        opacity: 0.9;
-    }
+/* Location dark panel */
+.loc-panel { background:var(--g600); border-radius:10px; padding:15px 17px; margin-top:4px }
+.loc-title { font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:11px; display:flex; align-items:center; gap:7px }
+.loc-panel .form-label { color:rgba(255,255,255,.75) }
+.loc-panel .form-control { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.2); color:#fff }
+.loc-panel .form-control:focus { border-color:var(--g200); box-shadow:0 0 0 3px rgba(180,230,180,.15); background:rgba(255,255,255,.15) }
+.loc-panel .form-control::placeholder { color:rgba(255,255,255,.35) }
 
-    /* Card styling adjustments */
-    .card {
-        border: none;
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow);
-        transition: transform 0.3s, box-shadow 0.3s;
-        overflow: hidden;
-        background: white;
-    }
+.btn-loc { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.15); border:1px solid rgba(13,90,20,.4); color:#1a6b2a; border-radius:8px; padding:7px 14px; font-size:.78rem; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s }
+.btn-loc:hover { background:rgba(255,255,255,.45); border-color:rgba(13,90,20,.7) }
 
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.15);
-    }
+/* Calc note */
+.calc-note { background:rgba(79,173,79,.08); border:1px solid var(--g200); border-radius:8px; padding:10px 13px; font-size:.79rem; color:var(--tm); display:flex; align-items:flex-start; gap:8px; margin-top:4px }
+.calc-note i { color:var(--g500); margin-top:2px; flex-shrink:0 }
 
-    .card-header {
-        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
-        color: white;
-        font-weight: 600;
-        border-bottom: none;
-    }
+/* Form actions */
+.form-actions { display:flex; gap:12px; margin-top:4px; flex-wrap:wrap }
+.btn-submit { flex:1; min-width:160px; background:linear-gradient(135deg,var(--g600),var(--g400)); color:#fff; border:none; border-radius:10px; padding:12px 24px; font-family:'DM Sans',sans-serif; font-size:.93rem; font-weight:600; cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 4px 14px rgba(42,117,37,.3) }
+.btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(42,117,37,.4) }
+.btn-reset { background:var(--g50); color:var(--tmut); border:1.5px solid var(--bdr); border-radius:10px; padding:12px 20px; font-family:'DM Sans',sans-serif; font-size:.88rem; font-weight:500; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px }
+.btn-reset:hover { border-color:var(--g300); color:var(--td); background:var(--g100) }
 
-    .form-label {
-        font-weight: 600;
-        color: var(--dark-text);
-    }
+/* ── MAP CARD ── */
+.map-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--md); overflow:hidden; margin-bottom:20px }
+.map-header { background:linear-gradient(90deg,var(--g700),var(--g600)); padding:15px 22px; display:flex; align-items:center; gap:10px }
+.map-header .hi { width:30px; height:30px; background:rgba(255,255,255,.18); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.85rem }
+.map-header h3 { font-size:.88rem; font-weight:600; color:#fff }
+.map-container { height:400px; position:relative }
+#googleMap { width:100%; height:100% }
+.map-placeholder { background:linear-gradient(135deg,var(--g700),var(--g500)); height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; gap:12px }
+.map-placeholder i { font-size:2.5rem; opacity:.6 }
+.map-placeholder h5 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; margin:0 }
+.map-placeholder p { font-size:.82rem; opacity:.6; margin:0 }
+.map-legend-strip { display:grid; grid-template-columns:repeat(3,1fr); background:var(--g50); border-top:1px solid var(--bdr); padding:12px 20px }
+.map-legend-item { display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--tm) }
+.map-legend-item i { font-size:.9rem }
 
-    .form-control, .form-select {
-        border-radius: 10px;
-        border: 1px solid #e0e0e0;
-        padding: 0.65rem 1rem;
-        transition: all 0.25s;
-    }
+/* ── RIGHT SIDEBAR ── */
+.sidebar-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--md); overflow:hidden; margin-bottom:18px }
+.sc-header { padding:15px 20px; display:flex; align-items:center; gap:9px }
+.sc-header.green { background:linear-gradient(90deg,var(--g600),var(--g400)) }
+.sc-header .hi { width:30px; height:30px; background:rgba(255,255,255,.18); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.83rem }
+.sc-header h3 { font-size:.87rem; font-weight:600; color:#fff }
+.sc-body { padding:18px 20px }
 
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
-    }
+/* Best market highlight */
+.best-mkt-hero { text-align:center; padding:16px; background:var(--g50); border-radius:10px; border:1px solid var(--g200); margin-bottom:16px }
+.best-mkt-label { font-size:.69rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--g500); margin-bottom:4px }
+.best-mkt-name { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:var(--g600); margin-bottom:2px }
+.best-mkt-sub { font-size:.77rem; color:var(--tmut) }
 
-    .btn-info {
-        background: linear-gradient(135deg, var(--accent-color), #006c9a);
-        border: none;
-        color: white;
-        border-radius: 10px;
-        padding: 0.75rem 1.25rem;
-        transition: all 0.3s;
-    }
+/* Ranking cards */
+.rank-card { border-radius:10px; padding:14px 15px; margin-bottom:10px; border-left:4px solid transparent; transition:all .25s }
+.rank-card:hover { transform:translateX(3px); box-shadow:var(--sm) }
+.rank-card:last-child { margin-bottom:0 }
+.rank-1 { background:#fffbea; border-left-color:#f59e0b }
+.rank-2 { background:var(--g50); border-left-color:var(--g300) }
+.rank-3 { background:#fff7ed; border-left-color:#f97316 }
+.rank-rest { background:var(--g50); border-left-color:var(--bdr) }
+.rank-top-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
+.rank-badge { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:800; flex-shrink:0; margin-right:8px }
+.rb-1 { background:#f59e0b; color:#fff }
+.rb-2 { background:var(--g400); color:#fff }
+.rb-3 { background:#f97316; color:#fff }
+.rb-r { background:var(--bdr); color:var(--tm) }
+.rank-mkt-name { font-weight:700; font-size:.9rem; color:var(--td); flex:1 }
+.rank-expl { font-size:.77rem; color:var(--tmut); line-height:1.55; margin-bottom:8px }
+.rank-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px }
+.rank-meta-cell { font-size:.73rem }
+.rank-meta-cell .lbl { color:var(--tmut); display:block; margin-bottom:1px }
+.rank-meta-cell .val { font-weight:700; color:var(--td) }
+.val-pos { color:var(--g500)!important }
+.val-neg { color:#e53e3e!important }
+.price-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(6,182,212,.1); color:#0e7490; border:1px solid rgba(6,182,212,.25); border-radius:100px; font-size:.7rem; font-weight:600; padding:3px 10px }
+.dist-badge { display:inline-flex; align-items:center; gap:5px; background:var(--g100); color:var(--g600); border:1px solid var(--g200); border-radius:100px; font-size:.7rem; font-weight:600; padding:3px 10px; margin-left:5px }
 
-    .btn-info:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-    }
+/* Summary strip */
+.summary-strip { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid var(--g100) }
+.summary-cell { background:var(--g50); border-radius:8px; padding:10px 12px }
+.summary-cell .lbl { font-size:.69rem; color:var(--tmut); display:block; margin-bottom:2px }
+.summary-cell .val { font-weight:700; font-size:.88rem; color:var(--td) }
 
-    .btn-secondary {
-        background: linear-gradient(135deg, #757575, #616161);
-        border: none;
-        color: white;
-        border-radius: 10px;
-        padding: 0.75rem 1.25rem;
-    }
+/* ── ALL RECS TABLE ── */
+.table-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--md); overflow:hidden; margin-top:20px }
+.tc-header { background:linear-gradient(90deg,var(--g700),var(--g500)); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px }
+.tc-header-left { display:flex; align-items:center; gap:10px }
+.tc-header .hi { width:32px; height:32px; background:rgba(255,255,255,.15); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.88rem }
+.tc-header h3 { font-size:.92rem; font-weight:700; color:#fff }
+.tc-badge { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); color:#fff; border-radius:20px; padding:3px 11px; font-size:.7rem; font-weight:700 }
+.as-table { width:100%; border-collapse:collapse; font-size:.82rem }
+.as-table thead tr { border-bottom:2px solid var(--bdr) }
+.as-table thead th { background:var(--g50); color:var(--g600); font-weight:700; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; padding:12px 16px; text-align:left; white-space:nowrap }
+.as-table thead th:first-child { width:64px; text-align:center }
+.as-table tbody td { padding:13px 16px; border-bottom:1px solid rgba(205,232,205,.5); color:var(--td); vertical-align:middle }
+.as-table tbody tr:last-child td { border-bottom:none }
+.as-table tbody tr { transition:background .15s }
+.as-table tbody tr:hover td { background:rgba(240,250,240,.7) }
+/* Rank badge */
+.rb { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; font-size:.72rem; font-weight:800; margin:auto }
+.rb-1 { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; box-shadow:0 2px 6px rgba(245,158,11,.4) }
+.rb-2 { background:linear-gradient(135deg,#94a3b8,#64748b); color:#fff; box-shadow:0 2px 6px rgba(100,116,139,.3) }
+.rb-3 { background:linear-gradient(135deg,#b45309,#92400e); color:#fff; box-shadow:0 2px 6px rgba(180,83,9,.3) }
+.rb-rest { background:var(--g100); color:var(--g600); font-size:.7rem }
+/* Market name cell */
+.mkt-name { font-weight:700; color:var(--td); font-size:.85rem }
+.mkt-rank-label { display:none }
+/* Price / distance chips in table */
+.tbl-chip { display:inline-flex; align-items:center; gap:4px; font-size:.75rem; font-weight:500; color:var(--tm) }
+/* Net revenue pill */
+.net-pill { display:inline-flex; align-items:center; gap:5px; border-radius:6px; padding:4px 10px; font-size:.8rem; font-weight:700 }
+.net-pill.pos { background:rgba(52,145,47,.1); color:var(--g600) }
+.net-pill.neg { background:rgba(239,68,68,.08); color:#dc2626 }
+/* Explanation cell — truncated with tooltip */
+.expl-cell { font-size:.73rem; color:var(--tmut); line-height:1.4; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help }
+.as-table thead th:last-child, .as-table tbody td:last-child { max-width:200px }
+.as-table tbody tr:nth-child(1) td:first-child { border-left:3px solid #f59e0b }
+.as-table tbody tr:nth-child(2) td:first-child { border-left:3px solid #94a3b8 }
+.as-table tbody tr:nth-child(3) td:first-child { border-left:3px solid #b45309 }
+.as-table tbody tr:nth-child(n+4) td:first-child { border-left:3px solid var(--bdr) }
+/* Compact row height */
+.as-table tbody td { padding:10px 14px }
 
-    .form-section {
-        margin-bottom: 1.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid #dee2e6;
-    }
+/* ── ANIMATIONS ── */
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.animate-in { animation:fadeUp .45s ease both }
 
-    .form-section legend {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #495057;
-    }
+/* ── RESPONSIVE ── */
+@media(max-width:1024px) { .page-grid { grid-template-columns:1fr } }
+@media(max-width:768px) { .fields-grid.c2,.fields-grid.c3 { grid-template-columns:1fr 1fr } .hero-steps { display:none } }
+@media(max-width:540px) { .fields-grid.c2,.fields-grid.c3 { grid-template-columns:1fr } .container { padding:0 16px } }
 
-    .calculation-note {
-        font-size: 0.875rem;
-        color: #6c757d;
-        font-style: italic;
-        margin-top: 0.5rem;
-    }
-
-    .required-field::after {
-        content: " *";
-        color: #dc3545;
-    }
-
-    .ranking-card {
-        transition: all 0.3s;
-        border-left: 5px solid transparent;
-    }
-
-    .ranking-card:hover {
-        transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .rank-1 { border-left-color: gold; background-color: #fff9e6; }
-    .rank-2 { border-left-color: silver; background-color: #f8f9fa; }
-    .rank-3 { border-left-color: #cd7f32; background-color: #fef8e7; }
-
-    .map-container {
-        height: 400px;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .map-placeholder {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
-    #googleMap {
-        width: 100%;
-        height: 100%;
-    }
+/* ── GPS LOCATION PANEL ── */
+.location-panel { background:linear-gradient(135deg,var(--g700),var(--g600)); border-radius:12px; padding:20px; margin-top:4px }
+.location-panel-label { font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--g200); margin-bottom:14px; display:flex; align-items:center; gap:8px }
+.location-panel .form-label { color:rgba(255,255,255,.7) }
+.location-panel .form-control { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#fff }
+.location-panel .form-control:focus { border-color:var(--g300); background:rgba(255,255,255,.12); box-shadow:0 0 0 3px rgba(76,190,108,.2) }
+.location-panel .form-control::placeholder { color:rgba(255,255,255,.3) }
+.loc-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-bottom:14px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:8px; padding:10px 16px; font-family:'DM Sans',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s }
+.loc-btn:hover:not(:disabled) { background:rgba(255,255,255,.22) }
+.loc-btn:disabled { opacity:.7; cursor:wait }
+.loc-btn.loc-success { background:rgba(74,222,128,.2); border-color:rgba(74,222,128,.45) }
+.loc-name-card { display:none; margin-bottom:14px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:13px 14px }
+.loc-name-inner { display:flex; align-items:flex-start; gap:10px }
+.loc-pin-icon { width:32px; height:32px; flex-shrink:0; background:rgba(122,182,72,.25); border:1px solid rgba(122,182,72,.4); border-radius:8px; display:flex; align-items:center; justify-content:center }
+.loc-pin-icon i { color:#7ab648; font-size:.85rem }
+.loc-text { flex:1; min-width:0 }
+.loc-place-name { font-size:.9rem; font-weight:700; color:#fff; margin-bottom:3px; line-height:1.35 }
+.loc-sub-name { font-size:.75rem; color:rgba(255,255,255,.55); line-height:1.4; margin-bottom:8px }
+.loc-coords-row { display:flex; gap:14px; flex-wrap:wrap }
+.loc-coord-chip { display:flex; align-items:center; gap:4px; font-size:.72rem; color:rgba(255,255,255,.5) }
+.loc-coord-chip i { color:#7ab648; font-size:.7rem }
+.loc-coord-chip strong { color:rgba(255,255,255,.85); margin-left:1px }
+.loc-status { display:none; font-size:.78rem; border-radius:8px; padding:9px 13px; margin-bottom:12px; color:#fff }
+.loc-status.loc-error { background:rgba(248,113,113,.15); border:1px solid rgba(248,113,113,.35) }
 </style>
 <!-- Leaflet (OpenStreetMap) - no API key needed -->
 <link
@@ -200,29 +232,45 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- ═══════════  HERO  ═══════════ -->
 <div class="page-hero">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start">
-        <div>
-            <h2 class="mb-2"><i class="fas fa-map-marked-alt me-2"></i>Market Opportunity Ranking</h2>
-            <p class="mb-0">Find the best markets based on predicted prices, transport cost and your selected quantity. The recommendations are ordered by the highest savings.</p>
+  <div class="hero-glow"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div class="animate-in">
+        <div class="hero-badge"><i class="fas fa-map-marked-alt"></i> Geo-Optimized</div>
+        <h1>Market Opportunity<br><em>Ranking</em></h1>
+        <p>Find the best markets based on predicted prices, transport cost, and your selected quantity — ordered by highest net advantage.</p>
+      </div>
+      <div class="animate-in" style="animation-delay:.12s">
+        <div class="hero-steps">
+          <strong>Select role</strong> → <strong>Enter values</strong> → <strong>Get results</strong>
         </div>
-        <div class="mt-3 mt-md-0">
-            <span class="badge bg-white text-success py-2 px-3 shadow-sm">Select role → Enter values → Get results</span>
-        </div>
+      </div>
     </div>
+  </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <h3 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Market Opportunity Ranking</h3>
-            </div>
-            <div class="card-body">
-                {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                {% endif %}
+<!-- ═══════════  PAGE BODY  ═══════════ -->
+<div class="page-body">
+  <div class="container">
+    <div class="page-grid">
 
+      <!-- ══ LEFT COLUMN ══ -->
+      <div>
+
+        <!-- FORM CARD -->
+        <div class="form-card animate-in">
+          <div class="fc-header">
+            <div class="fc-header-left">
+              <div class="hi"><i class="fas fa-sliders-h"></i></div>
+              <h3>Market Search Parameters</h3>
+            </div>
+          </div>
+          <div class="fc-body">
+
+<<<<<<< HEAD
                 <form method="POST" id="rankingForm">
                     <!-- Role Selection Section -->
                     <div class="form-section">
@@ -434,146 +482,382 @@
                         </button>
                     </div>
                 </form>
+=======
+            {% if error %}
+            <div class="error-alert">
+              <i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>{{ error }}
+>>>>>>> main
             </div>
-        </div>
+            {% endif %}
 
-        <!-- Market Locations Card -->
-        <div class="card mb-4">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-map me-2"></i>Market Locations</h5>
-            </div>
-            <div class="card-body p-0">
-                <div id="map" class="map-container">
-                    <div id="googleMap"></div>
-                    <div class="map-placeholder" id="mapPlaceholder">
-                        <i class="fas fa-map-marked-alt fa-4x mb-3"></i>
-                        <h5>Market Locations Map</h5>
-                        <p class="mb-0">Select a location to view on Google Maps</p>
-                    </div>
-                </div>
-                <div class="card-footer bg-light">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <i class="fas fa-map-pin text-danger me-2"></i>
-                            <small>Your Location</small>
-                        </div>
-                        <div class="col-4">
-                            <i class="fas fa-shopping-cart text-success me-2"></i>
-                            <small>Market Locations</small>
-                        </div>
-                        <div class="col-4">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <small>Google Maps</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <form method="POST" id="rankingForm">
 
-    <div class="col-lg-4">
-        <!-- Results Section -->
-        {% if recommendations %}
-        <div id="recommendationsSection">
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-trophy me-2"></i>
-                        {% if form_data and form_data.user_role == 'buyer' %}
-                        Top Market Recommendations for Buyers
-                        {% elif form_data and form_data.user_role == 'seller' %}
-                        Top Market Recommendations for Sellers
-                        {% else %}
-                        Top Recommendations
+              <!-- Role -->
+              <div class="fsec-title"><i class="fas fa-user-tag"></i> Role Selection</div>
+              <div class="fields-grid c2" style="margin-bottom:20px;">
+                <div class="fg">
+                  <label class="form-label req">Your Role</label>
+                  <select class="form-select" name="user_role" id="user_role" required
+                          onchange="toggleCostField();updateSectionTitles();">
+                    <option value="">Select Role</option>
+                    <option value="buyer"  {% if form_data and form_data.user_role=='buyer'  %}selected{% endif %}>Buyer</option>
+                    <option value="seller" {% if form_data and form_data.user_role=='seller' %}selected{% endif %}>Seller</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="sec-divider"></div>
+
+              <!-- Costs -->
+              <div class="fsec-title"><i class="fas fa-coins"></i> Cost Information</div>
+              <div class="fields-grid c2" style="margin-bottom:14px;">
+                <div class="fg">
+                  <label class="form-label req">Transport Cost <span style="font-weight:400;color:var(--tmut)">(Rs./km)</span></label>
+                  <input type="number" class="form-control" name="transport_cost" id="transport_cost"
+                         step="0.1" min="1" max="1000" required
+                         value="{% if form_data %}{{ form_data.transport_cost }}{% else %}160{% endif %}">
+                  <span class="form-hint">Default: Rs.160 per km</span>
+                </div>
+                <div class="fg">
+                  <label class="form-label">Additional Transport Cost <span style="font-weight:400;color:var(--tmut)">(Rs.)</span></label>
+                  <input type="number" class="form-control" name="additional_transport_cost" id="additional_transport_cost"
+                         step="0.1" min="0" max="1000000"
+                         value="{% if form_data %}{{ form_data.additional_transport_cost|default(0) }}{% else %}0{% endif %}">
+                  <span class="form-hint">Fixed extra charge (e.g. refrigerated vehicle)</span>
+                </div>
+              </div>
+              <div class="fields-grid c2">
+                <div class="fg" id="cultivation_cost_container">
+                  <label class="form-label" id="cultivation_cost_label">Total Cost <span style="font-weight:400;color:var(--tmut)">(Cultivation)</span></label>
+                  <input type="number" class="form-control" name="cultivation_cost" id="cultivation_cost"
+                         step="0.1" min="0" max="1000000"
+                         value="{% if form_data %}{{ form_data.cultivation_cost }}{% else %}0{% endif %}"
+                         placeholder="Required for Sellers only">
+                  <span class="form-hint" id="cultivation_cost_note">Required only for Sellers</span>
+                </div>
+                <div class="fg">
+                  <label class="form-label">Current Market Price <span style="font-weight:400;color:var(--tmut)">(Rs./kg)</span></label>
+                  <input type="number" class="form-control" name="reference_price" id="reference_price"
+                         step="0.01" min="0"
+                         value="{% if form_data %}{{ form_data.get('reference_price','') }}{% endif %}"
+                         placeholder="Optional — improves accuracy">
+                  <span class="form-hint">Enter today's price if you know it</span>
+                </div>
+              </div>
+
+              <div class="sec-divider"></div>
+
+              <!-- Item & Quantity -->
+              <div class="fsec-title" id="quantity_section_title"><i class="fas fa-box-open"></i>
+                {% if form_data and form_data.user_role=='buyer' %}Target Item &amp; Quantity — Buyers
+                {% elif form_data and form_data.user_role=='seller' %}Target Item &amp; Quantity — Sellers
+                {% else %}Target Item &amp; Quantity{% endif %}
+              </div>
+              <div class="fields-grid c2" style="margin-bottom:14px;">
+                <div class="fg">
+                  <label class="form-label req">Item</label>
+                  <select class="form-select" name="item" id="item" required>
+                    <option value="">Select Item</option>
+                    {% for category, data in items.items() %}
+                      <optgroup label="{{ category }}">
+                        {% for item in data.local %}
+                          <option value="{{ item }}" {% if form_data and form_data.item==item %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                        {% if data.imported %}
+                          {% for item in data.imported %}
+                            <option value="{{ item }}" {% if form_data and form_data.item==item %}selected{% endif %}>{{ item }} (Imp)</option>
+                          {% endfor %}
                         {% endif %}
-                    </h4>
+                      </optgroup>
+                    {% endfor %}
+                  </select>
                 </div>
-                <div class="card-body">
-                <div class="text-center mb-4">
-                    <h5>Best Market</h5>
-                    <h2 class="text-success">{{ recommendations.best_market }}</h2>
-                    <p class="text-muted">Out of {{ recommendations.total_markets }} markets analyzed</p>
+                <div class="fg">
+                  <label class="form-label req">Price Type</label>
+                  <select class="form-select" name="price_type" required>
+                    <option value="Wholesale" {% if form_data and form_data.price_type=='Wholesale' %}selected{% endif %}>Wholesale</option>
+                    <option value="Retail"    {% if form_data and form_data.price_type=='Retail'    %}selected{% endif %}>Retail</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid c2" style="margin-bottom:12px;">
+                <div class="fg">
+                  <label class="form-label req">Quantity Unit</label>
+                  <select class="form-select" name="quantity_unit" id="quantity_unit" required>
+                    <option value="kg" {% if form_data and form_data.quantity_unit=='kg' %}selected{% endif %}>Kilogram (kg)</option>
+                    <option value="g"  {% if form_data and form_data.quantity_unit=='g'  %}selected{% endif %}>Gram (g)</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="form-label req">Quantity</label>
+                  <input type="number" class="form-control" name="quantity" id="quantity"
+                         step="0.01" min="0.01" max="10000" required
+                         value="{% if form_data %}{{ form_data.quantity }}{% else %}1{% endif %}"
+                         placeholder="Enter quantity">
+                </div>
+              </div>
+              <div class="calc-note">
+                <i class="fas fa-calculator"></i>
+                <span id="calculation_formula">
+                  {% if form_data and form_data.user_role=='buyer' %}For Buyers: Net Advantage = (Most expensive market cost) − (Predicted Price × Qty + Transport)
+                  {% elif form_data and form_data.user_role=='seller' %}For Sellers: Net Advantage = (Predicted Price × Qty) − (Cultivation + Transport Costs)
+                  {% else %}Select your role to see the calculation formula{% endif %}
+                </span>
+              </div>
+
+              <div class="sec-divider"></div>
+
+              <!-- Location -->
+              <div class="fsec-title"><i class="fas fa-map-marker-alt"></i> Your Location</div>
+              <p style="font-size:.82rem;color:var(--tmut);margin-bottom:12px;">Select your location using the dropdowns below, or use GPS to auto-fill coordinates.</p>
+
+              <div class="fields-grid c3" style="margin-bottom:14px;">
+                <div class="fg">
+                  <label class="form-label">Province</label>
+                  <select class="form-select" name="province" id="province" onchange="updateDistricts()" disabled>
+                    <option value="">Select Province</option>
+                    {% for province in provinces %}
+                      <option value="{{ province }}">{{ province }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="form-label">District</label>
+                  <select class="form-select" name="district" id="district" onchange="updateDSDivisions()" disabled>
+                    <option value="">Select District</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="form-label">DS Division</label>
+                  <select class="form-select" name="ds_division" id="ds_division" onchange="updateCoordinates()" disabled>
+                    <option value="">Select DS Division</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="location-panel">
+                <div class="location-panel-label"><i class="fas fa-crosshairs"></i> GPS Coordinates</div>
+
+                <!-- Live location button -->
+                <button type="button" id="locBtn" class="loc-btn" onclick="getLiveLocation()">
+                  <i class="fas fa-location-arrow" id="locBtnIcon"></i>
+                  <span id="locBtnText">Use My Current Location</span>
+                </button>
+
+                <!-- Location name card (shown after GPS success) -->
+                <div class="loc-name-card" id="locNameCard">
+                  <div class="loc-name-inner">
+                    <div class="loc-pin-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="loc-text">
+                      <div class="loc-place-name" id="locPlaceName"></div>
+                      <div class="loc-sub-name" id="locSubName"></div>
+                      <div class="loc-coords-row">
+                        <span class="loc-coord-chip"><i class="fas fa-arrows-alt-v"></i> Lat: <strong id="locLatDisplay"></strong></span>
+                        <span class="loc-coord-chip"><i class="fas fa-arrows-alt-h"></i> Lon: <strong id="locLonDisplay"></strong></span>
+                        <span class="loc-coord-chip"><i class="fas fa-bullseye"></i> <strong id="locAccDisplay"></strong></span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Top 3 Markets -->
-                {% for rec in recommendations.recommendations[:3] %}
-                <div class="card ranking-card rank-{{ rec.rank }} mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h5 class="mb-1">
-                                    <span class="badge {% if rec.rank == 1 %}bg-warning{% elif rec.rank == 2 %}bg-secondary{% else %}bg-danger{% endif %} me-2">
-                                        #{{ rec.rank }}
-                                    </span>
-                                    {{ rec.market }}
-                                </h5>
-                                <div class="mb-2">
-                                    <span class="badge bg-info me-2">
-                                        Price: Rs. {{ rec.predicted_price }}/kg
-                                    </span>
-                                    <span class="badge bg-dark">
-                                        Distance: {{ rec.distance_km }} km
-                                    </span>
-                                </div>
-                                <p class="mb-1 small">{{ rec.explanation }}</p>
-                            </div>
-                        </div>
+                <!-- Error / status message -->
+                <div class="loc-status" id="locStatus"></div>
 
-                        <div class="row mt-2">
-                            <div class="col-6">
-                                <small class="text-muted">Transport Cost</small><br>
-                                <strong>Rs. {{ rec.transport_cost }}</strong>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">
-                                    {% if form_data and form_data.user_role == 'buyer' %}
-                                    Net Advantage
-                                    {% else %}
-                                    Net Revenue
-                                    {% endif %}
-                                </small><br>
-                                <strong class="{% if rec.net_advantage >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                    Rs. {{ rec.net_advantage }}
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Coordinate inputs (auto-filled by GPS or dropdown) -->
+                <div class="fields-grid c2">
+                  <div class="fg">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" class="form-control" name="latitude" id="latitude"
+                           step="0.000001" required readonly
+                           value="{% if form_data %}{{ form_data.latitude }}{% else %}7.2906{% endif %}">
+                  </div>
+                  <div class="fg">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" class="form-control" name="longitude" id="longitude"
+                           step="0.000001" required readonly
+                           value="{% if form_data %}{{ form_data.longitude }}{% else %}80.6337{% endif %}">
+                  </div>
                 </div>
-                {% endfor %}
+              </div>
 
-                <!-- Summary Statistics -->
-                <div class="mt-4 pt-3 border-top">
-                    <h6>Summary</h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Average Price</small><br>
-                            <strong>
-                                Rs. {{ "%.2f"|format(recommendations.recommendations|map(attribute='predicted_price')|sum / recommendations.recommendations|length) }}/kg
-                            </strong>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted">Average Distance</small><br>
-                            <strong>
-                                {{ "%.1f"|format(recommendations.recommendations|map(attribute='distance_km')|sum / recommendations.recommendations|length) }} km
-                            </strong>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <small class="text-muted">Quantity</small><br>
-                            <strong>
-                                {{ form_data.quantity if form_data else 1 }}
-                                {{ form_data.quantity_unit if form_data else 'kg' }}
-                                ({{ recommendations.quantity_kg|default((form_data.quantity|float if form_data and form_data.quantity else 1)) }} kg)
-                            </strong>
-                        </div>
-                    </div>
-                </div>
+              <div class="form-actions" style="margin-top:22px;">
+                <button type="submit" class="btn-submit">
+                  <i class="fas fa-search"></i> Find Best Markets
+                </button>
+                <button type="button" class="btn-reset" onclick="resetFormAndResults()">
+                  <i class="fas fa-eraser"></i> Clear / Reset
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+        <!-- /FORM CARD -->
+
+        <!-- MAP CARD -->
+        <div class="map-card animate-in" style="animation-delay:.1s;">
+          <div class="map-header">
+            <div class="hi"><i class="fas fa-map"></i></div>
+            <h3>Market Locations Map</h3>
+          </div>
+          <div class="map-container">
+            <div id="googleMap"></div>
+            <div class="map-placeholder" id="mapPlaceholder">
+              <i class="fas fa-map-marked-alt"></i>
+              <h5>Market Locations</h5>
+              <p>Select a location to view routes on the map</p>
             </div>
+          </div>
+          <div class="map-legend-strip">
+            <div class="map-legend-item"><i class="fas fa-map-pin" style="color:#ef4444;"></i> Your Location</div>
+            <div class="map-legend-item"><i class="fas fa-shopping-cart" style="color:var(--g500);"></i> Market Locations</div>
+            <div class="map-legend-item"><i class="fas fa-route" style="color:#f59e0b;"></i> Best Route</div>
+          </div>
+        </div>
+        <!-- /MAP CARD -->
+
+        <!-- ALL RECS TABLE -->
+        <!-- /ALL RECS TABLE moved below grid -->
+
+      </div>
+      <!-- /LEFT COLUMN -->
+
+      <!-- ══ RIGHT SIDEBAR ══ -->
+      <div>
+        {% if recommendations %}
+        <div class="sidebar-card animate-in" id="recommendationsSection">
+          <div class="sc-header green">
+            <div class="hi"><i class="fas fa-trophy"></i></div>
+            <h3>Top Recommendations{% if form_data and form_data.user_role %} — {{ form_data.user_role|title }}s{% endif %}</h3>
+          </div>
+          <div class="sc-body">
+
+            <div class="best-mkt-hero">
+              <div class="best-mkt-label">Best Market</div>
+              <div class="best-mkt-name">{{ recommendations.best_market }}</div>
+              <div class="best-mkt-sub">Out of {{ recommendations.total_markets }} markets analyzed</div>
+            </div>
+
+            {% for rec in recommendations.recommendations[:3] %}
+            <div class="rank-card rank-{% if rec.rank <= 3 %}{{ rec.rank }}{% else %}rest{% endif %}">
+              <div class="rank-top-row">
+                <span class="rank-badge rb-{% if rec.rank==1 %}1{% elif rec.rank==2 %}2{% else %}3{% endif %}">{{ rec.rank }}</span>
+                <span class="rank-mkt-name">{{ rec.market }}</span>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+                <span class="price-badge"><i class="fas fa-tag"></i> Rs.{{ rec.predicted_price }}/kg</span>
+                <span class="dist-badge"><i class="fas fa-route"></i> {{ rec.distance_km }} km</span>
+              </div>
+              <p class="rank-expl">{{ rec.explanation }}</p>
+              <div class="rank-meta">
+                <div class="rank-meta-cell">
+                  <span class="lbl">Transport</span>
+                  <span class="val">Rs. {{ rec.transport_cost }}</span>
+                </div>
+                <div class="rank-meta-cell">
+                  <span class="lbl">{% if form_data and form_data.user_role=='buyer' %}Net Advantage{% else %}Net Revenue{% endif %}</span>
+                  <span class="val {% if rec.net_advantage >= 0 %}val-pos{% else %}val-neg{% endif %}">Rs. {{ rec.net_advantage }}</span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+
+            <div class="summary-strip">
+              <div class="summary-cell">
+                <span class="lbl">Avg. Price</span>
+                <span class="val">Rs. {{ "%.2f"|format(recommendations.recommendations|map(attribute='predicted_price')|sum / recommendations.recommendations|length) }}/kg</span>
+              </div>
+              <div class="summary-cell">
+                <span class="lbl">Avg. Distance</span>
+                <span class="val">{{ "%.1f"|format(recommendations.recommendations|map(attribute='distance_km')|sum / recommendations.recommendations|length) }} km</span>
+              </div>
+              <div class="summary-cell" style="grid-column:span 2;">
+                <span class="lbl">Quantity Analyzed</span>
+                <span class="val">{{ form_data.quantity if form_data else 1 }} {{ form_data.quantity_unit if form_data else 'kg' }} ({{ recommendations.quantity_kg|default((form_data.quantity|float if form_data and form_data.quantity else 1)) }} kg)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div style="background:var(--white);border:2px dashed var(--g200);border-radius:var(--r);padding:48px 28px;text-align:center;" class="animate-in">
+          <div style="width:60px;height:60px;background:var(--g100);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--g500);margin:0 auto 14px;">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <h4 style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--td);margin-bottom:7px;">Results appear here</h4>
+          <p style="font-size:.84rem;color:var(--tmut);line-height:1.6;">Fill in the form and click <strong>Find Best Markets</strong> to see ranked market recommendations.</p>
         </div>
         {% endif %}
+      </div>
+      <!-- /RIGHT SIDEBAR -->
+
     </div>
+    <!-- /page-grid -->
+
+    <!-- ══ FULL-WIDTH ALL RECS TABLE ══ -->
+    {% if recommendations and recommendations.recommendations|length > 3 %}
+    <div class="table-card animate-in" id="allRecommendationsSection" style="margin-top:24px;">
+      <div class="tc-header">
+        <div class="tc-header-left">
+          <div class="hi"><i class="fas fa-list-ol"></i></div>
+          <h3>All Market Recommendations{% if form_data and form_data.user_role %} — {{ form_data.user_role|title }}s{% endif %}</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="tc-badge"><i class="fas fa-map-marker-alt" style="margin-right:4px;"></i>{{ recommendations.recommendations|length }} Markets</span>
+          <button id="downloadPdfBtn" onclick="downloadResultsPdf()" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.32)'" onmouseout="this.style.background='rgba(255,255,255,.2)'">
+            <i class="fas fa-file-pdf"></i> Download PDF
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="as-table">
+          <thead>
+            <tr>
+              <th style="text-align:center;">Rank</th>
+              <th>Market</th>
+              <th>Price (Rs/kg)</th>
+              <th>Distance</th>
+              <th>Transport (Rs)</th>
+              <th>{% if form_data and form_data.user_role=='buyer' %}Net Advantage{% else %}Net Revenue{% endif %} (Rs)</th>
+              <th style="width:100%;">Explanation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in recommendations.recommendations %}
+            <tr>
+              <td style="text-align:center;">
+                <span class="rb {% if rec.rank==1 %}rb-1{% elif rec.rank==2 %}rb-2{% elif rec.rank==3 %}rb-3{% else %}rb-rest{% endif %}">
+                  {{ rec.rank }}
+                </span>
+              </td>
+              <td>
+                <div class="mkt-name"><i class="fas fa-store" style="color:var(--g400);margin-right:6px;font-size:.78rem;"></i>{{ rec.market }}</div>
+              </td>
+              <td><span class="tbl-chip"><i class="fas fa-tag" style="color:var(--g400);"></i> Rs. {{ rec.predicted_price }}</span></td>
+              <td><span class="tbl-chip"><i class="fas fa-route" style="color:var(--g400);"></i> {{ rec.distance_km }} km</span></td>
+              <td><span class="tbl-chip"><i class="fas fa-truck" style="color:var(--tmut);"></i> Rs. {{ rec.transport_cost }}</span></td>
+              <td>
+                <span class="net-pill {% if rec.net_advantage >= 0 %}pos{% else %}neg{% endif %}">
+                  {% if rec.net_advantage >= 0 %}<i class="fas fa-arrow-up"></i>{% else %}<i class="fas fa-arrow-down"></i>{% endif %}
+                  Rs. {{ rec.net_advantage }}
+                </span>
+              </td>
+              <td><div class="expl-cell" style="max-width:none;white-space:normal;">{{ rec.explanation }}</div></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    <!-- /FULL-WIDTH ALL RECS TABLE -->
+
+  </div>
 </div>
 
+<<<<<<< HEAD
 <!-- All Recommendations Table -->
 {% if recommendations and recommendations.recommendations|length > 3 %}
 <div id="allRecommendationsSection">
@@ -646,407 +930,34 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
   crossorigin=""
 ></script>
+=======
+<!-- Page data for JS -->
+<div id="marketRankingData"
+     data-recommendations='{{ recommendations|tojson|safe if recommendations else "null" }}'
+     data-form-data='{{ form_data|tojson|safe if form_data else "null" }}'></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+>>>>>>> main
 <script>
-// Province, district and DS division data structure
-const locationData = {
-    "Western Province": {
-        "Colombo District": {
-            "Colombo": {"lat": 6.9271, "lon": 79.8612},
-            "Thimbirigasyaya": {"lat": 6.8900, "lon": 79.8700},
-            "Dehiwala": {"lat": 6.8567, "lon": 79.8633},
-            "Ratmalana": {"lat": 6.8200, "lon": 79.8850},
-            "Moratuwa": {"lat": 6.7833, "lon": 79.8833},
-            "Sri Jayawardenepura Kotte": {"lat": 6.9100, "lon": 79.8950},
-            "Maharagama": {"lat": 6.8500, "lon": 79.9250},
-            "Kesbewa": {"lat": 6.8700, "lon": 79.9400},
-            "Kaduwela": {"lat": 6.9300, "lon": 79.9800},
-            "Homagama": {"lat": 6.8400, "lon": 80.0200},
-            "Kolonnawa": {"lat": 6.9200, "lon": 79.9050},
-            "Seethawaka": {"lat": 6.9500, "lon": 80.1500},
-            "Padukka": {"lat": 6.8300, "lon": 80.0900}
-        },
-        "Gampaha District": {
-            "Gampaha": {"lat": 7.0916, "lon": 79.9997},
-            "Minuwangoda": {"lat": 7.1667, "lon": 79.9500},
-            "Divulapitiya": {"lat": 7.2500, "lon": 80.0000},
-            "Mirigama": {"lat": 7.2333, "lon": 80.1167},
-            "Attanagalla": {"lat": 7.1167, "lon": 80.1500},
-            "Negombo": {"lat": 7.2083, "lon": 79.8358},
-            "Katana": {"lat": 7.2500, "lon": 79.9000},
-            "Wattala": {"lat": 6.9833, "lon": 79.8833},
-            "Ja-Ela": {"lat": 7.0833, "lon": 79.9000},
-            "Mahara": {"lat": 7.1500, "lon": 80.0500},
-            "Dompe": {"lat": 7.0000, "lon": 80.0500},
-            "Biyagama": {"lat": 6.9500, "lon": 80.0000},
-            "Kelaniya": {"lat": 6.9500, "lon": 79.9167}
-        },
-        "Kalutara District": {
-            "Kalutara": {"lat": 6.5831, "lon": 79.9597},
-            "Panadura": {"lat": 6.7133, "lon": 79.9042},
-            "Bandaragama": {"lat": 6.7167, "lon": 79.9833},
-            "Horana": {"lat": 6.7167, "lon": 80.0667},
-            "Mathugama": {"lat": 6.5167, "lon": 80.1167},
-            "Walallawita": {"lat": 6.6500, "lon": 80.2500},
-            "Beruwala": {"lat": 6.4667, "lon": 79.9833},
-            "Dodangoda": {"lat": 6.5833, "lon": 80.1333},
-            "Bulathsinhala": {"lat": 6.6667, "lon": 80.1833},
-            "Madurawela": {"lat": 6.6333, "lon": 80.2167},
-            "Millaniya": {"lat": 6.7500, "lon": 80.0500},
-            "Palindanuwara": {"lat": 6.5500, "lon": 80.3500},
-            "Agalawatta": {"lat": 6.5500, "lon": 80.1667}
-        }
-    },
-    "Central Province": {
-        "Kandy District": {
-            "Kandy": {"lat": 7.2964, "lon": 80.6350},
-            "Udunuwara": {"lat": 7.2333, "lon": 80.6833},
-            "Yatinuwara": {"lat": 7.2833, "lon": 80.5667},
-            "Pathadumbara": {"lat": 7.3167, "lon": 80.7167},
-            "Udapalatha": {"lat": 7.1833, "lon": 80.7667},
-            "Ganga Ihala Korale": {"lat": 7.3333, "lon": 80.5167},
-            "Harispattuwa": {"lat": 7.2667, "lon": 80.6000},
-            "Poojapitiya": {"lat": 7.4000, "lon": 80.5667},
-            "Kundasale": {"lat": 7.2667, "lon": 80.7000},
-            "Minipe": {"lat": 7.2333, "lon": 80.8333},
-            "Panvila": {"lat": 7.1500, "lon": 80.6333},
-            "Udadumbara": {"lat": 7.3333, "lon": 80.7667},
-            "Delthota": {"lat": 7.1667, "lon": 80.7667},
-            "Hatharaliyadda": {"lat": 7.3167, "lon": 80.9333},
-            "Doluwa": {"lat": 7.2500, "lon": 80.8500},
-            "Medadumbara": {"lat": 7.2833, "lon": 80.8000},
-            "Thumpane": {"lat": 7.3667, "lon": 80.8833},
-            "Kothmale": {"lat": 7.0667, "lon": 80.5833},
-            "Pathahewaheta": {"lat": 7.2000, "lon": 80.9167}
-        },
-        "Matale District": {
-            "Matale": {"lat": 7.4717, "lon": 80.6242},
-            "Dambulla": {"lat": 7.8569, "lon": 80.6514},
-            "Pallepola": {"lat": 7.5167, "lon": 80.6833},
-            "Ukuwela": {"lat": 7.4167, "lon": 80.6333},
-            "Yatawatta": {"lat": 7.5500, "lon": 80.5833},
-            "Galewela": {"lat": 7.8667, "lon": 80.5833},
-            "Wilgamuwa": {"lat": 7.7167, "lon": 80.8333},
-            "Naula": {"lat": 7.7000, "lon": 80.6500},
-            "Rattota": {"lat": 7.5167, "lon": 80.7667},
-            "Palapathwela": {"lat": 7.5333, "lon": 80.7167},
-            "Laggala-Pallegama": {"lat": 7.6167, "lon": 80.8667}
-        },
-        "Nuwara Eliya District": {
-            "Nuwara Eliya": {"lat": 6.9706, "lon": 80.7828},
-            "Walapane": {"lat": 7.0333, "lon": 80.8667},
-            "Hanguranketha": {"lat": 7.1667, "lon": 80.7833},
-            "Ambagamuwa": {"lat": 6.9333, "lon": 80.5500},
-            "Kothmale": {"lat": 7.0833, "lon": 80.6333},
-            "Kotmale": {"lat": 7.1167, "lon": 80.7000},
-            "Maskeliya": {"lat": 6.8333, "lon": 80.5667}
-        }
-    },
-    "Southern Province": {
-        "Galle District": {
-            "Galle": {"lat": 6.0536, "lon": 80.2117},
-            "Akmeemana": {"lat": 6.0833, "lon": 80.3000},
-            "Ambalangoda": {"lat": 6.2333, "lon": 80.0500},
-            "Baddegama": {"lat": 6.1833, "lon": 80.1833},
-            "Balapitiya": {"lat": 6.2833, "lon": 80.0333},
-            "Benthota": {"lat": 6.4167, "lon": 80.0000},
-            "Bope-Poddala": {"lat": 6.1333, "lon": 80.2000},
-            "Elpitiya": {"lat": 6.2833, "lon": 80.1667},
-            "Habaraduwa": {"lat": 6.0333, "lon": 80.2833},
-            "Imaduwa": {"lat": 6.0667, "lon": 80.3667},
-            "Karandeniya": {"lat": 6.2500, "lon": 80.1167},
-            "Nagoda": {"lat": 6.2000, "lon": 80.2500},
-            "Neluwa": {"lat": 6.3667, "lon": 80.3833},
-            "Niyagama": {"lat": 6.2333, "lon": 80.2167},
-            "Thawalama": {"lat": 6.3333, "lon": 80.3000},
-            "Welivitiya-Divithura": {"lat": 6.4667, "lon": 80.0833},
-            "Yakkalamulla": {"lat": 6.1167, "lon": 80.3333}
-        },
-        "Matara District": {
-            "Matara": {"lat": 5.9483, "lon": 80.5353},
-            "Akuressa": {"lat": 6.0833, "lon": 80.4667},
-            "Athuraliya": {"lat": 6.0667, "lon": 80.6167},
-            "Devinuwara": {"lat": 5.9333, "lon": 80.5833},
-            "Dickwella": {"lat": 6.1167, "lon": 80.7000},
-            "Hakmana": {"lat": 6.0833, "lon": 80.5833},
-            "Kamburupitiya": {"lat": 6.0833, "lon": 80.5333},
-            "Kirinda Puhulwella": {"lat": 6.1333, "lon": 80.5500},
-            "Kotapola": {"lat": 6.2000, "lon": 80.6500},
-            "Malimbada": {"lat": 5.9667, "lon": 80.4833},
-            "Mulatiyana": {"lat": 6.2167, "lon": 80.4833},
-            "Pasgoda": {"lat": 6.1667, "lon": 80.6833},
-            "Pitabeddara": {"lat": 6.2333, "lon": 80.4833},
-            "Thihagoda": {"lat": 6.0000, "lon": 80.5167},
-            "Weligama": {"lat": 5.9667, "lon": 80.4333},
-            "Welipitiya": {"lat": 6.1667, "lon": 80.5167}
-        },
-        "Hambantota District": {
-            "Hambantota": {"lat": 6.1244, "lon": 81.1186},
-            "Ambalantota": {"lat": 6.1167, "lon": 81.0333},
-            "Angunakolapelessa": {"lat": 6.1667, "lon": 80.9000},
-            "Beliatta": {"lat": 6.0500, "lon": 80.7333},
-            "Lunugamvehera": {"lat": 6.3500, "lon": 81.2333},
-            "Okewela": {"lat": 6.4333, "lon": 81.3000},
-            "Sooriyawewa": {"lat": 6.3000, "lon": 81.2333},
-            "Tangalle": {"lat": 6.0167, "lon": 80.8000},
-            "Tissamaharama": {"lat": 6.2833, "lon": 81.2833},
-            "Weeraketiya": {"lat": 6.1500, "lon": 81.2000}
-        }
-    },
-    "Northern Province": {
-        "Jaffna District": {
-            "Jaffna": {"lat": 9.6617, "lon": 80.0256},
-            "Delft": {"lat": 9.5167, "lon": 79.7167},
-            "Karainagar": {"lat": 9.7500, "lon": 79.8667},
-            "Nallur": {"lat": 9.6833, "lon": 80.0333},
-            "Islands (South)": {"lat": 9.5833, "lon": 79.8167},
-            "Chavakachcheri": {"lat": 9.6667, "lon": 80.1500},
-            "Point Pedro": {"lat": 9.8167, "lon": 80.2333},
-            "Sandilipay": {"lat": 9.8000, "lon": 79.9500},
-            "Uduvil": {"lat": 9.8167, "lon": 80.0167},
-            "Kopay": {"lat": 9.7333, "lon": 80.0333},
-            "Valikamam East": {"lat": 9.7500, "lon": 80.1000},
-            "Valikamam North": {"lat": 9.8167, "lon": 79.9667},
-            "Valikamam South": {"lat": 9.7000, "lon": 80.0500},
-            "Valikamam South-West": {"lat": 9.6500, "lon": 79.9833},
-            "Valikamam West": {"lat": 9.7500, "lon": 79.9000},
-            "Thenmaradchi": {"lat": 9.7333, "lon": 80.2167}
-        },
-        "Kilinochchi District": {
-            "Kilinochchi": {"lat": 9.3833, "lon": 80.4000},
-            "Karachchi": {"lat": 9.4167, "lon": 80.4000},
-            "Poonakary": {"lat": 9.5000, "lon": 80.2000},
-            "Kandavalai": {"lat": 9.4500, "lon": 80.4833},
-            "Pachchilaipalli": {"lat": 9.3500, "lon": 80.3667}
-        },
-        "Mannar District": {
-            "Mannar": {"lat": 8.9817, "lon": 79.9111},
-            "Manthai West": {"lat": 8.9500, "lon": 79.9833},
-            "Musalai": {"lat": 8.8333, "lon": 80.0833},
-            "Nanaddan": {"lat": 8.9000, "lon": 80.0333},
-            "Madhu": {"lat": 8.8333, "lon": 80.3000}
-        },
-        "Mullaitivu District": {
-            "Mullaitivu": {"lat": 9.2667, "lon": 80.8167},
-            "Maritimepattu": {"lat": 9.1167, "lon": 80.8667},
-            "Oddusuddan": {"lat": 9.0667, "lon": 80.6667},
-            "Puthukudiyiruppu": {"lat": 9.3000, "lon": 80.7167},
-            "Thunukkai": {"lat": 9.1167, "lon": 80.4833},
-            "Manthai East": {"lat": 8.9500, "lon": 80.5000},
-            "Welioya": {"lat": 8.7500, "lon": 80.8667}
-        },
-        "Vavuniya District": {
-            "Vavuniya": {"lat": 8.7500, "lon": 80.5000},
-            "Vavuniya North": {"lat": 8.8000, "lon": 80.4833},
-            "Vavuniya South": {"lat": 8.7167, "lon": 80.5167},
-            "Vengalacheddikulam": {"lat": 8.9000, "lon": 80.3667},
-            "Chettikulam": {"lat": 8.6333, "lon": 80.5667}
-        }
-    },
-    "Eastern Province": {
-        "Trincomalee District": {
-            "Trincomalee": {"lat": 8.5667, "lon": 81.2333},
-            "Gomarankadawala": {"lat": 8.6833, "lon": 80.9833},
-            "Kantalai": {"lat": 8.3667, "lon": 81.0000},
-            "Kinniya": {"lat": 8.4833, "lon": 81.1833},
-            "Kuchchaveli": {"lat": 8.8167, "lon": 81.1333},
-            "Morawewa": {"lat": 8.2667, "lon": 80.9833},
-            "Muttur": {"lat": 8.4500, "lon": 81.2667},
-            "Padavi Sri Pura": {"lat": 8.3333, "lon": 81.1167},
-            "Seruvila": {"lat": 8.3667, "lon": 81.3167},
-            "Thampalagamam": {"lat": 8.6167, "lon": 81.2000}
-        },
-        "Batticaloa District": {
-            "Batticaloa": {"lat": 7.7167, "lon": 81.7000},
-            "Eravur Pattu": {"lat": 7.7667, "lon": 81.6000},
-            "Eravur Town": {"lat": 7.7833, "lon": 81.5833},
-            "Kattankudy": {"lat": 7.6833, "lon": 81.7167},
-            "Koralai Pattu": {"lat": 7.8667, "lon": 81.4667},
-            "Koralai Pattu North": {"lat": 8.0000, "lon": 81.4333},
-            "Manmunai North": {"lat": 7.8333, "lon": 81.5333},
-            "Manmunai Pattu": {"lat": 7.9000, "lon": 81.5000},
-            "Manmunai South & Eruvil Pattu": {"lat": 7.6667, "lon": 81.7500},
-            "Manmunai West": {"lat": 7.8000, "lon": 81.4500},
-            "Porativu Pattu": {"lat": 7.9500, "lon": 81.5667}
-        },
-        "Ampara District": {
-            "Ampara": {"lat": 7.2833, "lon": 81.6667},
-            "Akkaraipattu": {"lat": 7.2167, "lon": 81.8500},
-            "Alayadiwembu": {"lat": 7.2500, "lon": 81.8333},
-            "Damana": {"lat": 7.1833, "lon": 81.6167},
-            "Dehiattakandiya": {"lat": 7.7333, "lon": 81.0667},
-            "Irakkamam": {"lat": 6.9833, "lon": 81.8000},
-            "Kalmunai (Muslim)": {"lat": 7.4167, "lon": 81.8333},
-            "Kalmunai (Tamil)": {"lat": 7.4000, "lon": 81.8167},
-            "Karaitivu": {"lat": 7.3667, "lon": 81.7333},
-            "Lahugala": {"lat": 6.8667, "lon": 81.6833},
-            "Mahaoya": {"lat": 7.5833, "lon": 81.3000},
-            "Nintavur": {"lat": 7.3333, "lon": 81.8500},
-            "Padiyathalawa": {"lat": 7.4000, "lon": 81.2333},
-            "Pothuvil": {"lat": 6.8667, "lon": 81.8333},
-            "Samanthurai": {"lat": 7.3833, "lon": 81.8000},
-            "Thirukkovil": {"lat": 7.1167, "lon": 81.8500},
-            "Uhana": {"lat": 7.3667, "lon": 81.6333}
-        }
-    },
-    "North Western Province": {
-        "Kurunegala District": {
-            "Kurunegala": {"lat": 7.4833, "lon": 80.3667},
-            "Alawwa": {"lat": 7.3000, "lon": 80.2500},
-            "Bingiriya": {"lat": 7.4667, "lon": 79.9833},
-            "Giribawa": {"lat": 7.7167, "lon": 80.3167},
-            "Ibbagamuwa": {"lat": 7.6000, "lon": 80.4167},
-            "Kuliyapitiya East": {"lat": 7.4667, "lon": 80.0500},
-            "Kuliyapitiya West": {"lat": 7.4833, "lon": 80.0500},
-            "Kobeigane": {"lat": 7.6667, "lon": 80.2667},
-            "Kotavehera": {"lat": 7.5167, "lon": 80.2000},
-            "Mawathagama": {"lat": 7.4167, "lon": 80.4500},
-            "Melsiripura": {"lat": 7.6500, "lon": 80.5833},
-            "Narammala": {"lat": 7.3500, "lon": 80.2167},
-            "Nikaweratiya": {"lat": 7.7667, "lon": 80.1167},
-            "Panduwasnuwara": {"lat": 7.6000, "lon": 80.1167},
-            "Pannala": {"lat": 7.3333, "lon": 80.0333},
-            "Polgahawela": {"lat": 7.3333, "lon": 80.3000},
-            "Polpithigama": {"lat": 7.5500, "lon": 80.4333},
-            "Rasnayakapura": {"lat": 7.6000, "lon": 80.5167},
-            "Udubaddawa": {"lat": 7.4833, "lon": 80.2833},
-            "Wariyapola": {"lat": 7.6167, "lon": 80.2333},
-            "Galgamuwa": {"lat": 7.8667, "lon": 80.3000},
-            "Weerambugedara": {"lat": 7.2833, "lon": 80.1500}
-        },
-        "Puttalam District": {
-            "Puttalam": {"lat": 8.0333, "lon": 79.8167},
-            "Anamaduwa": {"lat": 7.8833, "lon": 79.9000},
-            "Arachchikattuwa": {"lat": 8.1667, "lon": 79.7833},
-            "Chilaw": {"lat": 7.5833, "lon": 79.8000},
-            "Dankotuwa": {"lat": 7.3000, "lon": 79.8667},
-            "Kalpitiya": {"lat": 8.1667, "lon": 79.7000},
-            "Karuwalagaswewa": {"lat": 8.0333, "lon": 80.0500},
-            "Madampe": {"lat": 7.6500, "lon": 79.9333},
-            "Mahakumbukkadawala": {"lat": 8.1000, "lon": 79.8833},
-            "Mahawewa": {"lat": 7.5333, "lon": 79.8500},
-            "Mundalama": {"lat": 8.0000, "lon": 79.7333},
-            "Nattandiya": {"lat": 7.4167, "lon": 79.8667},
-            "Nawagattegama": {"lat": 7.7000, "lon": 79.9500},
-            "Pallama": {"lat": 7.7167, "lon": 79.9167},
-            "Vanathavilluwa": {"lat": 8.1000, "lon": 79.9500},
-            "Wennappuwa": {"lat": 7.3333, "lon": 79.8500}
-        }
-    },
-    "North Central Province": {
-        "Anuradhapura District": {
-            "Anuradhapura": {"lat": 8.3350, "lon": 80.4108},
-            "Galenbindunuwewa": {"lat": 8.2833, "lon": 80.7000},
-            "Galnewa": {"lat": 8.1667, "lon": 80.5833},
-            "Horowpothana": {"lat": 8.5833, "lon": 80.8167},
-            "Ipalogama": {"lat": 8.0500, "lon": 80.5167},
-            "Kahatagasdigiliya": {"lat": 8.4167, "lon": 80.6333},
-            "Kebithigollewa": {"lat": 8.6833, "lon": 80.6833},
-            "Kekirawa": {"lat": 8.0333, "lon": 80.6000},
-            "Maha Vilachchiya": {"lat": 8.5333, "lon": 80.5000},
-            "Medawachchiya": {"lat": 8.5333, "lon": 80.5167},
-            "Mihintale": {"lat": 8.3583, "lon": 80.5167},
-            "Nochchiyagama": {"lat": 8.3333, "lon": 80.2000},
-            "Nuwaragam Palatha (Central)": {"lat": 8.1500, "lon": 80.4667},
-            "Nuwaragam Palatha (East)": {"lat": 8.2167, "lon": 80.5833},
-            "Padaviya": {"lat": 8.8333, "lon": 80.7667},
-            "Palagala": {"lat": 7.9167, "lon": 80.6333},
-            "Palugaswewa": {"lat": 8.0833, "lon": 80.3667},
-            "Rajanganaya": {"lat": 8.1500, "lon": 80.2833},
-            "Rambewa": {"lat": 8.3833, "lon": 80.4167},
-            "Thalawa": {"lat": 8.2667, "lon": 80.4167},
-            "Thirappane": {"lat": 8.2333, "lon": 80.5167}
-        },
-        "Polonnaruwa District": {
-            "Polonnaruwa": {"lat": 7.9333, "lon": 81.0000},
-            "Aralaganwila": {"lat": 7.8000, "lon": 81.1667},
-            "Dimbulagala": {"lat": 7.8500, "lon": 81.1333},
-            "Elahera": {"lat": 7.7500, "lon": 80.8667},
-            "Hingurakgoda": {"lat": 8.0333, "lon": 80.9500},
-            "Laggala-Pallegama (part)": {"lat": 7.6500, "lon": 80.8833},
-            "Medirigiriya": {"lat": 7.9167, "lon": 81.0000},
-            "Thamankaduwa": {"lat": 7.8500, "lon": 81.0333},
-            "Welikanda": {"lat": 7.8667, "lon": 81.2500}
-        }
-    },
-    "Uva Province": {
-        "Badulla District": {
-            "Badulla": {"lat": 6.9897, "lon": 81.0560},
-            "Bandarawela": {"lat": 6.8256, "lon": 80.9864},
-            "Ella": {"lat": 6.8667, "lon": 81.0500},
-            "Haldummulla": {"lat": 6.7667, "lon": 80.9167},
-            "Hali-Ela": {"lat": 6.9500, "lon": 81.0333},
-            "Haputale": {"lat": 6.7667, "lon": 80.9667},
-            "Kandaketiya": {"lat": 6.8333, "lon": 81.0333},
-            "Lunugala": {"lat": 7.0500, "lon": 81.2500},
-            "Mahiyanganaya": {"lat": 7.3333, "lon": 81.0167},
-            "Meegahakivula": {"lat": 6.9167, "lon": 81.1667},
-            "Passara": {"lat": 6.9333, "lon": 81.1500},
-            "Rideemaliyadda": {"lat": 7.1500, "lon": 81.0833},
-            "Soranatota": {"lat": 7.0833, "lon": 81.0000},
-            "Uva Paranagama": {"lat": 6.8667, "lon": 81.1333},
-            "Welimada": {"lat": 6.9000, "lon": 80.9667},
-            "Wiyaluwa": {"lat": 6.9667, "lon": 81.1167}
-        },
-        "Monaragala District": {
-            "Monaragala": {"lat": 6.8714, "lon": 81.3486},
-            "Badalkumbura": {"lat": 6.8167, "lon": 81.2333},
-            "Bibila (Medagama)": {"lat": 6.9167, "lon": 81.3167},
-            "Buttala": {"lat": 6.7500, "lon": 81.2333},
-            "Kataragama": {"lat": 6.4167, "lon": 81.3333},
-            "Madulla": {"lat": 6.7833, "lon": 81.5000},
-            "Sevanagala": {"lat": 6.6833, "lon": 81.2000},
-            "Siyambalanduwa": {"lat": 7.1167, "lon": 81.5333},
-            "Thanamalwila": {"lat": 6.4167, "lon": 81.1333},
-            "Wellawaya": {"lat": 6.7333, "lon": 81.1000}
-        }
-    },
-    "Sabaragamuwa Province": {
-        "Ratnapura District": {
-            "Ratnapura": {"lat": 6.6828, "lon": 80.3992},
-            "Ayagama": {"lat": 6.7667, "lon": 80.3667},
-            "Balangoda": {"lat": 6.6500, "lon": 80.7000},
-            "Eheliyagoda": {"lat": 6.8500, "lon": 80.2667},
-            "Elapatha": {"lat": 6.6167, "lon": 80.5167},
-            "Embilipitiya": {"lat": 6.3500, "lon": 80.8500},
-            "Godakawela": {"lat": 6.5667, "lon": 80.6500},
-            "Imbulpe": {"lat": 6.7667, "lon": 80.8167},
-            "Kahawatta": {"lat": 6.5833, "lon": 80.5667},
-            "Kalawana": {"lat": 6.5333, "lon": 80.4000},
-            "Kiriella": {"lat": 6.7833, "lon": 80.3333},
-            "Kolonna": {"lat": 6.6667, "lon": 80.7833},
-            "Kuruvita": {"lat": 6.7833, "lon": 80.3667},
-            "Nivithigala": {"lat": 6.6667, "lon": 80.3333},
-            "Opanayaka": {"lat": 6.7000, "lon": 80.6333},
-            "Pelmadulla": {"lat": 6.6333, "lon": 80.5333},
-            "Rakwana": {"lat": 6.4833, "lon": 80.6333},
-            "Weligepola": {"lat": 6.5500, "lon": 80.4667}
-        },
-        "Kegalle District": {
-            "Kegalle": {"lat": 7.2514, "lon": 80.3464},
-            "Aranayaka": {"lat": 7.1500, "lon": 80.4500},
-            "Bulathkohupitiya": {"lat": 7.0833, "lon": 80.2833},
-            "Dehiovita": {"lat": 6.9500, "lon": 80.2667},
-            "Deraniyagala": {"lat": 6.9333, "lon": 80.3333},
-            "Galigamuwa": {"lat": 7.2333, "lon": 80.3000},
-            "Mawanella": {"lat": 7.2500, "lon": 80.4500},
-            "Rambukkana": {"lat": 7.2833, "lon": 80.3833},
-            "Ruwanwella": {"lat": 7.0500, "lon": 80.2500},
-            "Warakapola": {"lat": 7.1833, "lon": 80.1667},
-            "Yatiyanthota": {"lat": 7.0333, "lon": 80.3167}
-        }
-    }
-};
+/* ── LOCATION DATA ── */
+const locationData = {"Western Province":{"Colombo District":{"Colombo":{"lat":6.9271,"lon":79.8612},"Thimbirigasyaya":{"lat":6.89,"lon":79.87},"Dehiwala":{"lat":6.8567,"lon":79.8633},"Ratmalana":{"lat":6.82,"lon":79.885},"Moratuwa":{"lat":6.7833,"lon":79.8833},"Sri Jayawardenepura Kotte":{"lat":6.91,"lon":79.895},"Maharagama":{"lat":6.85,"lon":79.925},"Kesbewa":{"lat":6.87,"lon":79.94},"Kaduwela":{"lat":6.93,"lon":79.98},"Homagama":{"lat":6.84,"lon":80.02},"Kolonnawa":{"lat":6.92,"lon":79.905},"Seethawaka":{"lat":6.95,"lon":80.15},"Padukka":{"lat":6.83,"lon":80.09}},"Gampaha District":{"Gampaha":{"lat":7.0916,"lon":79.9997},"Minuwangoda":{"lat":7.1667,"lon":79.95},"Divulapitiya":{"lat":7.25,"lon":80.0},"Mirigama":{"lat":7.2333,"lon":80.1167},"Attanagalla":{"lat":7.1167,"lon":80.15},"Negombo":{"lat":7.2083,"lon":79.8358},"Katana":{"lat":7.25,"lon":79.9},"Wattala":{"lat":6.9833,"lon":79.8833},"Ja-Ela":{"lat":7.0833,"lon":79.9},"Mahara":{"lat":7.15,"lon":80.05},"Dompe":{"lat":7.0,"lon":80.05},"Biyagama":{"lat":6.95,"lon":80.0},"Kelaniya":{"lat":6.95,"lon":79.9167}},"Kalutara District":{"Kalutara":{"lat":6.5831,"lon":79.9597},"Panadura":{"lat":6.7133,"lon":79.9042},"Bandaragama":{"lat":6.7167,"lon":79.9833},"Horana":{"lat":6.7167,"lon":80.0667},"Mathugama":{"lat":6.5167,"lon":80.1167},"Walallawita":{"lat":6.65,"lon":80.25},"Beruwala":{"lat":6.4667,"lon":79.9833},"Dodangoda":{"lat":6.5833,"lon":80.1333},"Bulathsinhala":{"lat":6.6667,"lon":80.1833},"Madurawela":{"lat":6.6333,"lon":80.2167},"Millaniya":{"lat":6.75,"lon":80.05},"Palindanuwara":{"lat":6.55,"lon":80.35},"Agalawatta":{"lat":6.55,"lon":80.1667}}},"Central Province":{"Kandy District":{"Kandy":{"lat":7.2964,"lon":80.635},"Udunuwara":{"lat":7.2333,"lon":80.6833},"Yatinuwara":{"lat":7.2833,"lon":80.5667},"Pathadumbara":{"lat":7.3167,"lon":80.7167},"Udapalatha":{"lat":7.1833,"lon":80.7667},"Ganga Ihala Korale":{"lat":7.3333,"lon":80.5167},"Harispattuwa":{"lat":7.2667,"lon":80.6},"Poojapitiya":{"lat":7.4,"lon":80.5667},"Kundasale":{"lat":7.2667,"lon":80.7},"Minipe":{"lat":7.2333,"lon":80.8333},"Panvila":{"lat":7.15,"lon":80.6333},"Udadumbara":{"lat":7.3333,"lon":80.7667},"Delthota":{"lat":7.1667,"lon":80.7667},"Hatharaliyadda":{"lat":7.3167,"lon":80.9333},"Doluwa":{"lat":7.25,"lon":80.85},"Medadumbara":{"lat":7.2833,"lon":80.8},"Thumpane":{"lat":7.3667,"lon":80.8833},"Kothmale":{"lat":7.0667,"lon":80.5833},"Pathahewaheta":{"lat":7.2,"lon":80.9167}},"Matale District":{"Matale":{"lat":7.4717,"lon":80.6242},"Dambulla":{"lat":7.8569,"lon":80.6514},"Pallepola":{"lat":7.5167,"lon":80.6833},"Ukuwela":{"lat":7.4167,"lon":80.6333},"Yatawatta":{"lat":7.55,"lon":80.5833},"Galewela":{"lat":7.8667,"lon":80.5833},"Wilgamuwa":{"lat":7.7167,"lon":80.8333},"Naula":{"lat":7.7,"lon":80.65},"Rattota":{"lat":7.5167,"lon":80.7667},"Palapathwela":{"lat":7.5333,"lon":80.7167},"Laggala-Pallegama":{"lat":7.6167,"lon":80.8667}},"Nuwara Eliya District":{"Nuwara Eliya":{"lat":6.9706,"lon":80.7828},"Walapane":{"lat":7.0333,"lon":80.8667},"Hanguranketha":{"lat":7.1667,"lon":80.7833},"Ambagamuwa":{"lat":6.9333,"lon":80.55},"Kothmale":{"lat":7.0833,"lon":80.6333},"Kotmale":{"lat":7.1167,"lon":80.7},"Maskeliya":{"lat":6.8333,"lon":80.5667}}},"Southern Province":{"Galle District":{"Galle":{"lat":6.0536,"lon":80.2117},"Akmeemana":{"lat":6.0833,"lon":80.3},"Ambalangoda":{"lat":6.2333,"lon":80.05},"Baddegama":{"lat":6.1833,"lon":80.1833},"Balapitiya":{"lat":6.2833,"lon":80.0333},"Benthota":{"lat":6.4167,"lon":80.0},"Bope-Poddala":{"lat":6.1333,"lon":80.2},"Elpitiya":{"lat":6.2833,"lon":80.1667},"Habaraduwa":{"lat":6.0333,"lon":80.2833},"Imaduwa":{"lat":6.0667,"lon":80.3667},"Karandeniya":{"lat":6.25,"lon":80.1167},"Nagoda":{"lat":6.2,"lon":80.25},"Neluwa":{"lat":6.3667,"lon":80.3833},"Niyagama":{"lat":6.2333,"lon":80.2167},"Thawalama":{"lat":6.3333,"lon":80.3},"Welivitiya-Divithura":{"lat":6.4667,"lon":80.0833},"Yakkalamulla":{"lat":6.1167,"lon":80.3333}},"Matara District":{"Matara":{"lat":5.9483,"lon":80.5353},"Akuressa":{"lat":6.0833,"lon":80.4667},"Athuraliya":{"lat":6.0667,"lon":80.6167},"Devinuwara":{"lat":5.9333,"lon":80.5833},"Dickwella":{"lat":6.1167,"lon":80.7},"Hakmana":{"lat":6.0833,"lon":80.5833},"Kamburupitiya":{"lat":6.0833,"lon":80.5333},"Kirinda Puhulwella":{"lat":6.1333,"lon":80.55},"Kotapola":{"lat":6.2,"lon":80.65},"Malimbada":{"lat":5.9667,"lon":80.4833},"Mulatiyana":{"lat":6.2167,"lon":80.4833},"Pasgoda":{"lat":6.1667,"lon":80.6833},"Pitabeddara":{"lat":6.2333,"lon":80.4833},"Thihagoda":{"lat":6.0,"lon":80.5167},"Weligama":{"lat":5.9667,"lon":80.4333},"Welipitiya":{"lat":6.1667,"lon":80.5167}},"Hambantota District":{"Hambantota":{"lat":6.1244,"lon":81.1186},"Ambalantota":{"lat":6.1167,"lon":81.0333},"Angunakolapelessa":{"lat":6.1667,"lon":80.9},"Beliatta":{"lat":6.05,"lon":80.7333},"Lunugamvehera":{"lat":6.35,"lon":81.2333},"Okewela":{"lat":6.4333,"lon":81.3},"Sooriyawewa":{"lat":6.3,"lon":81.2333},"Tangalle":{"lat":6.0167,"lon":80.8},"Tissamaharama":{"lat":6.2833,"lon":81.2833},"Weeraketiya":{"lat":6.15,"lon":81.2}}},"Northern Province":{"Jaffna District":{"Jaffna":{"lat":9.6617,"lon":80.0256},"Nallur":{"lat":9.6833,"lon":80.0333},"Chavakachcheri":{"lat":9.6667,"lon":80.15},"Point Pedro":{"lat":9.8167,"lon":80.2333},"Kopay":{"lat":9.7333,"lon":80.0333}},"Vavuniya District":{"Vavuniya":{"lat":8.75,"lon":80.5}}},"Eastern Province":{"Trincomalee District":{"Trincomalee":{"lat":8.5667,"lon":81.2333}},"Batticaloa District":{"Batticaloa":{"lat":7.7167,"lon":81.7}},"Ampara District":{"Ampara":{"lat":7.2833,"lon":81.6667}}},"North Western Province":{"Kurunegala District":{"Kurunegala":{"lat":7.4833,"lon":80.3667}},"Puttalam District":{"Puttalam":{"lat":8.0333,"lon":79.8167}}},"North Central Province":{"Anuradhapura District":{"Anuradhapura":{"lat":8.335,"lon":80.4108}},"Polonnaruwa District":{"Polonnaruwa":{"lat":7.9333,"lon":81.0}}},"Uva Province":{"Badulla District":{"Badulla":{"lat":6.9897,"lon":81.056},"Bandarawela":{"lat":6.8256,"lon":80.9864},"Ella":{"lat":6.8667,"lon":81.05},"Haputale":{"lat":6.7667,"lon":80.9667},"Welimada":{"lat":6.9,"lon":80.9667}},"Monaragala District":{"Monaragala":{"lat":6.8714,"lon":81.3486}}},"Sabaragamuwa Province":{"Ratnapura District":{"Ratnapura":{"lat":6.6828,"lon":80.3992}},"Kegalle District":{"Kegalle":{"lat":7.2514,"lon":80.3464}}}};
 
-// Market coordinates
 const markets = {
-    'Pettah': [6.9341, 79.9861],
-    'Dambulla': [7.8643, 80.6501],
-    'Narahenpita': [6.9300, 79.9681],
-    'Marandagahamula': [7.2903, 80.5327],
-    'Peliyagoda': [6.9682, 79.9815],
-    'Negombo': [7.2085, 79.9743]
+  'Pettah':           [6.9341, 79.9861],
+  'Dambulla':         [7.8643, 80.6501],
+  'Narahenpita':      [6.9300, 79.9681],
+  'Marandagahamula':  [7.2903, 80.5327],
+  'Peliyagoda':       [6.9682, 79.9815],
+  'Negombo':          [7.2085, 79.9743]
 };
 
+<<<<<<< HEAD
 let map;
 let markers = [];
 let polylines = [];
@@ -1491,43 +1402,328 @@ function resetFormAndResults() {
         'latitude',
         'longitude'
     ];
+=======
+let map, markers = [], polylines = [], mapLoaded = false;
+let recommendationsData = null, formDataData = null;
 
-    fieldsToClear.forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) {
-            if (el.tagName === 'SELECT') {
-                el.selectedIndex = 0;
-            } else {
-                el.value = '';
-            }
-        }
-    });
-
-    toggleCostField();
-    updateSectionTitles();
-    toggleLocationFields(true);
-
-    const mapPlaceholder = document.getElementById('mapPlaceholder');
-    if (mapPlaceholder) mapPlaceholder.style.display = 'flex';
-
-    clearMap();
-
-    const recSection = document.getElementById('recommendationsSection');
-    if (recSection) recSection.style.display = 'none';
-
-    const allRecSection = document.getElementById('allRecommendationsSection');
-    if (allRecSection) allRecSection.style.display = 'none';
+/* ── MAP ── */
+function initLeafletMap() {
+  try {
+    map = L.map('googleMap', { zoomControl:true }).setView([7.8731, 80.7718], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom:19, attribution:'&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    document.getElementById('mapPlaceholder').style.display = 'none';
+    mapLoaded = true;
+    const lat = parseFloat(document.getElementById('latitude').value);
+    const lon = parseFloat(document.getElementById('longitude').value);
+    if (!isNaN(lat) && !isNaN(lon)) updateMap(lat, lon);
+    if (recommendationsData && recommendationsData.recommendations)
+      setTimeout(() => showRecommendationsOnMap(), 500);
+  } catch(e) { console.error('Leaflet init error:', e); }
 }
 
-// Clear results when page is refreshed/reloaded
-window.addEventListener('pageshow', (event) => {
-    const navigationEntries = performance.getEntriesByType('navigation');
-    const navType = navigationEntries.length ? navigationEntries[0].type : null;
-    if (event.persisted || navType === 'reload') {
-        resetFormAndResults();
-    }
+function updateMap(lat, lon) {
+  if (!mapLoaded) { setTimeout(() => updateMap(lat,lon), 500); return; }
+  clearMap();
+  map.setView([lat, lon], 12);
+  markers.push(L.marker([lat,lon], {title:'Your Location'}).addTo(map));
+  Object.entries(markets).forEach(([name, loc]) =>
+    markers.push(L.marker([loc[0],loc[1]], {title:name+' Market'}).addTo(map)));
+}
+
+function showRecommendationsOnMap() {
+  if (!mapLoaded) { setTimeout(() => showRecommendationsOnMap(), 500); return; }
+  clearMap();
+  const lat = parseFloat(document.getElementById('latitude').value);
+  const lon = parseFloat(document.getElementById('longitude').value);
+  if (isNaN(lat) || isNaN(lon)) return;
+  const ul = [lat, lon];
+  map.setView(ul, 10);
+  markers.push(L.marker(ul, {title:'Your Location'}).addTo(map));
+  const recs = recommendationsData;
+  if (!recs || !recs.recommendations) return;
+  const cols = {1:'#22c55e', 2:'#4169E1', 3:'#FFA500', other:'#808080'};
+  recs.recommendations.forEach(rec => {
+    const mc = markets[rec.market]; if (!mc) return;
+    const ml = [mc[0], mc[1]];
+    const color = cols[rec.rank] || cols.other;
+    const popup = `<div style="padding:8px;min-width:200px;font-family:'DM Sans',sans-serif">
+      <strong style="font-size:.95rem">${rec.market} (Rank #${rec.rank})</strong><br>
+      <span style="font-size:.82rem;color:#666">${rec.distance_km} km away</span><br><br>
+      <span style="font-size:.82rem">Price: <strong>Rs.${rec.predicted_price}/kg</strong></span><br>
+      <span style="font-size:.82rem">Transport: <strong>Rs.${rec.transport_cost}</strong></span><br>
+      <span style="font-size:.82rem;color:${rec.net_advantage>=0?'#22c55e':'#ef4444'}">Net: <strong>Rs.${rec.net_advantage}</strong></span>
+    </div>`;
+    const mk = L.marker(ml, {title:`${rec.market} (Rank #${rec.rank})`}).addTo(map).bindPopup(popup);
+    markers.push(mk);
+    polylines.push(L.polyline([ul, ml], {
+      color, opacity: rec.rank===1 ? 1.0 : 0.65, weight: rec.rank===1 ? 4 : 2
+    }).addTo(map));
+  });
+  addMapLegend();
+}
+
+function addMapLegend() {
+  if (!map) return;
+  if (map._legendControl) { map.removeControl(map._legendControl); }
+  const legend = L.control({position:'bottomleft'});
+  legend.onAdd = function() {
+    const div = L.DomUtil.create('div');
+    div.style.cssText = 'background:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);font-family:"DM Sans",sans-serif;font-size:.75rem;';
+    div.innerHTML = `<div style="font-weight:700;margin-bottom:7px;color:#1a2e1a;">Route Colors</div>
+      ${[['#22c55e','Rank #1 — Best Market'],['#4169E1','Rank #2'],['#FFA500','Rank #3'],['#808080','Other Markets']]
+        .map(([c,l])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="width:20px;height:3px;background:${c};border-radius:2px;"></div><span style="color:#3d5e3a">${l}</span></div>`).join('')}`;
+    return div;
+  };
+  legend.addTo(map);
+  map._legendControl = legend;
+}
+
+function clearMap() {
+  if (!map) return;
+  markers.forEach(m => { try { map.removeLayer(m); } catch(e){} }); markers = [];
+  polylines.forEach(p => { try { map.removeLayer(p); } catch(e){} }); polylines = [];
+  if (map._legendControl) { map.removeControl(map._legendControl); map._legendControl = null; }
+}
+
+/* ── FORM LOGIC ── */
+function toggleCostField() {
+  const role = document.getElementById('user_role').value;
+  const f = document.getElementById('cultivation_cost');
+  const lbl = document.getElementById('cultivation_cost_label');
+  const note = document.getElementById('cultivation_cost_note');
+  if (role === 'seller') {
+    f.required = true; f.placeholder = 'Enter total cultivation cost';
+    lbl.innerHTML = 'Total Cost <span style="font-weight:400;color:var(--tmut)">(Cultivation) *</span>';
+    note.textContent = 'Required for Sellers';
+  } else {
+    f.required = false; f.value = '0'; f.placeholder = 'Required for Sellers only';
+    lbl.innerHTML = 'Total Cost <span style="font-weight:400;color:var(--tmut)">(Cultivation)</span>';
+    note.textContent = 'Required only for Sellers';
+  }
+}
+
+function updateSectionTitles() {
+  const role = document.getElementById('user_role').value;
+  const t = document.getElementById('quantity_section_title');
+  const f = document.getElementById('calculation_formula');
+  const icon = '<i class="fas fa-box-open"></i> ';
+  if (role === 'buyer') {
+    t.innerHTML = icon + 'Target Item &amp; Quantity — Buyers';
+    f.textContent = 'For Buyers: Net Advantage = (Most expensive market cost) − (Predicted Price × Qty + Transport)';
+  } else if (role === 'seller') {
+    t.innerHTML = icon + 'Target Item &amp; Quantity — Sellers';
+    f.textContent = 'For Sellers: Net Advantage = (Predicted Price × Qty) − (Cultivation + Transport Costs)';
+  } else {
+    t.innerHTML = icon + 'Target Item &amp; Quantity';
+    f.textContent = 'Select your role to see the calculation formula';
+  }
+}
+
+function toggleLocationFields(enable) {
+  ['province','district','ds_division'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = !enable; if (!enable) el.selectedIndex = 0; }
+  });
+}
+>>>>>>> main
+
+function updateDistricts() {
+  const p = document.getElementById('province').value;
+  const ds = document.getElementById('district');
+  const dv = document.getElementById('ds_division');
+  ds.innerHTML = '<option value="">Select District</option>';
+  dv.innerHTML = '<option value="">Select DS Division</option>';
+  clearCoordinates();
+  if (p && locationData[p])
+    Object.keys(locationData[p]).forEach(d => {
+      const o = document.createElement('option'); o.value = d; o.textContent = d; ds.appendChild(o);
+    });
+}
+
+function updateDSDivisions() {
+  const p = document.getElementById('province').value;
+  const d = document.getElementById('district').value;
+  const dv = document.getElementById('ds_division');
+  dv.innerHTML = '<option value="">Select DS Division</option>';
+  clearCoordinates();
+  if (p && d && locationData[p] && locationData[p][d])
+    Object.keys(locationData[p][d]).forEach(ds => {
+      const o = document.createElement('option'); o.value = ds; o.textContent = ds; dv.appendChild(o);
+    });
+}
+
+function updateCoordinates() {
+  const p = document.getElementById('province').value;
+  const d = document.getElementById('district').value;
+  const ds = document.getElementById('ds_division').value;
+  if (p && d && ds && locationData[p]?.[d]?.[ds]) {
+    const c = locationData[p][d][ds];
+    document.getElementById('latitude').value = c.lat;
+    document.getElementById('longitude').value = c.lon;
+    updateMap(c.lat, c.lon);
+  } else { clearCoordinates(); }
+}
+
+function clearCoordinates() {
+  document.getElementById('latitude').value = '';
+  document.getElementById('longitude').value = '';
+  clearMap();
+}
+
+function getLiveLocation() {
+  var btn     = document.getElementById('locBtn');
+  var btnText = document.getElementById('locBtnText');
+  var btnIcon = document.getElementById('locBtnIcon');
+
+  if (!navigator.geolocation) {
+    _showLocStatus('Geolocation is not supported by your browser.', true);
+    return;
+  }
+
+  btnIcon.className = 'fas fa-spinner fa-spin';
+  btnText.textContent = 'Detecting location\u2026';
+  btn.disabled = true;
+  btn.classList.remove('loc-success');
+  document.getElementById('locStatus').style.display   = 'none';
+  document.getElementById('locNameCard').style.display = 'none';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude;
+      var lon = pos.coords.longitude;
+      var acc = Math.round(pos.coords.accuracy);
+
+      document.getElementById('latitude').value  = lat.toFixed(6);
+      document.getElementById('longitude').value = lon.toFixed(6);
+
+      document.getElementById('locLatDisplay').textContent = lat.toFixed(5);
+      document.getElementById('locLonDisplay').textContent = lon.toFixed(5);
+      document.getElementById('locAccDisplay').textContent = '\u00b1' + acc + 'm';
+
+      document.getElementById('locPlaceName').textContent  = 'Fetching place name\u2026';
+      document.getElementById('locSubName').textContent    = '';
+      document.getElementById('locNameCard').style.display = 'block';
+
+      fetch(
+        'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&addressdetails=1',
+        { headers: { 'Accept-Language': 'en' } }
+      )
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data && data.address) {
+          var a = data.address;
+          var primary = a.village || a.town || a.city_district || a.suburb || a.city || a.county || a.state_district || 'Unknown area';
+          var parts = [a.district || a.county, a.state || a.province, a.country].filter(Boolean);
+          document.getElementById('locPlaceName').textContent = primary;
+          document.getElementById('locSubName').textContent   = parts.join(', ');
+        } else {
+          document.getElementById('locPlaceName').textContent = 'Location detected';
+          document.getElementById('locSubName').textContent   = 'Place name unavailable';
+        }
+      })
+      .catch(function() {
+        document.getElementById('locPlaceName').textContent = 'Location detected';
+        document.getElementById('locSubName').textContent   = 'Could not fetch place name (offline?)';
+      });
+
+      btnIcon.className   = 'fas fa-check';
+      btnText.textContent = 'Location Set';
+      btn.classList.add('loc-success');
+      btn.disabled = false;
+
+      /* Persist GPS card data so it survives form submission (page reload) */
+      try {
+        localStorage.setItem('agrisense_gps', JSON.stringify({
+          lat: lat.toFixed(5), lon: lon.toFixed(5), acc: '\u00b1' + acc + 'm',
+          placeName: document.getElementById('locPlaceName').textContent,
+          subName:   document.getElementById('locSubName').textContent
+        }));
+      } catch(e) {}
+
+      toggleLocationFields(false);
+      updateMap(lat, lon);
+    },
+    function(err) {
+      var msgs = {
+        1: 'Permission denied \u2014 please allow location access in your browser settings.',
+        2: 'Location unavailable \u2014 check your GPS or network connection.',
+        3: 'Request timed out \u2014 try again or enter coordinates manually.'
+      };
+      _showLocStatus(msgs[err.code] || 'Could not retrieve location.', true);
+      btnIcon.className   = 'fas fa-location-arrow';
+      btnText.textContent = 'Use My Current Location';
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+function _showLocStatus(msg, isError) {
+  var el = document.getElementById('locStatus');
+  el.textContent  = msg;
+  el.className    = 'loc-status' + (isError ? ' loc-error' : '');
+  el.style.display = 'block';
+}
+
+function resetFormAndResults() {
+  document.getElementById('rankingForm').reset();
+  ['user_role','transport_cost','additional_transport_cost','cultivation_cost','reference_price',
+   'item','price_type','quantity_unit','quantity','province','district','ds_division','latitude','longitude']
+    .forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+    });
+  toggleCostField(); updateSectionTitles(); toggleLocationFields(true);
+  /* Reset GPS location UI */
+  try { localStorage.removeItem('agrisense_gps'); } catch(e) {}
+  var btn = document.getElementById('locBtn');
+  if (btn) { btn.classList.remove('loc-success'); btn.disabled = false; }
+  var locBtnIcon = document.getElementById('locBtnIcon');
+  if (locBtnIcon) locBtnIcon.className = 'fas fa-location-arrow';
+  var locBtnText = document.getElementById('locBtnText');
+  if (locBtnText) locBtnText.textContent = 'Use My Current Location';
+  var locNameCard = document.getElementById('locNameCard');
+  if (locNameCard) locNameCard.style.display = 'none';
+  var locStatus = document.getElementById('locStatus');
+  if (locStatus) locStatus.style.display = 'none';
+  document.getElementById('mapPlaceholder').style.display = 'flex';
+  clearMap();
+  const rs = document.getElementById('recommendationsSection');
+  const ar = document.getElementById('allRecommendationsSection');
+  if (rs) rs.style.display = 'none';
+  if (ar) ar.style.display = 'none';
+}
+
+function restoreGpsCard(g) {
+  document.getElementById('locPlaceName').textContent  = g.placeName;
+  document.getElementById('locSubName').textContent    = g.subName;
+  document.getElementById('locLatDisplay').textContent = g.lat;
+  document.getElementById('locLonDisplay').textContent = g.lon;
+  document.getElementById('locAccDisplay').textContent = g.acc;
+  document.getElementById('locNameCard').style.display = 'block';
+  var btn = document.getElementById('locBtn');
+  if (btn) {
+    btn.classList.add('loc-success');
+    document.getElementById('locBtnIcon').className = 'fas fa-check';
+    document.getElementById('locBtnText').textContent = 'Location Set';
+  }
+}
+
+window.addEventListener('pageshow', e => {
+  const nav = performance.getEntriesByType('navigation');
+  if (e.persisted || (nav.length && nav[0].type === 'reload')) {
+    resetFormAndResults();
+  }
+  /* Re-apply GPS card if results are still showing after any reset */
+  try {
+    var savedGps = localStorage.getItem('agrisense_gps');
+    if (savedGps && formDataData) { restoreGpsCard(JSON.parse(savedGps)); }
+  } catch(ex) {}
 });
 
+<<<<<<< HEAD
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     const pageDataEl = document.getElementById('marketRankingData');
@@ -1545,10 +1741,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize cost field based on current role
     toggleCostField();
     updateSectionTitles();
+=======
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('marketRankingData');
+  try { recommendationsData = JSON.parse(el?.dataset?.recommendations || 'null'); } catch(e) { recommendationsData = null; }
+  try { formDataData = JSON.parse(el?.dataset?.formData || 'null'); } catch(e) { formDataData = null; }
+>>>>>>> main
 
-    // Initialize location fields as enabled by default
-    toggleLocationFields(true);
+  toggleCostField(); updateSectionTitles(); toggleLocationFields(true);
+  initLeafletMap();
 
+<<<<<<< HEAD
     // Load Google Maps
     initLeafletMap();
 
@@ -1587,9 +1790,138 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         }, 500);
     }
+=======
+  /* Restore GPS location card after form submission (page reload) */
+  try {
+    var savedGps = localStorage.getItem('agrisense_gps');
+    if (savedGps && formDataData) { restoreGpsCard(JSON.parse(savedGps)); }
+  } catch(e) {}
+
+  if (formDataData) {
+    setTimeout(() => {
+      const rs = document.getElementById('user_role');
+      if (rs && formDataData.user_role) { rs.value = formDataData.user_role; toggleCostField(); updateSectionTitles(); }
+      const ps = document.getElementById('province');
+      if (ps && formDataData.province) {
+        ps.value = formDataData.province; updateDistricts();
+        setTimeout(() => {
+          const ds = document.getElementById('district');
+          if (ds && formDataData.district) {
+            ds.value = formDataData.district; updateDSDivisions();
+            setTimeout(() => {
+              const dv = document.getElementById('ds_division');
+              if (dv && formDataData.ds_division) { dv.value = formDataData.ds_division; updateCoordinates(); }
+            }, 120);
+          }
+        }, 120);
+      }
+    }, 400);
+  }
+>>>>>>> main
 });
 
+/* ── PDF DOWNLOAD ── */
+function downloadResultsPdf() {
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  var pageW = doc.internal.pageSize.getWidth();
+  var date  = new Date().toLocaleDateString('en-LK', {year:'numeric', month:'long', day:'numeric'});
+
+  /* ── Header bar ── */
+  doc.setFillColor(30, 87, 26);
+  doc.rect(0, 0, pageW, 22, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('AgriSense — Market Opportunity Ranking', 12, 10);
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('Generated: ' + date, 12, 16);
+
+  /* Best market (right-aligned) */
+  var sideEl = document.getElementById('recommendationsSection');
+  if (sideEl) {
+    var bn = sideEl.querySelector('.best-mkt-name');
+    var bs = sideEl.querySelector('.best-mkt-sub');
+    if (bn) {
+      doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text('Best Market: ' + bn.textContent.trim(), pageW - 12, 10, {align:'right'});
+      if (bs) { doc.setFont('helvetica','normal'); doc.text(bs.textContent.trim(), pageW - 12, 16, {align:'right'}); }
+    }
+  }
+
+  /* ── Top-3 summary boxes ── */
+  var colors  = [[255,251,234],[240,250,240],[255,247,237]];
+  var borders = [[245,158,11],[79,173,79],[249,115,22]];
+  var boxW = (pageW - 30) / 3;
+  if (sideEl) {
+    var cards = sideEl.querySelectorAll('.rank-card');
+    var drawn = 0;
+    cards.forEach(function(card, i) {
+      if (i > 2) return;
+      var x = 10 + i * (boxW + 5), y = 26;
+      doc.setFillColor(colors[i][0], colors[i][1], colors[i][2]);
+      doc.setDrawColor(borders[i][0], borders[i][1], borders[i][2]);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(x, y, boxW, 28, 2, 2, 'FD');
+      /* Rank label */
+      doc.setTextColor(107,143,101); doc.setFontSize(7); doc.setFont('helvetica','bold');
+      doc.text('RANK #' + (i+1), x+4, y+6);
+      /* Market name */
+      var nm = (card.querySelector('.rank-mkt-name')||{}).textContent||'';
+      doc.setTextColor(26,46,26); doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.text(nm.trim(), x+4, y+13);
+      /* Price | dist */
+      var pr = (card.querySelector('.price-badge')||{}).textContent||'';
+      var di = (card.querySelector('.dist-badge') ||{}).textContent||'';
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(61,94,58);
+      doc.text(pr.trim() + '   |   ' + di.trim(), x+4, y+19);
+      /* Net */
+      var vals = card.querySelectorAll('.val');
+      var net  = vals.length ? vals[vals.length-1].textContent.trim() : '';
+      doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(30,110,30);
+      doc.text('Net: ' + net, x+4, y+25);
+      drawn++;
+    });
+  }
+
+  /* ── Full rankings table ── */
+  var tblEl = document.querySelector('#allRecommendationsSection table');
+  var head = [], rows = [];
+  if (tblEl) {
+    tblEl.querySelectorAll('thead th').forEach(function(th) { head.push(th.textContent.trim()); });
+    tblEl.querySelectorAll('tbody tr').forEach(function(tr) {
+      var row = [];
+      tr.querySelectorAll('td').forEach(function(td) {
+        row.push(td.textContent.trim().replace(/\s+/g,' '));
+      });
+      rows.push(row);
+    });
+  }
+
+  doc.autoTable({
+    head: [head],
+    body: rows,
+    startY: 57,
+    margin: { left:10, right:10 },
+    styles: { fontSize:8, cellPadding:3, textColor:[26,46,26], lineColor:[212,235,212], lineWidth:0.3 },
+    headStyles: { fillColor:[30,87,26], textColor:255, fontStyle:'bold', fontSize:7.5, halign:'left' },
+    alternateRowStyles: { fillColor:[245,251,245] },
+    columnStyles: { 0:{cellWidth:14,halign:'center'}, 6:{cellWidth:55} },
+    didParseCell: function(data) {
+      if (data.section==='body' && data.column.index===5) {
+        var v = parseFloat(data.cell.raw.replace(/[^0-9.\-]/g,''));
+        data.cell.styles.textColor = v >= 0 ? [26,110,26] : [220,38,38];
+        data.cell.styles.fontStyle = 'bold';
+      }
+    }
+  });
+
+  /* Footer */
+  var finalY = doc.lastAutoTable.finalY + 5;
+  doc.setFontSize(7); doc.setTextColor(170,170,170); doc.setFont('helvetica','normal');
+  doc.text('AgriSense LK — AI-Powered Agricultural Market Intelligence', 10, finalY);
+
+  doc.save('AgriSense_Market_Ranking.pdf');
+}
 
 </script>
 {% endblock %}
-

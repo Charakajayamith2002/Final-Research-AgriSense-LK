@@ -1,280 +1,379 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>Create Account</h3>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post">
-                        <!-- Email -->
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" class="form-control" id="email" name="email" required
-                                       placeholder="Enter your email">
-                            </div>
-                        </div>
-
-                        <!-- Username -->
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input type="text" class="form-control" id="username" name="username" required
-                                       placeholder="Choose a username">
-                            </div>
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control" id="password" name="password"
-                                       required minlength="6" placeholder="Minimum 6 characters">
-                            </div>
-                            <small class="text-muted">Password must be at least 6 characters long</small>
-                        </div>
-
-                        <!-- Confirm Password -->
-                        <div class="mb-4">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control" id="confirm_password"
-                                       name="confirm_password" required minlength="6"
-                                       placeholder="Confirm your password">
-                            </div>
-                            <div id="passwordMatch" class="form-text"></div>
-                        </div>
-
-                        <!-- User Type Selection -->
-                        <div class="mb-4">
-                            <label class="form-label">I am a:</label>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <div class="card text-center user-type-card" id="buyerCard">
-                                        <div class="card-body">
-                                            <i class="fas fa-home fa-3x mb-3 text-success"></i>
-                                            <h5>Buyer</h5>
-                                            <p class="small text-muted">Looking to purchase properties</p>
-                                            <input type="radio" class="btn-check" name="user_type"
-                                                   value="buyer" id="buyer" checked>
-                                            <label class="btn btn-outline-success" for="buyer">
-                                                Select Buyer
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="card text-center user-type-card" id="sellerCard">
-                                        <div class="card-body">
-                                            <i class="fas fa-handshake fa-3x mb-3 text-primary"></i>
-                                            <h5>Seller</h5>
-                                            <p class="small text-muted">Selling or renting properties</p>
-                                            <input type="radio" class="btn-check" name="user_type"
-                                                   value="seller" id="seller">
-                                            <label class="btn btn-outline-primary" for="seller">
-                                                Select Seller
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-user-plus me-2"></i>Create Account
-                            </button>
-                        </div>
-
-                        <!-- Login Link -->
-                        <div class="text-center mt-4">
-                            <p class="mb-0">Already have an account?
-                                <a href="{{ url_for('login') }}" class="text-decoration-none">
-                                    <strong>Sign In</strong>
-                                </a>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Features by User Type -->
-            <div class="mt-4">
-                <div id="buyerFeatures" class="feature-info">
-                    <div class="card">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Buyer Benefits</h5>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-success me-2"></i>Personalized property recommendations
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-success me-2"></i>Risk assessment and price advice
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-success me-2"></i>Save favorite properties
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-success me-2"></i>Compare different properties
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-success me-2"></i>Get notifications for new listings
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div id="sellerFeatures" class="feature-info" style="display: none;">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Seller Benefits</h5>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-primary me-2"></i>List unlimited properties
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-primary me-2"></i>Professional property management
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-primary me-2"></i>Track property views and interest
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-primary me-2"></i>Get price recommendations
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-check text-primary me-2"></i>Direct communication with buyers
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <style>
-    .user-type-card {
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-    .user-type-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
+  :root {
+    --earth:  #1a1a0e;
+    --moss:   #2d4a1e;
+    --leaf:   #4a7c35;
+    --lime:   #7ab648;
+    --mist:   #c8e6a0;
+    --gold:   #d4a847;
+    --white:  #ffffff;
+    --grey:   #f4f6f0;
+    --border: #e2eada;
+    --muted:  #6b7c5a;
+  }
 
-    .btn-check:checked + label {
-        background-color: #0d6efd;
-        color: white;
-        border-color: #0d6efd;
-    }
+   html, body {
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
 
-    #buyerCard.active {
-        border-color: #198754;
-        background-color: rgba(25, 135, 84, 0.05);
-    }
+  .auth-page {
+    font-family: 'DM Sans', sans-serif;
+    position: fixed;
+    top:0px;
+    left: 0; right: 0; bottom: 0;
+    background: #0d1a0a;
+    display: grid;
+    grid-template-columns: 1fr 480px;
+    overflow: hidden;
+    z-index: 1;
+  }
 
-    #sellerCard.active {
-        border-color: #0d6efd;
-        background-color: rgba(13, 110, 253, 0.05);
-    }
+  .auth-page::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(122,182,72,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122,182,72,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
 
-    .feature-info {
-        transition: opacity 0.3s ease;
-    }
+  /* ══ LEFT — Hero ══ */
+  .auth-hero {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 48px 60px;
+    overflow: hidden;
+  }
+
+  #auth-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 1; pointer-events: none;
+  }
+
+  .hero-glow { position:absolute; border-radius:50%; pointer-events:none; animation:glowPulse 7s ease-in-out infinite; }
+  .hero-glow-1 { width:500px;height:500px; background:radial-gradient(circle,rgba(74,124,53,0.28) 0%,transparent 70%); top:-120px;left:-120px;z-index:0; }
+  .hero-glow-2 { width:360px;height:360px; background:radial-gradient(circle,rgba(212,168,71,0.13) 0%,transparent 70%); bottom:80px;left:35%;z-index:0;animation-delay:-4s; }
+  @keyframes glowPulse { 0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.1);opacity:0.65;} }
+
+  .hero-content { position:relative;z-index:3;animation:fadeUp 0.7s ease both; }
+
+  .hero-brand { display:flex;align-items:center;gap:10px;margin-bottom:32px; }
+  .hero-brand-icon { width:44px;height:44px;background:var(--lime);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 16px rgba(122,182,72,0.4); }
+  .hero-brand-name { font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--white); }
+  .hero-brand-name em { color:var(--lime);font-style:italic; }
+
+  .hero-headline { font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3vw,2.6rem);font-weight:900;line-height:1.1;color:var(--white);margin-bottom:12px; }
+  .hero-headline .accent { color:var(--lime);font-style:italic; }
+
+  .hero-sub { font-size:0.9rem;color:rgba(255,255,255,0.4);line-height:1.7;font-weight:300;max-width:380px;margin-bottom:28px; }
+
+  .feature-list { display:flex;flex-direction:column;gap:14px; }
+  .feat-row { display:flex;align-items:flex-start;gap:12px; }
+  .feat-icon-box { width:36px;height:36px;border-radius:10px;flex-shrink:0;background:rgba(122,182,72,0.12);border:1px solid rgba(122,182,72,0.22);display:flex;align-items:center;justify-content:center;color:var(--lime);font-size:0.82rem;margin-top:1px; }
+  .feat-text-title { font-size:0.85rem;font-weight:700;color:var(--white);margin-bottom:2px; }
+  .feat-text-sub   { font-size:0.74rem;color:rgba(255,255,255,0.34);font-weight:300;line-height:1.45; }
+
+  /* ══ RIGHT — Card ══ */
+  .auth-card-wrap {
+    position:relative;z-index:10;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px 32px 24px 16px;
+    overflow:hidden;
+  }
+
+  .auth-card {
+    background:var(--white);border-radius:22px;
+    width:100%;max-width:420px;
+    box-shadow:0 32px 80px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.06);
+    overflow:hidden;
+    animation:slideIn 0.55s ease both;
+    max-height:calc(100vh - 56px - 40px);
+    display:flex;flex-direction:column;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateX(28px);}to{opacity:1;transform:translateX(0);} }
+
+  /* Tabs */
+  .card-tabs { display:grid;grid-template-columns:1fr 1fr;background:#f0f4ec;border-bottom:1px solid var(--border);flex-shrink:0; }
+  .card-tab { padding:14px;text-align:center;font-size:0.85rem;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;transition:all 0.2s;position:relative; }
+  .card-tab::after { content:'';position:absolute;bottom:0;left:20%;right:20%;height:2.5px;background:var(--lime);border-radius:2px;transform:scaleX(0);transition:transform 0.25s; }
+  .card-tab.active { color:var(--leaf);background:var(--white); }
+  .card-tab.active::after { transform:scaleX(1); }
+
+  /* Card body */
+  .card-body { padding:20px 28px 24px;overflow-y:auto;flex:1; }
+
+  .card-heading { margin-bottom:16px; }
+  .card-heading h2 { font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--earth);margin-bottom:3px; }
+  .card-heading p  { font-size:0.8rem;color:var(--muted);font-weight:300; }
+
+  /* Section label */
+  .sec-lbl { font-size:0.67rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 10px;display:flex;align-items:center;gap:10px; }
+  .sec-lbl::after { content:'';flex:1;height:1px;background:var(--border); }
+  .sec-lbl:first-child { margin-top:0; }
+
+  .field-row-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+
+  /* Fields */
+  .form-field { margin-bottom:12px; }
+  .form-field label { display:block;font-size:0.76rem;font-weight:600;color:var(--earth);margin-bottom:4px; }
+  .field-wrap { position:relative;display:flex;align-items:center; }
+  .field-icon { position:absolute;left:12px;color:#bbc9aa;font-size:0.76rem;pointer-events:none;transition:color 0.2s; }
+  .field-input { width:100%;padding:10px 12px 10px 34px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.84rem;color:var(--earth);background:#f8faf5;outline:none;transition:all 0.22s;appearance:none; }
+  .field-input::placeholder { color:#c2d0b4; }
+  .field-input:focus { border-color:var(--lime);background:var(--white);box-shadow:0 0 0 3px rgba(122,182,72,0.12); }
+  .field-wrap:focus-within .field-icon { color:var(--lime); }
+  .field-eye { position:absolute;right:11px;background:none;border:none;color:#bbc9aa;cursor:pointer;font-size:0.76rem;transition:color 0.2s;padding:0; }
+  .field-eye:hover { color:var(--leaf); }
+
+  /* Strength */
+  .pwd-strength { margin-top:4px; }
+  .pwd-bar { height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:2px; }
+  .pwd-fill { height:100%;border-radius:2px;width:0;transition:width 0.3s,background 0.3s; }
+  .pwd-lbl { font-size:0.68rem;color:var(--muted); }
+  #pwdMatchMsg { font-size:0.7rem;margin-top:2px;min-height:13px; }
+
+  /* User type */
+  .user-type-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px; }
+  .ut-opt { position:relative; }
+  .ut-opt input[type="radio"] { position:absolute;opacity:0;width:0;height:0; }
+  .ut-card { display:flex;flex-direction:column;align-items:center;gap:5px;padding:13px 10px;border:1.5px solid var(--border);border-radius:11px;cursor:pointer;transition:all 0.22s;background:#f8faf5;text-align:center; }
+  .ut-card:hover { border-color:var(--lime);background:var(--white); }
+  .ut-icon  { font-size:1.4rem; }
+  .ut-title { font-size:0.82rem;font-weight:700;color:var(--earth); }
+  .ut-sub   { font-size:0.69rem;color:var(--muted);font-weight:300; }
+  .ut-opt input:checked + .ut-card { border-color:var(--lime);background:rgba(122,182,72,0.07);box-shadow:0 0 0 3px rgba(122,182,72,0.13); }
+  .ut-opt input:checked + .ut-card .ut-title { color:var(--leaf); }
+
+  /* Buttons */
+  .btn-primary-auth { width:100%;padding:12px;background:var(--lime);border:2px solid var(--lime);border-radius:10px;color:var(--earth);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.25s;position:relative;overflow:hidden;margin-top:2px; }
+  .btn-primary-auth::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent);opacity:0;transition:opacity 0.25s; }
+  .btn-primary-auth:hover { transform:translateY(-2px);box-shadow:0 10px 28px rgba(122,182,72,0.38); }
+  .btn-primary-auth:hover::before { opacity:1; }
+  .btn-primary-auth:disabled { opacity:0.6;cursor:not-allowed;transform:none; }
+
+  .card-footer-note { text-align:center;margin-top:14px;font-size:0.79rem;color:var(--muted); }
+  .card-footer-note a { color:var(--leaf);font-weight:600;text-decoration:none; }
+  .card-footer-note a:hover { color:var(--moss); }
+
+  .flash-inline { border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.79rem;display:flex;align-items:flex-start;gap:8px; }
+  .flash-danger  { background:#fff5f5;border:1px solid #fecaca;color:#991b1b; }
+  .flash-success { background:#f0fdf4;border:1px solid #bbf7d0;color:#166534; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+
+  @media (max-width:960px){
+    .auth-page { position:relative;top:0;grid-template-columns:1fr;height:auto;overflow:auto; }
+    .auth-hero { padding:36px 24px 24px;min-height:240px; }
+    .auth-card-wrap { padding:0 20px 36px; }
+    .auth-card { max-height:none; }
+    body,html { overflow:auto; }
+  }
+  @media (max-width:540px){
+    .field-row-2 { grid-template-columns:1fr; }
+    .card-body { padding:18px 16px 22px; }
+  }
 </style>
 
+<div class="auth-page">
+  <canvas id="auth-canvas"></canvas>
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+
+  <!-- ══ LEFT ══ -->
+  <div class="auth-hero">
+    <div class="hero-content">
+      <div class="hero-brand">
+        <div class="hero-brand-icon">🌱</div>
+        <div class="hero-brand-name">Agri<em>Sense</em></div>
+      </div>
+      <h1 class="hero-headline">
+        Your farm's<br>
+        <span class="accent">AI advantage</span><br>
+        starts here.
+      </h1>
+      <p class="hero-sub">
+        Get AI-powered insights tailored to your crops, market, and season — all in one place.
+      </p>
+      <div class="feature-list">
+        <div class="feat-row">
+          <div class="feat-icon-box"><i class="fas fa-lightbulb"></i></div>
+          <div><div class="feat-text-title">Profitable Business Strategy</div><div class="feat-text-sub">AI recommends the most profitable business type for your profile.</div></div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon-box"><i class="fas fa-chart-line"></i></div>
+          <div><div class="feat-text-title">Price &amp; Demand Forecasting</div><div class="feat-text-sub">Know what your crop will fetch before harvest day.</div></div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon-box"><i class="fas fa-map-marked-alt"></i></div>
+          <div><div class="feat-text-title">Market Opportunity Ranking</div><div class="feat-text-sub">Find the best market with the lowest transport cost.</div></div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon-box"><i class="fas fa-seedling"></i></div>
+          <div><div class="feat-text-title">Cultivation Targeting</div><div class="feat-text-sub">AI tells you exactly what to plant next season.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT ══ -->
+  <div class="auth-card-wrap">
+    <div class="auth-card">
+
+      <div class="card-tabs">
+        <button class="card-tab" onclick="window.location.href='{{ url_for('login') }}'">Sign In</button>
+        <button class="card-tab active">Register</button>
+      </div>
+
+      <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}{% for category, message in messages %}
+            <div class="flash-inline flash-{{ 'danger' if category in ['error','danger'] else 'success' }}">
+              <i class="fas fa-{{ 'exclamation-circle' if category in ['error','danger'] else 'check-circle' }}"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}{% endif %}
+        {% endwith %}
+        <div class="card-heading">
+          <h2>Create your account</h2>
+        </div>
+
+        <form method="post" id="registerForm">
+
+          <p class="sec-lbl">Account info</p>
+          <div class="field-row-2">
+            <div class="form-field">
+              <label for="email">Email Address</label>
+              <div class="field-wrap">
+                <i class="fas fa-envelope field-icon"></i>
+                <input type="email" class="field-input" id="email" name="email" required placeholder="you@example.com">
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="username">Username</label>
+              <div class="field-wrap">
+                <i class="fas fa-user field-icon"></i>
+                <input type="text" class="field-input" id="username" name="username" required placeholder="Display name">
+              </div>
+            </div>
+          </div>
+
+          <p class="sec-lbl">Security</p>
+          <div class="field-row-2">
+            <div class="form-field">
+              <label for="password">Password</label>
+              <div class="field-wrap">
+                <i class="fas fa-lock field-icon"></i>
+                <input type="password" class="field-input" id="password" name="password" required minlength="6" placeholder="Min. 6 characters" oninput="checkStrength(this.value)">
+                <button type="button" class="field-eye" onclick="togglePwd('password',this)"><i class="fas fa-eye"></i></button>
+              </div>
+              <div class="pwd-strength">
+                <div class="pwd-bar"><div class="pwd-fill" id="pwdFill"></div></div>
+                <span class="pwd-lbl" id="pwdLabel"></span>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="confirm_password">Confirm Password</label>
+              <div class="field-wrap">
+                <i class="fas fa-lock field-icon"></i>
+                <input type="password" class="field-input" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Repeat password" oninput="checkMatch()">
+                <button type="button" class="field-eye" onclick="togglePwd('confirm_password',this)"><i class="fas fa-eye"></i></button>
+              </div>
+              <div id="pwdMatchMsg"></div>
+            </div>
+          </div>
+
+          <p class="sec-lbl">I am a</p>
+          <div class="user-type-grid">
+            <label class="ut-opt">
+              <input type="radio" name="user_type" value="buyer" checked>
+              <div class="ut-card">
+                <span class="ut-icon">🛒</span>
+                <span class="ut-title">Buyer</span>
+                <span class="ut-sub">Purchase crops &amp; products</span>
+              </div>
+            </label>
+            <label class="ut-opt">
+              <input type="radio" name="user_type" value="seller">
+              <div class="ut-card">
+                <span class="ut-icon">🌾</span>
+                <span class="ut-title">Seller</span>
+                <span class="ut-sub">Sell &amp; manage produce</span>
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-primary-auth" id="regBtn">
+            <i class="fas fa-user-plus"></i> Create Account
+          </button>
+        </form>
+
+        <p class="card-footer-note">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Password confirmation validation
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirm_password');
-        const passwordMatchDiv = document.getElementById('passwordMatch');
+(function(){
+  var canvas=document.getElementById('auth-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d'),mouse={x:null,y:null},W,H,pts=[];
+  var CFG={count:85,speed:0.35,lineMaxDist:135,lineMaxOpacity:0.12,mouseRepulse:95,mouseForce:2};
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=document.querySelector('.auth-page').offsetHeight||window.innerHeight;}
+  function mkPt(){var a=Math.random()*Math.PI*2,s=(Math.random()*0.6+0.2)*CFG.speed;return{x:Math.random()*W,y:Math.random()*H,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:1+Math.random()*1.5,op:0.3+Math.random()*0.5};}
+  function init(){resize();pts=[];for(var i=0;i<CFG.count;i++)pts.push(mkPt());}
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<pts.length;i++)for(var j=i+1;j<pts.length;j++){var dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<CFG.lineMaxDist){ctx.beginPath();ctx.strokeStyle='rgba(122,182,72,'+(CFG.lineMaxOpacity*(1-d/CFG.lineMaxDist))+')';ctx.lineWidth=0.6;ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}}
+    pts.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+(p.op*0.48)+')';ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<-8)p.x=W+8;if(p.x>W+8)p.x=-8;if(p.y<-8)p.y=H+8;if(p.y>H+8)p.y=-8;if(mouse.x!==null){var mx=p.x-mouse.x,my=p.y-mouse.y,md=Math.sqrt(mx*mx+my*my);if(md<CFG.mouseRepulse&&md>0){var f=(CFG.mouseRepulse-md)/CFG.mouseRepulse*CFG.mouseForce;p.vx+=(mx/md)*f*0.04;p.vy+=(my/md)*f*0.04;}}var sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);if(sp>CFG.speed*2.5){p.vx=(p.vx/sp)*CFG.speed*2.5;p.vy=(p.vy/sp)*CFG.speed*2.5;}});
+    requestAnimationFrame(draw);
+  }
+  document.addEventListener('mousemove',function(e){mouse.x=e.clientX;mouse.y=e.clientY;});
+  document.addEventListener('mouseleave',function(){mouse.x=null;mouse.y=null;});
+  window.addEventListener('resize',function(){resize();pts.forEach(function(p){if(p.x>W)p.x=Math.random()*W;if(p.y>H)p.y=Math.random()*H;});});
+  init();draw();
+})();
 
-        function validatePassword() {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
+function togglePwd(id,btn){var i=document.getElementById(id),ic=btn.querySelector('i');i.type=i.type==='password'?'text':'password';ic.className=i.type==='password'?'fas fa-eye':'fas fa-eye-slash';}
 
-            if (password !== confirmPassword) {
-                passwordMatchDiv.textContent = "Passwords do not match!";
-                passwordMatchDiv.style.color = "#dc3545";
-                confirmPasswordInput.style.borderColor = "#dc3545";
-                return false;
-            } else if (password.length < 6) {
-                passwordMatchDiv.textContent = "Password must be at least 6 characters";
-                passwordMatchDiv.style.color = "#dc3545";
-                return false;
-            } else {
-                passwordMatchDiv.textContent = "Passwords match ✓";
-                passwordMatchDiv.style.color = "#198754";
-                confirmPasswordInput.style.borderColor = "#198754";
-                return true;
-            }
-        }
+function checkStrength(val){
+  var fill=document.getElementById('pwdFill'),lbl=document.getElementById('pwdLabel');
+  var score=0;
+  if(val.length>=6)score++;if(val.length>=10)score++;
+  if(/[A-Z]/.test(val))score++;if(/[0-9]/.test(val))score++;if(/[^A-Za-z0-9]/.test(val))score++;
+  var pct=[0,20,40,65,85,100][score];
+  var colors=['','#ef4444','#f97316','#eab308','#84cc16','#22c55e'][score];
+  var labels=['','Too short','Weak','Fair','Good','Strong'][score];
+  fill.style.width=pct+'%';fill.style.background=colors;
+  lbl.textContent=val.length?labels:'';lbl.style.color=colors;
+  checkMatch();
+}
 
-        passwordInput.addEventListener('input', validatePassword);
-        confirmPasswordInput.addEventListener('input', validatePassword);
+function checkMatch(){
+  var p=document.getElementById('password').value;
+  var c=document.getElementById('confirm_password').value;
+  var msg=document.getElementById('pwdMatchMsg');
+  if(!c){msg.textContent='';return;}
+  if(p===c){msg.textContent='✓ Passwords match';msg.style.color='#4a7c35';}
+  else{msg.textContent='✗ Passwords do not match';msg.style.color='#ef4444';}
+}
 
-        // User type selection
-        const buyerRadio = document.getElementById('buyer');
-        const sellerRadio = document.getElementById('seller');
-        const buyerCard = document.getElementById('buyerCard');
-        const sellerCard = document.getElementById('sellerCard');
-        const buyerFeatures = document.getElementById('buyerFeatures');
-        const sellerFeatures = document.getElementById('sellerFeatures');
-
-        function updateUserTypeDisplay() {
-            if (buyerRadio.checked) {
-                buyerCard.classList.add('active');
-                sellerCard.classList.remove('active');
-                buyerFeatures.style.display = 'block';
-                sellerFeatures.style.display = 'none';
-            } else {
-                sellerCard.classList.add('active');
-                buyerCard.classList.remove('active');
-                buyerFeatures.style.display = 'none';
-                sellerFeatures.style.display = 'block';
-            }
-        }
-
-        buyerRadio.addEventListener('change', updateUserTypeDisplay);
-        sellerRadio.addEventListener('change', updateUserTypeDisplay);
-
-        // Form submission validation
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(event) {
-            if (!validatePassword()) {
-                event.preventDefault();
-                alert('Please make sure passwords match and are at least 6 characters long.');
-                return;
-            }
-
-            const selectedType = document.querySelector('input[name="user_type"]:checked');
-            if (!selectedType) {
-                event.preventDefault();
-                alert('Please select whether you are a Buyer or Seller.');
-                return;
-            }
-
-            // Show loading state
-            const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
-            submitBtn.disabled = true;
-        });
-    });
+document.getElementById('registerForm').addEventListener('submit',function(e){
+  var p=document.getElementById('password').value;
+  var c=document.getElementById('confirm_password').value;
+  if(p!==c){e.preventDefault();alert('Passwords do not match.');return;}
+  if(p.length<6){e.preventDefault();alert('Password must be at least 6 characters.');return;}
+  var btn=document.getElementById('regBtn');
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Creating account…';
+  btn.disabled=true;
+});
 </script>
-{% endblock %}

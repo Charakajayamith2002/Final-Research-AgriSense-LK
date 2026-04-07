@@ -4,364 +4,936 @@
 
 {% block extra_css %}
 <style>
-    .history-card {
-        border-left: 5px solid #6c757d;
-        transition: transform 0.3s;
+  .history-page {
+    --h-bg: #f4f6f1;
+    --h-surface: #ffffff;
+    --h-border: rgba(122, 182, 72, 0.28);
+    --h-accent: #7ab648;
+    --h-accent-soft: rgba(122, 182, 72, 0.16);
+    --h-text: #1a1a14;
+    --h-muted: #64748b;
+    --h-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--h-text);
+    background:
+      radial-gradient(ellipse 100% 70% at 100% 0%, rgba(122, 182, 72, 0.14) 0%, transparent 48%),
+      radial-gradient(ellipse 90% 55% at 0% 100%, rgba(212, 168, 71, 0.08) 0%, transparent 42%),
+      linear-gradient(180deg, #fafbf8 0%, var(--h-bg) 45%, #f0f2ec 100%);
+    min-height: 70vh;
+    padding: 2rem 1.25rem 3.5rem;
+  }
+
+  .history-page .history-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .history-page .history-breadcrumb {
+    font-size: 0.8rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .history-page .history-breadcrumb a {
+    color: var(--h-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .history-page .history-breadcrumb a:hover {
+    color: var(--h-accent);
+  }
+
+  .history-page .history-breadcrumb .sep {
+    margin: 0 0.5rem;
+    color: #cbd5e1;
+  }
+
+  .history-page .history-breadcrumb .current {
+    color: #1a1a14;
+  }
+
+  .history-page .history-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--h-accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .history-page .history-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    font-weight: 800;
+    color: #1a1a14;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .history-page .history-title i {
+    color: var(--h-accent);
+    font-size: 0.85em;
+    opacity: 0.95;
+  }
+
+  .history-page .history-lead {
+    font-size: 1rem;
+    color: var(--h-muted);
+    margin: 0 0 1.75rem;
+    max-width: 42ch;
+  }
+
+  .history-page .glass-panel {
+    background: var(--h-surface);
+    border: 1px solid rgba(122, 182, 72, 0.18);
+    border-radius: var(--h-radius);
+    box-shadow: 0 4px 24px rgba(26, 26, 14, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .history-page .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1.15rem 1.35rem;
+    border-bottom: 1px solid rgba(26, 26, 20, 0.08);
+    background: linear-gradient(180deg, #fafcf8 0%, #f4f6f1 100%);
+  }
+
+  .history-page .panel-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1a1a14;
+  }
+
+  .history-page .panel-head h2 i {
+    color: var(--h-accent);
+    font-size: 0.95rem;
+  }
+
+  .history-page .panel-body {
+    padding: 1.35rem 1.35rem 1.5rem;
+  }
+
+  .history-page .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .history-page .filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.5rem 0.85rem;
+    border-radius: 100px;
+    border: 1px solid rgba(26, 26, 20, 0.1);
+    background: #f8faf6;
+    color: var(--h-muted);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+
+  .history-page .filter-badge:hover {
+    border-color: rgba(122, 182, 72, 0.35);
+    color: #1a1a14;
+  }
+
+  .history-page .filter-badge.active {
+    background: var(--h-accent-soft);
+    border-color: rgba(122, 182, 72, 0.45);
+    color: #14532d;
+  }
+
+  .history-page .filter-badge i {
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+
+  .history-page .form-label-h {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--h-muted);
+    margin-bottom: 0.45rem;
+  }
+
+  .history-page .history-input,
+  .history-page .history-input:focus {
+    background: #f8faf6;
+    border: 1px solid rgba(26, 26, 20, 0.12);
+    color: #1a1a14;
+    border-radius: 10px;
+    font-size: 0.88rem;
+  }
+
+  .history-page .history-input:focus {
+    border-color: var(--h-accent);
+    box-shadow: 0 0 0 3px rgba(122, 182, 72, 0.2);
+  }
+
+  .history-page .input-group-text-h {
+    background: #eef2ea;
+    border: 1px solid rgba(26, 26, 20, 0.1);
+    color: var(--h-muted);
+    font-size: 0.8rem;
+    border-radius: 0;
+  }
+
+  .history-page .input-group .history-input:first-of-type {
+    border-radius: 10px 0 0 10px;
+  }
+
+  .history-page .input-group .history-input:last-of-type {
+    border-radius: 0 10px 10px 0;
+  }
+
+  .history-page .btn-search-h {
+    border: 1px solid rgba(122, 182, 72, 0.4);
+    background: var(--h-accent-soft);
+    color: var(--h-accent);
+    border-radius: 0 10px 10px 0;
+    padding: 0.5rem 0.9rem;
+    transition: background 0.2s;
+  }
+
+  .history-page .btn-search-h:hover {
+    background: rgba(122, 182, 72, 0.28);
+    color: #14532d;
+  }
+
+  .history-page .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .history-page .stats-grid {
+      grid-template-columns: repeat(3, 1fr);
     }
-    .history-card:hover {
-        transform: translateY(-3px);
+  }
+
+  @media (min-width: 1200px) {
+    .history-page .stats-grid {
+      grid-template-columns: repeat(5, 1fr);
     }
-    .component-badge {
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-weight: bold;
-    }
-    .component-1 { background: #d4edda; color: #155724; }
-    .component-2 { background: #cce5ff; color: #004085; }
-    .component-3 { background: #fff3cd; color: #856404; }
-    .component-4 { background: #d1ecf1; color: #0c5460; }
-    .filter-badge {
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    .filter-badge.active {
-        background-color: #007bff !important;
-        color: white !important;
-    }
-    /* Toast notifications */
-    .export-toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1060;
-        min-width: 300px;
-        animation: slideIn 0.5s ease;
-    }
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    .toast-success .toast-header {
-        background-color: #198754 !important;
-    }
-    .toast-error .toast-header {
-        background-color: #dc3545 !important;
-    }
-    .toast-warning .toast-header {
-        background-color: #ffc107 !important;
-        color: #000 !important;
-    }
-    .toast-info .toast-header {
-        background-color: #0dcaf0 !important;
-    }
+  }
+
+  .history-page .stat-tile {
+    border-radius: 16px;
+    padding: 1rem 0.85rem;
+    border: 1px solid rgba(26, 26, 20, 0.08);
+    background: #f8faf6;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .history-page .stat-tile:hover {
+    border-color: var(--h-border);
+    transform: translateY(-2px);
+  }
+
+  .history-page .stat-tile .lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--h-muted);
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+  }
+
+  .history-page .stat-tile .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 0.2rem;
+  }
+
+  .history-page .stat-tile .num.c0 { color: #334155; }
+  .history-page .stat-tile .num.c1 { color: #4d7c0f; }
+  .history-page .stat-tile .num.c2 { color: #0d9488; }
+  .history-page .stat-tile .num.c3 { color: #b45309; }
+  .history-page .stat-tile .num.c4 { color: #be185d; }
+
+  .history-page .stat-tile small {
+    font-size: 0.68rem;
+    color: #94a3b8;
+  }
+
+  .history-page .list-head-actions .dropdown-toggle {
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid rgba(26, 26, 20, 0.12);
+    background: #fff;
+    color: var(--h-text);
+  }
+
+  .history-page .list-head-actions .dropdown-toggle:hover,
+  .history-page .list-head-actions .dropdown-toggle:focus {
+    border-color: rgba(122, 182, 72, 0.4);
+    background: var(--h-accent-soft);
+    color: #14532d;
+  }
+
+  .history-page .list-head-actions .dropdown-menu {
+    background: #ffffff;
+    border: 1px solid rgba(122, 182, 72, 0.2);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 16px 40px rgba(26, 26, 14, 0.12);
+  }
+
+  .history-page .list-head-actions .dropdown-item {
+    color: #334155;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .history-page .list-head-actions .dropdown-item:hover {
+    background: var(--h-accent-soft);
+    color: #14532d;
+  }
+
+  .history-page .history-list-wrap {
+    padding: 1rem 1.25rem 1.5rem;
+  }
+
+  .history-page .history-card {
+    border-radius: 16px;
+    border: 1px solid rgba(26, 26, 20, 0.08);
+    background: #ffffff;
+    padding: 1.1rem 1.15rem;
+    margin-bottom: 0.85rem;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    border-left-width: 4px;
+    border-left-style: solid;
+  }
+
+  .history-page .history-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(26, 26, 14, 0.08);
+  }
+
+  .history-page .history-card.h-ac-price { border-left-color: #7ab648; }
+  .history-page .history-card.h-ac-market { border-left-color: #22d3ee; }
+  .history-page .history-card.h-ac-cult { border-left-color: #fbbf24; }
+  .history-page .history-card.h-ac-yield { border-left-color: #f472b6; }
+  .history-page .history-card.h-ac-profit { border-left-color: #a78bfa; }
+  .history-page .history-card.h-ac-default { border-left-color: #cbd5e1; }
+
+  .history-page .history-card .row-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .history-page .hist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.35rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+  }
+
+  .history-page .hist-badge.hb-price { background: rgba(122, 182, 72, 0.18); color: #3f6212; border-color: rgba(122, 182, 72, 0.35); }
+  .history-page .hist-badge.hb-market { background: rgba(6, 182, 212, 0.12); color: #0e7490; border-color: rgba(6, 182, 212, 0.3); }
+  .history-page .hist-badge.hb-cult { background: rgba(212, 168, 71, 0.18); color: #92400e; border-color: rgba(212, 168, 71, 0.32); }
+  .history-page .hist-badge.hb-yield { background: rgba(244, 114, 182, 0.14); color: #9d174d; border-color: rgba(244, 114, 182, 0.3); }
+  .history-page .hist-badge.hb-profit { background: rgba(167, 139, 250, 0.14); color: #5b21b6; border-color: rgba(167, 139, 250, 0.35); }
+  .history-page .hist-badge.hb-default { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+
+  .history-page .hist-time {
+    font-size: 0.8rem;
+    color: var(--h-muted);
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .history-page .hist-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .history-page .btn-hist {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(26, 26, 20, 0.12);
+    background: #f8faf6;
+    color: var(--h-muted);
+    transition: all 0.2s;
+  }
+
+  .history-page .btn-hist:hover {
+    border-color: rgba(220, 38, 38, 0.35);
+    color: #b91c1c;
+    background: rgba(254, 226, 226, 0.5);
+  }
+
+  .history-page .btn-hist.primary:hover {
+    border-color: var(--h-accent);
+    color: #14532d;
+    background: var(--h-accent-soft);
+  }
+
+  .history-page .hist-detail {
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(26, 26, 20, 0.08);
+  }
+
+  .history-page .hist-detail p {
+    margin: 0 0 0.35rem;
+    font-size: 0.9rem;
+    color: #1a1a14;
+    line-height: 1.5;
+  }
+
+  .history-page .hist-detail small {
+    font-size: 0.78rem;
+    color: var(--h-muted);
+  }
+
+  .history-page .btn-load-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 26, 20, 0.12);
+    background: #fff;
+    color: var(--h-text);
+    transition: all 0.2s;
+  }
+
+  .history-page .btn-load-more:hover {
+    border-color: var(--h-accent);
+    color: #14532d;
+    background: var(--h-accent-soft);
+  }
+
+  .history-page .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .history-page .empty-state .empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.1rem;
+    border-radius: 50%;
+    background: var(--h-accent-soft);
+    border: 1px solid var(--h-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--h-accent);
+  }
+
+  .history-page .empty-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: #1a1a14;
+    margin-bottom: 0.5rem;
+  }
+
+  .history-page .empty-state p {
+    color: var(--h-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .history-page .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    padding: 0.65rem 1.25rem;
+    border-radius: 12px;
+    background: var(--h-accent);
+    color: #ffffff;
+    text-decoration: none;
+    border: none;
+    transition: filter 0.2s, transform 0.15s;
+  }
+
+  .history-page .btn-cta:hover {
+    filter: brightness(1.05);
+    color: #ffffff;
+  }
+
+  /* Details modal */
+  #detailsModal .modal-content {
+    background: #ffffff;
+    border: 1px solid rgba(122, 182, 72, 0.2);
+    border-radius: 18px;
+    color: var(--h-text);
+    box-shadow: 0 24px 48px rgba(26, 26, 14, 0.12);
+  }
+
+  #detailsModal .modal-header {
+    border-bottom: 1px solid rgba(26, 26, 20, 0.08);
+  }
+
+  #detailsModal .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+  }
+
+  #detailsModal .modal-body {
+    font-size: 0.9rem;
+  }
+
+  #detailsModal .modal-body h6 {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--h-muted);
+    margin-top: 1rem;
+    margin-bottom: 0.35rem;
+  }
+
+  #detailsModal .modal-body h6:first-child {
+    margin-top: 0;
+  }
+
+  #detailsModal .modal-body pre {
+    background: #f4f6f1 !important;
+    border: 1px solid rgba(26, 26, 20, 0.1);
+    color: #1a1a14;
+    border-radius: 12px;
+    font-size: 0.78rem;
+  }
+
+  #detailsModal .modal-body .alert-info {
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.22);
+    color: #0e7490;
+    border-radius: 12px;
+  }
+
+  #detailsModal .modal-footer {
+    border-top: 1px solid rgba(26, 26, 20, 0.08);
+  }
+
+  #detailsModal .btn-secondary {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+  }
+
+  #detailsModal .btn-primary {
+    background: var(--h-accent);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 10px;
+  }
+
+  #detailsModal .btn-primary:hover {
+    background: #6cad3a;
+    color: #ffffff;
+  }
+
+  #detailsModal .btn-close {
+    opacity: 0.65;
+  }
+
+  /* Toast — light */
+  .export-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1060;
+    min-width: 280px;
+    max-width: 360px;
+    animation: histSlideIn 0.45s ease;
+  }
+
+  @keyframes histSlideIn {
+    from { transform: translateX(110%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .export-toast .toast {
+    background: #ffffff;
+    border: 1px solid rgba(122, 182, 72, 0.22);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(26, 26, 14, 0.12);
+  }
+
+  .export-toast .toast-header {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    border-bottom: 1px solid rgba(26, 26, 20, 0.08);
+    color: #1a1a14;
+  }
+
+  .export-toast .toast-success .toast-header {
+    background: rgba(122, 182, 72, 0.18) !important;
+    color: #14532d !important;
+  }
+
+  .export-toast .toast-error .toast-header {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #991b1b !important;
+  }
+
+  .export-toast .toast-warning .toast-header {
+    background: rgba(251, 191, 36, 0.18) !important;
+    color: #92400e !important;
+  }
+
+  .export-toast .toast-info .toast-header {
+    background: rgba(6, 182, 212, 0.12) !important;
+    color: #0e7490 !important;
+  }
+
+  .export-toast .toast-body {
+    background: #fafbfa;
+    color: #334155;
+    font-size: 0.88rem;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
-                    <li class="breadcrumb-item active">Prediction History</li>
-                </ol>
-            </nav>
-            <h1 class="display-5 mb-4">
-                <i class="fas fa-history text-secondary"></i> Prediction History
-            </h1>
-            <p class="lead">Review your past predictions and analyses</p>
-        </div>
-    </div>
+<div class="history-page">
+  <div class="history-inner">
+    <nav class="history-breadcrumb" aria-label="breadcrumb">
+      <a href="{{ url_for('home') }}">Home</a>
+      <span class="sep">/</span>
+      <span class="current">Prediction history</span>
+    </nav>
+
+    <header>
+      <p class="history-eyebrow">Activity log</p>
+      <h1 class="history-title"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> Prediction history</h1>
+      <p class="history-lead">Review past runs, filter by module or date, and export your records.</p>
+    </header>
 
     <!-- Filters -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title mb-3"><i class="fas fa-filter"></i> Filter Predictions</h5>
-                    <div class="d-flex flex-wrap gap-2 mb-3">
-                        <span class="badge filter-badge bg-secondary p-2 active" data-filter="all">
-                            <i class="fas fa-layer-group"></i> All Predictions
-                        </span>
-                        <span class="badge filter-badge component-1 p-2" data-filter="price_demand">
-                            <i class="fas fa-chart-line"></i> Price & Demand
-                        </span>
-                        <span class="badge filter-badge component-2 p-2" data-filter="market_ranking">
-                            <i class="fas fa-map-marked-alt"></i> Market Ranking
-                        </span>
-                        <span class="badge filter-badge component-3 p-2" data-filter="cultivation_targeting">
-                            <i class="fas fa-seedling"></i> Cultivation
-                        </span>
-                        <span class="badge filter-badge component-4 p-2" data-filter="yield_quality">
-                            <i class="fas fa-camera"></i> Yield Quality
-                        </span>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Date Range</label>
-                            <div class="input-group">
-                                <input type="date" class="form-control" id="dateFrom">
-                                <span class="input-group-text">to</span>
-                                <input type="date" class="form-control" id="dateTo">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Search</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="searchInput" placeholder="Search predictions...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="applyFilters()">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="glass-panel">
+      <div class="panel-head">
+        <h2><i class="fas fa-sliders"></i> Filters</h2>
+      </div>
+      <div class="panel-body">
+        <div class="filter-chips">
+          <span class="filter-badge active" data-filter="all">
+            <i class="fas fa-layer-group"></i> All
+          </span>
+          <span class="filter-badge" data-filter="price_demand">
+            <i class="fas fa-chart-line"></i> Price &amp; demand
+          </span>
+          <span class="filter-badge" data-filter="market_ranking">
+            <i class="fas fa-map-marked-alt"></i> Market ranking
+          </span>
+          <span class="filter-badge" data-filter="cultivation_targeting">
+            <i class="fas fa-seedling"></i> Cultivation
+          </span>
+          <span class="filter-badge" data-filter="yield_quality">
+            <i class="fas fa-camera"></i> Yield quality
+          </span>
         </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-h" for="dateFrom">Date range</label>
+            <div class="input-group">
+              <input type="date" class="form-control history-input" id="dateFrom" aria-label="From date">
+              <span class="input-group-text input-group-text-h">to</span>
+              <input type="date" class="form-control history-input" id="dateTo" aria-label="To date">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-h" for="searchInput">Search</label>
+            <div class="input-group">
+              <input type="text" class="form-control history-input" id="searchInput" placeholder="Search text in entries…" style="border-radius: 10px 0 0 10px;">
+              <button class="btn btn-search-h" type="button" onclick="applyFilters()" aria-label="Search">
+                <i class="fas fa-magnifying-glass"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2">Total Predictions</h6>
-                    <h2 id="totalCount" class="card-title">{{ history|length }}</h2>
-                    <small class="opacity-75">All time</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2">Profitable Strategy</h6>
-                    <h2 id="profitableCount" class="card-title">{{ history|selectattr('component', 'equalto', 'profitable_strategy')|list|length }}</h2>
-                    <small class="opacity-75">Component 5</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2">Market Rankings</h6>
-                    <h2 id="marketCount" class="card-title">{{ history|selectattr('component', 'equalto', 'market_ranking')|list|length }}</h2>
-                    <small class="opacity-75">Component 2</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2">Cultivation Plans</h6>
-                    <h2 id="cultivationCount" class="card-title">{{ history|selectattr('component', 'equalto', 'cultivation_targeting')|list|length }}</h2>
-                    <small class="opacity-75">Component 3</small>
-                </div>
-            </div>
-        </div>
+    <div class="stats-grid">
+      <div class="stat-tile">
+        <div class="lbl">Total (visible)</div>
+        <div class="num c0" id="totalCount">{{ history|length }}</div>
+        <small>Filtered set</small>
+      </div>
+      <div class="stat-tile">
+        <div class="lbl">Profitable strategy</div>
+        <div class="num c1" id="profitableCount">{{ history|selectattr('component', 'equalto', 'profitable_strategy')|list|length }}</div>
+        <small>All time</small>
+      </div>
+      <div class="stat-tile">
+        <div class="lbl">Market rankings</div>
+        <div class="num c2" id="marketCount">{{ history|selectattr('component', 'equalto', 'market_ranking')|list|length }}</div>
+        <small>Component</small>
+      </div>
+      <div class="stat-tile">
+        <div class="lbl">Cultivation</div>
+        <div class="num c3" id="cultivationCount">{{ history|selectattr('component', 'equalto', 'cultivation_targeting')|list|length }}</div>
+        <small>Plans</small>
+      </div>
+      <div class="stat-tile">
+        <div class="lbl">Yield quality</div>
+        <div class="num c4" id="yieldCount">{{ history|selectattr('component', 'equalto', 'yield_quality')|list|length }}</div>
+        <small>Analyses</small>
+      </div>
     </div>
 
     <!-- History List -->
-    <div class="row">
-        <div class="col">
-            <div class="card shadow">
-                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-list"></i> Recent Predictions</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="exportHistory('csv')">
-                                <i class="fas fa-file-csv text-success me-2"></i> CSV Format
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportHistory('json')">
-                                <i class="fas fa-file-code text-primary me-2"></i> JSON Format
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportHistory('pdf')">
-                                <i class="fas fa-file-pdf text-danger me-2"></i> PDF Report
-                            </a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="card-body">
-                    {% if history %}
-                    <div class="list-group" id="historyList">
-                        {% for prediction in history %}
-                        <div class="list-group-item history-card mb-3"
-                             data-component="{{ prediction.component }}"
-                             data-timestamp="{{ prediction.timestamp.strftime('%Y-%m-%d') if prediction.timestamp is string else prediction.timestamp }}">
-                            <div class="d-flex w-100 justify-content-between">
-                                <div>
-                                    <span class="component-badge component-{{
-                                        '1' if prediction.component == 'price_demand'
-                                        else '2' if prediction.component == 'market_ranking'
-                                        else '3' if prediction.component == 'cultivation_targeting'
-                                        else '4'
-                                    }}">
-                                        {% if prediction.component == 'price_demand' %}
-                                        <i class="fas fa-chart-line"></i> Price & Demand
-                                        {% elif prediction.component == 'market_ranking' %}
-                                        <i class="fas fa-map-marked-alt"></i> Market Ranking
-                                        {% elif prediction.component == 'cultivation_targeting' %}
-                                        <i class="fas fa-seedling"></i> Cultivation Targeting
-                                        {% else %}
-                                        <i class="fas fa-camera"></i> Yield Quality
-                                        {% endif %}
-                                    </span>
-                                    <small class="text-muted ms-2">
-                                        <i class="fas fa-clock"></i>
-                                        {% if prediction.timestamp is string %}
-                                            {{ prediction.timestamp }}
-                                        {% else %}
-                                            {{ prediction.timestamp.strftime('%Y-%m-%d %H:%M') }}
-                                        {% endif %}
-                                    </small>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deletePrediction('{{ prediction._id }}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDetails('{{ prediction._id }}')">
-                                        <i class="fas fa-eye"></i> Details
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="mt-2">
-                                {% if prediction.component == 'price_demand' %}
-                                <p class="mb-1">
-                                    {% if prediction.input and prediction.input.item_standard %}
-                                        <strong>{{ prediction.input.item_standard }}</strong> at
-                                    {% endif %}
-                                    {% if prediction.input and prediction.input.market %}
-                                        <strong>{{ prediction.input.market }}</strong> |
-                                    {% endif %}
-                                    {% if prediction.output and prediction.output.predicted_price %}
-                                        Predicted: Rs. {{ prediction.output.predicted_price }}
-                                    {% endif %}
-                                </p>
-                                <small class="text-muted">
-                                    {% if prediction.output and prediction.output.price_trend %}
-                                        Trend: {{ prediction.output.price_trend }} |
-                                    {% endif %}
-                                    {% if prediction.output and prediction.output.demand_index %}
-                                        Demand Index: {{ prediction.output.demand_index }}
-                                    {% endif %}
-                                </small>
-
-                                {% elif prediction.component == 'market_ranking' %}
-                                <p class="mb-1">
-                                    {% if prediction.input and prediction.input.item %}
-                                        <strong>{{ prediction.input.item }}</strong> for
-                                    {% endif %}
-                                    {% if prediction.input and prediction.input.user_role %}
-                                        <strong>{{ prediction.input.user_role }}</strong> |
-                                    {% endif %}
-                                    {% if prediction.output and prediction.output.best_market %}
-                                        Best Market: {{ prediction.output.best_market }}
-                                    {% endif %}
-                                </p>
-                                <small class="text-muted">
-                                    {% if prediction.input and prediction.input.latitude and prediction.input.longitude %}
-                                        Location: {{ prediction.input.latitude|float|round(4) }}, {{ prediction.input.longitude|float|round(4) }}
-                                    {% endif %}
-                                </small>
-
-                                {% elif prediction.component == 'cultivation_targeting' %}
-                                <p class="mb-1">
-                                    {% if prediction.input and prediction.input.region %}
-                                        Region: <strong>{{ prediction.input.region }}</strong> |
-                                    {% endif %}
-                                    {% if prediction.output and prediction.output.best_crop %}
-                                        Best Crop: <strong>{{ prediction.output.best_crop }}</strong>
-                                    {% endif %}
-                                </p>
-                                <small class="text-muted">
-                                    {% if prediction.input and prediction.input.season %}
-                                        Season: {{ prediction.input.season }} |
-                                    {% endif %}
-                                    {% if prediction.output and prediction.output.total_recommendations %}
-                                        Recommendations: {{ prediction.output.total_recommendations }}
-                                    {% endif %}
-                                </small>
-
-                                {% elif prediction.component == 'yield_quality' %}
-                                <p class="mb-1">
-                                    Image Analysis:
-                                    {% if prediction.output and prediction.output.predicted_class %}
-                                        <strong>{{ prediction.output.predicted_class }}</strong>
-                                    {% else %}
-                                        <strong>Image Analysis</strong>
-                                    {% endif %}
-                                </p>
-                                <small class="text-muted">
-                                    {% if prediction.output %}
-                                        {% if prediction.output.quality_assessment %}
-                                            Quality: {{ prediction.output.quality_assessment }}
-                                        {% endif %}
-                                        {% if prediction.output.grade %}
-                                            ({{ prediction.output.grade }}) |
-                                        {% endif %}
-                                        {% if prediction.output.confidence %}
-                                            Confidence: {{ (prediction.output.confidence * 100)|int }}%
-                                        {% endif %}
-                                    {% endif %}
-                                </small>
-                                {% else %}
-                                <p class="mb-1">
-                                    <strong>{{ prediction.component|replace('_', ' ')|title }}</strong>
-                                </p>
-                                <small class="text-muted">
-                                    Click "Details" to view complete information
-                                </small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <button class="btn btn-outline-secondary" onclick="loadMore()">
-                            <i class="fas fa-arrow-down"></i> Load More Predictions
-                        </button>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-history fa-4x text-muted mb-3"></i>
-                        <h4>No Prediction History</h4>
-                        <p class="text-muted">Start using the AgriSense tools to build your prediction history.</p>
-                        <a href="{{ url_for('price_demand') }}" class="btn btn-primary">
-                            <i class="fas fa-rocket"></i> Make Your First Prediction
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+    <div class="glass-panel mb-0">
+      <div class="panel-head list-head-actions">
+        <h2><i class="fas fa-list-ul"></i> Entries</h2>
+        {% if history %}
+        <div class="dropdown">
+          <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-download"></i> Export
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" onclick="exportHistory('csv'); return false;">
+              <i class="fas fa-file-csv me-2" style="color:#7ab648;"></i> CSV
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="exportHistory('json'); return false;">
+              <i class="fas fa-file-code me-2" style="color:#67e8f9;"></i> JSON
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="exportHistory('pdf'); return false;">
+              <i class="fas fa-file-pdf me-2" style="color:#f87171;"></i> PDF
+            </a></li>
+          </ul>
         </div>
+        {% endif %}
+      </div>
+
+      <div class="history-list-wrap">
+        {% if history %}
+        <div id="historyList">
+          {% for prediction in history %}
+          {% set comp = prediction.component %}
+          {% if comp == 'price_demand' %}
+            {% set hcls = 'h-ac-price' %}
+            {% set hbcls = 'hb-price' %}
+          {% elif comp == 'market_ranking' %}
+            {% set hcls = 'h-ac-market' %}
+            {% set hbcls = 'hb-market' %}
+          {% elif comp == 'cultivation_targeting' %}
+            {% set hcls = 'h-ac-cult' %}
+            {% set hbcls = 'hb-cult' %}
+          {% elif comp == 'yield_quality' %}
+            {% set hcls = 'h-ac-yield' %}
+            {% set hbcls = 'hb-yield' %}
+          {% elif comp == 'profitable_strategy' %}
+            {% set hcls = 'h-ac-profit' %}
+            {% set hbcls = 'hb-profit' %}
+          {% else %}
+            {% set hcls = 'h-ac-default' %}
+            {% set hbcls = 'hb-default' %}
+          {% endif %}
+          <div class="history-card mb-3 {{ hcls }}"
+               data-component="{{ prediction.component }}"
+               data-timestamp="{% if prediction.timestamp is string %}{{ prediction.timestamp[:10] }}{% else %}{{ prediction.timestamp.strftime('%Y-%m-%d') }}{% endif %}">
+            <div class="row-top">
+              <div>
+                <span class="hist-badge {{ hbcls }}">
+                  {% if prediction.component == 'price_demand' %}
+                  <i class="fas fa-chart-line"></i> Price &amp; demand
+                  {% elif prediction.component == 'market_ranking' %}
+                  <i class="fas fa-map-marked-alt"></i> Market ranking
+                  {% elif prediction.component == 'cultivation_targeting' %}
+                  <i class="fas fa-seedling"></i> Cultivation targeting
+                  {% elif prediction.component == 'yield_quality' %}
+                  <i class="fas fa-camera"></i> Yield quality
+                  {% elif prediction.component == 'profitable_strategy' %}
+                  <i class="fas fa-lightbulb"></i> Profitable strategy
+                  {% else %}
+                  <i class="fas fa-cube"></i> {{ prediction.component|replace('_', ' ')|title }}
+                  {% endif %}
+                </span>
+                <span class="hist-time">
+                  <i class="fas fa-clock"></i>
+                  {% if prediction.timestamp is string %}
+                    {{ prediction.timestamp }}
+                  {% else %}
+                    {{ prediction.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                  {% endif %}
+                </span>
+              </div>
+              <div class="hist-actions">
+                <button type="button" class="btn-hist" title="Delete" onclick="deletePrediction('{{ prediction._id }}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+                <button type="button" class="btn-hist primary" onclick="viewDetails('{{ prediction._id }}')">
+                  <i class="fas fa-eye"></i> Details
+                </button>
+              </div>
+            </div>
+
+            <div class="hist-detail">
+              {% if prediction.component == 'price_demand' %}
+              <p class="mb-1">
+                {% if prediction.input and prediction.input.item_standard %}
+                  <strong>{{ prediction.input.item_standard }}</strong> at
+                {% endif %}
+                {% if prediction.input and prediction.input.market %}
+                  <strong>{{ prediction.input.market }}</strong> |
+                {% endif %}
+                {% if prediction.output and prediction.output.predicted_price %}
+                  Predicted: Rs. {{ prediction.output.predicted_price }}
+                {% endif %}
+              </p>
+              <small>
+                {% if prediction.output and prediction.output.price_trend %}
+                  Trend: {{ prediction.output.price_trend }} |
+                {% endif %}
+                {% if prediction.output and prediction.output.demand_index %}
+                  Demand index: {{ prediction.output.demand_index }}
+                {% endif %}
+              </small>
+
+              {% elif prediction.component == 'market_ranking' %}
+              <p class="mb-1">
+                {% if prediction.input and prediction.input.item %}
+                  <strong>{{ prediction.input.item }}</strong> for
+                {% endif %}
+                {% if prediction.input and prediction.input.user_role %}
+                  <strong>{{ prediction.input.user_role }}</strong> |
+                {% endif %}
+                {% if prediction.output and prediction.output.best_market %}
+                  Best market: {{ prediction.output.best_market }}
+                {% endif %}
+              </p>
+              <small>
+                {% if prediction.input and prediction.input.latitude and prediction.input.longitude %}
+                  Location: {{ prediction.input.latitude|float|round(4) }}, {{ prediction.input.longitude|float|round(4) }}
+                {% endif %}
+              </small>
+
+              {% elif prediction.component == 'cultivation_targeting' %}
+              <p class="mb-1">
+                {% if prediction.input and prediction.input.region %}
+                  Region: <strong>{{ prediction.input.region }}</strong> |
+                {% endif %}
+                {% if prediction.output and prediction.output.best_crop %}
+                  Best crop: <strong>{{ prediction.output.best_crop }}</strong>
+                {% endif %}
+              </p>
+              <small>
+                {% if prediction.input and prediction.input.season %}
+                  Season: {{ prediction.input.season }} |
+                {% endif %}
+                {% if prediction.output and prediction.output.total_recommendations %}
+                  Recommendations: {{ prediction.output.total_recommendations }}
+                {% endif %}
+              </small>
+
+              {% elif prediction.component == 'yield_quality' %}
+              <p class="mb-1">
+                Image analysis:
+                {% if prediction.output and prediction.output.predicted_class %}
+                  <strong>{{ prediction.output.predicted_class }}</strong>
+                {% else %}
+                  <strong>Image analysis</strong>
+                {% endif %}
+              </p>
+              <small>
+                {% if prediction.output %}
+                  {% if prediction.output.quality_assessment %}
+                    Quality: {{ prediction.output.quality_assessment }}
+                  {% endif %}
+                  {% if prediction.output.grade %}
+                    ({{ prediction.output.grade }}) |
+                  {% endif %}
+                  {% if prediction.output.confidence %}
+                    Confidence: {{ (prediction.output.confidence * 100)|int }}%
+                  {% endif %}
+                {% endif %}
+              </small>
+
+              {% else %}
+              <p class="mb-1">
+                <strong>{{ prediction.component|replace('_', ' ')|title }}</strong>
+              </p>
+              <small>Open details for full information.</small>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="text-center mt-3 pt-2">
+          <button type="button" class="btn-load-more" onclick="loadMore()">
+            <i class="fas fa-arrow-down"></i> Load more
+          </button>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fas fa-seedling"></i></div>
+          <h3>No prediction history</h3>
+          <p>Use AgriSense modules to build your history—predictions will appear here.</p>
+          <a href="{{ url_for('price_demand') }}" class="btn-cta"><i class="fas fa-rocket"></i> Make your first prediction</a>
+        </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Details Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Prediction Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Details will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="reusePrediction()">
-                    <i class="fas fa-recycle"></i> Reuse This Prediction
-                </button>
-            </div>
-        </div>
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailsModalLabel">Prediction details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="reusePrediction()">
+          <i class="fas fa-recycle"></i> Reuse this prediction
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -369,23 +941,19 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJ+Yq6q2v5E2PNZk5v3sSaha6dJbXx8aKVu2c=" crossorigin="anonymous"></script>
 <script>
 $(document).ready(function() {
-    // Initialize filter badges
     $('.filter-badge').click(function() {
         $('.filter-badge').removeClass('active');
         $(this).addClass('active');
         applyFilters();
     });
 
-    // Set today's date as default for dateTo
     var today = new Date().toISOString().split('T')[0];
     $('#dateTo').val(today);
 
-    // Set 30 days ago as default for dateFrom
     var thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     $('#dateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
 
-    // Update statistics
     updateStatistics();
 });
 
@@ -401,12 +969,10 @@ function applyFilters() {
         var timestamp = $(this).data('timestamp');
         var text = $(this).text().toLowerCase();
 
-        // Filter by component
         if (filter !== 'all' && component !== filter) {
             show = false;
         }
 
-        // Filter by date range
         if (dateFrom && timestamp < dateFrom) {
             show = false;
         }
@@ -414,7 +980,6 @@ function applyFilters() {
             show = false;
         }
 
-        // Filter by search text
         if (searchText && !text.includes(searchText)) {
             show = false;
         }
@@ -452,7 +1017,7 @@ function viewDetails(predictionId) {
                 displayPredictionDetails(response.data);
             } else {
                 $('#modalBody').html(`
-                    <div class="alert alert-danger">
+                    <div class="alert alert-danger border-0" style="background:rgba(254,226,226,0.9);color:#991b1b;border-radius:12px;">
                         <i class="fas fa-exclamation-triangle"></i>
                         ${response.message || 'Failed to load prediction details.'}
                     </div>
@@ -461,7 +1026,7 @@ function viewDetails(predictionId) {
         },
         error: function() {
             $('#modalBody').html(`
-                <div class="alert alert-danger">
+                <div class="alert alert-danger border-0" style="background:rgba(254,226,226,0.9);color:#991b1b;border-radius:12px;">
                     <i class="fas fa-exclamation-triangle"></i>
                     Error loading prediction details. Please try again.
                 </div>
@@ -469,32 +1034,36 @@ function viewDetails(predictionId) {
         }
     });
 
-    $('#detailsModal').modal('show');
+    var el = document.getElementById('detailsModal');
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        bootstrap.Modal.getOrCreateInstance(el).show();
+    } else {
+        $('#detailsModal').modal('show');
+    }
 }
 
 function displayPredictionDetails(prediction) {
     var html = `
-        <h6>Prediction ID:</h6>
-        <p><code>${prediction._id}</code></p>
+        <h6>Prediction ID</h6>
+        <p><code style="color:#14532d;background:#ecfccb;padding:2px 8px;border-radius:6px;">${prediction._id}</code></p>
 
-        <h6 class="mt-4">Component:</h6>
+        <h6>Component</h6>
         <p><span class="badge ${getComponentBadgeClass(prediction.component)}">${getComponentName(prediction.component)}</span></p>
 
-        <h6 class="mt-4">Timestamp:</h6>
+        <h6>Timestamp</h6>
         <p>${new Date(prediction.timestamp).toLocaleString()}</p>
 
-        <h6 class="mt-4">Input Parameters:</h6>
-        <pre class="bg-light p-3 rounded"><code>${JSON.stringify(prediction.input || {}, null, 2)}</code></pre>
+        <h6>Input parameters</h6>
+        <pre class="p-3 rounded"><code>${JSON.stringify(prediction.input || {}, null, 2)}</code></pre>
 
-        <h6 class="mt-4">Output Results:</h6>
-        <pre class="bg-light p-3 rounded"><code>${JSON.stringify(prediction.output || {}, null, 2)}</code></pre>
+        <h6>Output results</h6>
+        <pre class="p-3 rounded"><code>${JSON.stringify(prediction.output || {}, null, 2)}</code></pre>
     `;
 
-    // Add specific details based on component
     if (prediction.component === 'price_demand') {
         html += `
-            <h6 class="mt-4">Key Insights:</h6>
-            <div class="alert alert-info">
+            <h6>Key insights</h6>
+            <div class="alert alert-info border-0">
                 <i class="fas fa-lightbulb"></i>
                 ${prediction.output && prediction.output.insights ? prediction.output.insights : 'No specific insights available.'}
             </div>
@@ -508,7 +1077,7 @@ function getComponentBadgeClass(component) {
     switch(component) {
         case 'price_demand': return 'bg-success';
         case 'market_ranking': return 'bg-info';
-        case 'cultivation_targeting': return 'bg-warning';
+        case 'cultivation_targeting': return 'bg-warning text-dark';
         case 'yield_quality': return 'bg-primary';
         default: return 'bg-secondary';
     }
@@ -531,7 +1100,6 @@ function deletePrediction(predictionId) {
             type: 'DELETE',
             success: function(response) {
                 if (response.success) {
-                    // Remove the card from view
                     $('.history-card').each(function() {
                         if ($(this).find('button[onclick*="' + predictionId + '"]').length > 0) {
                             $(this).remove();
@@ -552,8 +1120,6 @@ function deletePrediction(predictionId) {
 
 function loadMore() {
     showToast('Loading more predictions...', 'info');
-    // In a real implementation, this would make an API call to load more predictions
-    // For now, just show a message
 }
 
 function exportHistory(format) {
@@ -580,10 +1146,8 @@ function exportHistory(format) {
             return;
     }
 
-    // Create loading indicator
     showToast('Generating export file...', 'info');
 
-    // Trigger file download
     var a = document.createElement('a');
     a.href = url;
     a.download = filename;
@@ -591,7 +1155,6 @@ function exportHistory(format) {
     a.click();
     document.body.removeChild(a);
 
-    // Show success message after a delay
     setTimeout(function() {
         showToast('Export completed successfully!', 'success');
     }, 2000);
@@ -600,19 +1163,21 @@ function exportHistory(format) {
 function reusePrediction() {
     var modalBody = $('#modalBody').html();
 
-    // Check if we have prediction data in the modal
     if (modalBody.includes('predictionId')) {
         showToast('This feature would pre-fill the prediction form with this data.', 'info');
     } else {
         showToast('Please view prediction details first', 'warning');
     }
 
-    $('#detailsModal').modal('hide');
+    var el = document.getElementById('detailsModal');
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        bootstrap.Modal.getOrCreateInstance(el).hide();
+    } else {
+        $('#detailsModal').modal('hide');
+    }
 }
 
-// Helper function to show toast notifications
 function showToast(message, type = 'info') {
-    // Remove existing toast
     $('.export-toast').remove();
 
     var toastClass = '';
@@ -639,10 +1204,10 @@ function showToast(message, type = 'info') {
     var toastHtml = `
         <div class="export-toast">
             <div class="toast show ${toastClass}" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header text-white">
+                <div class="toast-header">
                     ${icon}
-                    <strong class="me-auto">Export Status</strong>
-                    <button type="button" class="btn-close btn-close-white" onclick="$(this).closest('.export-toast').remove()"></button>
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close" onclick="$(this).closest('.export-toast').remove()" aria-label="Close"></button>
                 </div>
                 <div class="toast-body">
                     ${message}
@@ -653,7 +1218,6 @@ function showToast(message, type = 'info') {
 
     $('body').append(toastHtml);
 
-    // Auto-remove after 5 seconds
     setTimeout(function() {
         $('.export-toast').fadeOut(500, function() {
             $(this).remove();
@@ -661,7 +1225,6 @@ function showToast(message, type = 'info') {
     }, 5000);
 }
 
-// Add missing String.title() method
 String.prototype.title = function() {
     return this.replace(/\w\S*/g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();

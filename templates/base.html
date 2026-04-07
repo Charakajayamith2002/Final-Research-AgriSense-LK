@@ -8,61 +8,348 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+      /* ── NAVBAR OVERRIDE — matches AgriSense dark theme ── */
+      .agri-navbar {
+        background: #1a1a0e !important;
+        border-bottom: 1px solid rgba(122,182,72,0.2);
+        padding: 0 0;
+        position: relative;
+        z-index: 100;
+      }
+      .agri-navbar .container { padding: 12px 32px; max-width: 1280px; }
+
+      .agri-navbar .navbar-brand {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: #fefefe !important;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        letter-spacing: 0.01em;
+      }
+      .agri-navbar .navbar-brand .brand-icon {
+        width: 32px; height: 32px;
+        background: rgba(122,182,72,0.15);
+        border: 1px solid rgba(122,182,72,0.35);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: #7ab648;
+        font-size: 0.9rem;
+      }
+      .agri-navbar .navbar-brand .brand-accent { color: #7ab648; font-style: italic; }
+
+      .agri-navbar .nav-link {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.7) !important;
+        padding: 8px 14px !important;
+        border-radius: 8px;
+        transition: color 0.2s, background 0.2s;
+      }
+      .agri-navbar .nav-link:hover,
+      .agri-navbar .nav-link.active {
+        color: #fefefe !important;
+        background: rgba(122,182,72,0.1);
+      }
+
+      /* Dropdown */
+      .agri-navbar .dropdown-menu {
+        background: #1a1a0e;
+        border: 1px solid rgba(122,182,72,0.2);
+        border-radius: 12px;
+        padding: 8px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        margin-top: 6px;
+      }
+      .agri-navbar .dropdown-item {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.7);
+        padding: 9px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .agri-navbar .dropdown-item:hover {
+        background: rgba(122,182,72,0.12);
+        color: #fefefe;
+      }
+      .agri-navbar .dropdown-divider { border-color: rgba(255,255,255,0.08); }
+      .agri-navbar .dropdown-item.text-danger { color: #f87171 !important; }
+      .agri-navbar .dropdown-item.text-danger:hover { background: rgba(239,68,68,0.1); }
+
+      /* Auth buttons */
+      .agri-navbar .btn-nav-login {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.75) !important;
+        padding: 7px 16px;
+        border-radius: 8px;
+        border: 1.5px solid rgba(255,255,255,0.2);
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .agri-navbar .btn-nav-login:hover {
+        border-color: rgba(255,255,255,0.45);
+        color: #fff !important;
+        background: rgba(255,255,255,0.06);
+      }
+      .agri-navbar .btn-nav-register {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1a1a0e !important;
+        background: #7ab648;
+        padding: 7px 18px;
+        border-radius: 8px;
+        border: 2px solid #7ab648;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 8px;
+      }
+      .agri-navbar .btn-nav-register:hover {
+        background: transparent;
+        color: #7ab648 !important;
+        transform: translateY(-1px);
+      }
+
+      /* User badge pill */
+      .user-type-pill {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: rgba(122,182,72,0.2);
+        color: #7ab648;
+        border: 1px solid rgba(122,182,72,0.35);
+        padding: 2px 8px;
+        border-radius: 100px;
+        margin-left: 6px;
+      }
+
+      /* Toggler */
+      .agri-navbar .navbar-toggler {
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 5px 10px;
+        border-radius: 8px;
+      }
+      .agri-navbar .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+      }
+
+     /* Float flash messages over the page — no layout gap */
+        .flash-messages-wrapper {
+          position: fixed;
+          top: 70px;          /* just below your navbar height */
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 9999;
+          width: 100%;
+          max-width: 860px;
+          padding: 0 16px;
+          pointer-events: none;
+        }
+
+        .flash-messages-wrapper .alert {
+          pointer-events: all;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+          border-radius: 10px;
+          animation: slideDown 0.35s ease both;
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+      /* ── MAIN — full-width, no padding ── */
+      /* Pages that need a container add it themselves */
+      .page-main {
+        width: 100%;
+        min-height: 60vh;
+      }
+
+      /* ── FOOTER ── */
+      .agri-footer {
+        background: #1a1a0e;
+        border-top: 1px solid rgba(122,182,72,0.15);
+        padding: 56px 0 32px;
+        margin-top: 0;
+      }
+      .agri-footer .footer-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+      .agri-footer .footer-brand {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: #fefefe;
+        margin-bottom: 8px;
+      }
+      .agri-footer .footer-brand span { color: #7ab648; font-style: italic; }
+      .agri-footer .footer-desc {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.45);
+        line-height: 1.7;
+        max-width: 300px;
+        margin-bottom: 20px;
+      }
+      .agri-footer .footer-contact {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .agri-footer .footer-contact i { color: #7ab648; width: 16px; }
+      .agri-footer .footer-col-title {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #7ab648;
+        margin-bottom: 16px;
+      }
+      .agri-footer .footer-links {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .agri-footer .footer-links a {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.55);
+        text-decoration: none;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .agri-footer .footer-links a::before {
+        content: '';
+        width: 4px; height: 4px;
+        background: rgba(122,182,72,0.4);
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .agri-footer .footer-links a:hover { color: #7ab648; }
+      .agri-footer .footer-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.06);
+        margin: 40px 0 24px;
+      }
+      .agri-footer .footer-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .agri-footer .footer-copy {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.3);
+      }
+      .agri-footer .footer-logged {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.25);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .agri-footer .footer-logged i { color: #7ab648; }
+    </style>
 
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+
+    <!-- ═══════════  NAVBAR  ═══════════ -->
+    <nav class="navbar navbar-expand-lg agri-navbar">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('home') }}">
-                <i class="fas fa-seedling me-2"></i>AgriSense
+                <div class="brand-icon"><i class="fas fa-seedling"></i></div>
+                Agri<span class="brand-accent">Sense</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto ms-3">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                        <a class="nav-link" href="{{ url_for('home') }}">
+                            <i class="fas fa-home" style="font-size:0.8rem; margin-right:5px; opacity:0.6;"></i>Home
+                        </a>
                     </li>
                     {% if session.user_id %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="componentsDropdown" role="button" data-bs-toggle="dropdown">
-                            Components
+                        <a class="nav-link dropdown-toggle" href="#" id="componentsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cubes" style="font-size:0.8rem; margin-right:5px; opacity:0.6;"></i>Components
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('profitable_strategy') }}">Profitable Business Strategy</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('market_ranking') }}">Market Opportunity Ranking</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('cultivation_targeting') }}">Cultivation Targeting</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('yield_quality') }}">Quality Grading and Income Prediction</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="componentsDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('profitable_strategy') }}">
+                                <i class="fas fa-lightbulb me-2" style="color:#7ab648;"></i>Profitable Business Strategy
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('market_ranking') }}">
+                                <i class="fas fa-map-marked-alt me-2" style="color:#06b6d4;"></i>Market Opportunity Ranking
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cultivation_targeting') }}">
+                                <i class="fas fa-seedling me-2" style="color:#d4a847;"></i>Cultivation Targeting
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('yield_quality') }}">
+                                <i class="fas fa-camera me-2" style="color:#ef4444;"></i>Quality Grading & Income
+                            </a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">History</a>
+                        <a class="nav-link" href="{{ url_for('history') }}">
+                            <i class="fas fa-history" style="font-size:0.8rem; margin-right:5px; opacity:0.6;"></i>History
+                        </a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">About Us</a>
+                        <a class="nav-link" href="{{ url_for('about') }}">
+                            <i class="fas fa-info-circle" style="font-size:0.8rem; margin-right:5px; opacity:0.6;"></i>About
+                        </a>
                     </li>
                 </ul>
 
-                <!-- User Authentication Section -->
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
                     {% if session.user_id %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i> {{ session.username }}
-                            <span class="badge bg-light text-dark ms-1">
-                                {{ session.user_type|title }}
-                            </span>
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2" style="color:#7ab648;"></i>
+                            {{ session.username }}
+                            <span class="user-type-pill">{{ session.user_type|title }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('profile') }}">
-                                <i class="fas fa-user me-2"></i>Profile
+                                <i class="fas fa-user me-2" style="color:#7ab648;"></i>Profile
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
@@ -72,13 +359,13 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        <a class="btn-nav-login" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt"></i> Login
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-light ms-2" href="{{ url_for('register') }}">
-                            <i class="fas fa-user-plus me-1"></i>Register
+                        <a class="btn-nav-register" href="{{ url_for('register') }}">
+                            <i class="fas fa-user-plus"></i> Register
                         </a>
                     </li>
                     {% endif %}
@@ -87,57 +374,84 @@
         </div>
     </nav>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container mt-3">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
-                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' if category == 'warning' else 'info-circle' if category == 'info' else 'exclamation-triangle' }} me-2"></i>
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <!-- ═══════════  FLASH MESSAGES  ═══════════ -->
+            <div class="flash-messages-wrapper">
+              {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                  {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                      <i class="fas fa-check-circle me-2"></i>{{ message }}
+                      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                {% endfor %}
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
             </div>
-        {% endif %}
-    {% endwith %}
-
-    <!-- Main Content -->
-    <main class="container py-4">
+    <!-- ═══════════  MAIN CONTENT  ═══════════ -->
+    <!-- No container or padding here — each page controls its own layout -->
+    <main class="page-main">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>AgriSense</h5>
-                    <p>Intelligent Agricultural Decision Support System</p>
-                    <p><i class="fas fa-envelope me-2"></i> info@agrisense.com</p>
-                    <p><i class="fas fa-phone me-2"></i> +94 11 234 5678</p>
+    <!-- ═══════════  FOOTER  ═══════════ -->
+    <footer class="agri-footer">
+        <div class="footer-container">
+            <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px;">
+
+                <!-- Brand col -->
+                <div>
+                    <div class="footer-brand">Agri<span>Sense</span></div>
+                    <p class="footer-desc">Intelligent Agricultural Decision Support System — empowering Sri Lankan farmers with AI-driven market insights.</p>
+                    <div class="footer-contact">
+                        <span><i class="fas fa-envelope"></i> info@agrisense.com</span>
+                        <span><i class="fas fa-phone"></i> +94 11 234 5678</span>
+                        <span><i class="fas fa-map-marker-alt"></i> Colombo, Sri Lanka</span>
+                    </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
+
+                <!-- Modules col -->
+                <div>
+                    <div class="footer-col-title">AI Modules</div>
+                    <ul class="footer-links">
                         {% if session.user_id %}
-                        <li><a href="{{ url_for('price_demand') }}" class="text-white text-decoration-none">Price Prediction</a></li>
-                        <li><a href="{{ url_for('market_ranking') }}" class="text-white text-decoration-none">Market Ranking</a></li>
-                        <li><a href="{{ url_for('cultivation_targeting') }}" class="text-white text-decoration-none">Cultivation Planning</a></li>
-                        <li><a href="{{ url_for('yield_quality') }}" class="text-white text-decoration-none">Quality Assessment</a></li>
+                        <li><a href="{{ url_for('profitable_strategy') }}">Business Strategy</a></li>
+                        <li><a href="{{ url_for('price_demand') }}">Price Prediction</a></li>
+                        <li><a href="{{ url_for('market_ranking') }}">Market Ranking</a></li>
+                        <li><a href="{{ url_for('cultivation_targeting') }}">Cultivation Planning</a></li>
+                        <li><a href="{{ url_for('yield_quality') }}">Quality Assessment</a></li>
                         {% else %}
-                        <li><a href="{{ url_for('login') }}" class="text-white text-decoration-none">Login</a></li>
-                        <li><a href="{{ url_for('register') }}" class="text-white text-decoration-none">Register</a></li>
+                        <li><a href="{{ url_for('login') }}">Login to access modules</a></li>
                         {% endif %}
-                        <li><a href="{{ url_for('about') }}" class="text-white text-decoration-none">About Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- Quick links col -->
+                <div>
+                    <div class="footer-col-title">Quick Links</div>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('home') }}">Home</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                        {% if session.user_id %}
+                        <li><a href="{{ url_for('history') }}">History</a></li>
+                        <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        {% else %}
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        <li><a href="{{ url_for('register') }}">Register</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
-            <hr class="bg-light">
-            <div class="text-center">
-                <p>&copy; 2024 AgriSense. All rights reserved.</p>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-bottom">
+                <span class="footer-copy">&copy; 2026 AgriSense. All rights reserved.</span>
                 {% if session.user_id %}
-                <small class="text-muted">Logged in as: {{ session.email }} ({{ session.user_type|title }})</small>
+                <span class="footer-logged">
+                    <i class="fas fa-circle" style="font-size:0.5rem;"></i>
+                    Logged in as {{ session.email }} &nbsp;·&nbsp; {{ session.user_type|title }}
+                </span>
                 {% endif %}
             </div>
         </div>
@@ -147,6 +461,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+  // Auto hide flash messages after 5 seconds
+  setTimeout(function () {
+    const alerts = document.querySelectorAll('.flash-messages-wrapper .alert');
+
+    alerts.forEach(function(alert) {
+      // fade out effect
+      alert.style.transition = "opacity 0.5s ease";
+      alert.style.opacity = "0";
+
+      // remove from DOM after fade
+      setTimeout(() => {
+        alert.remove();
+      }, 500);
+    });
+
+  }, 5000);
+</script>
 
     {% block extra_js %}{% endblock %}
 </body>
