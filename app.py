@@ -606,76 +606,176 @@ def cultivation_targeting():
 
     return render_template('cultivation_targeting.html', success=False)
 
+# Updated code of component 04
 @app.route('/yield-quality', methods=['GET', 'POST'])
 @login_required
 def yield_quality():
-    """Component 4: Yield Quality Scaling with Multi-Task Model (Class + Grade)"""
+    """Component 4: Yield Quality Scaling using a separate PyTorch model (.pth)"""
     if request.method == 'POST':
         try:
-            # Check if file was uploaded
-            if 'image' not in request.files:
+            # Check if files were uploaded
+            if 'images' not in request.files:
                 return render_template('yield_quality_scaling.html',
-                                       error='No image file uploaded')
+                                       error='No image files uploaded')
 
-            file = request.files['image']
+            files = request.files.getlist('images')
 
-            if file.filename == '':
+            if not files or all(f.filename == '' for f in files):
                 return render_template('yield_quality_scaling.html',
-                                       error='No image selected')
+                                       error='No images selected')
 
-            if file and allowed_file(file.filename):
+            # Filter valid files
+            valid_files = [f for f in files if f and allowed_file(f.filename)]
+
+            if not valid_files:
+                return render_template('yield_quality_scaling.html',
+                                       error='No valid image files provided')
+
+            # Get best unit price from form
+            best_unit_price = request.form.get('best_unit_price')
+            if not best_unit_price:
+                return render_template('yield_quality_scaling.html',
+                                       error='Best unit price is required')
+            
+            try:
+                best_unit_price = float(best_unit_price)
+            except ValueError:
+                return render_template('yield_quality_scaling.html',
+                                       error='Best unit price must be a valid number')
+
+            # Load the separate PyTorch model and make prediction
+            import torch
+            from torchvision import transforms
+            from PIL import Image
+
+            # Load ResNet50HealthClassifier model (load once and cache)
+            if not hasattr(yield_quality, 'model'):
+                import torch.nn as nn
+
+                class ResNet50HealthClassifier(nn.Module):
+                    """ResNet-50 model for binary health classification"""
+                    def __init__(self, num_classes=1, pretrained=False, freeze_backbone=False):
+                        super().__init__()
+                        self.backbone = create_model('resnet50', pretrained=pretrained, num_classes=0)
+                        num_features = self.backbone.num_features
+                        self.classifier = nn.Sequential(
+                            nn.Dropout(p=0.5),
+                            nn.Linear(num_features, 512),
+                            nn.ReLU(inplace=True),
+                            nn.BatchNorm1d(512),
+                            nn.Dropout(p=0.3),
+                            nn.Linear(512, 128),
+                            nn.ReLU(inplace=True),
+                            nn.BatchNorm1d(128),
+                            nn.Linear(128, num_classes)
+                        )
+                        if freeze_backbone:
+                            for param in self.backbone.parameters():
+                                param.requires_grad = False
+
+                    def forward(self, x):
+                        x = self.backbone(x)
+                        x = self.classifier(x)
+                        return x
+
+                    def get_health_score(self, x):
+                        logits = self.forward(x)
+                        return torch.sigmoid(logits)
+
+                model = ResNet50HealthClassifier(num_classes=1, pretrained=False, freeze_backbone=True)
+                model_path = 'models/4/model_latest.pth'  # Update path as needed
+                model.load_state_dict(torch.load(model_path, map_location='cpu'))
+                model.eval()
+                yield_quality.model = model
+            else:
+                model = yield_quality.model
+
+            # Image preprocessing
+            preprocess = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+
+            # Process all images
+            probabilities = []
+            image_urls = []
+            predicted_classes = []
+
+            for file in valid_files:
                 # Save uploaded file
                 filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secure_filename(file.filename)}"
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
 
-                # Get prediction from multi-task model (class + grade)
-                try:
-                    prediction = model_loader.predict_component4(filepath)
-                except Exception as model_error:
-                    print(f"Model prediction error: {model_error}")
-                    # Fallback to intelligent prediction
-                    prediction = model_loader._create_intelligent_multitask_prediction(filepath)
+                # Predict probability
+                img = Image.open(filepath).convert('RGB')
+                input_tensor = preprocess(img).unsqueeze(0)
 
-                # Add image URL for display
-                prediction['image_url'] = url_for('static', filename=f'uploads/{filename}')
-                prediction['upload_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                with torch.no_grad():
+                    output = model(input_tensor)
+                    if isinstance(output, tuple):
+                        output = output[0]
+                    probability = torch.sigmoid(output).item() if output.numel() == 1 else torch.softmax(output, dim=1).max().item()
+                    if probability <= 0.1:
+                        probability = probability * 10
 
-                # Format the display result for the template
-                # The template expects both old and new fields for compatibility
-                if 'grade' in prediction:
-                    # This is the new multi-task model output
-                    prediction['predicted_class'] = prediction.get('predicted_class', 'Unknown')
-                    prediction['quality'] = 'Quality' if prediction.get('grade') == 'Grade_A' else 'Low'
-                    prediction['confidence'] = prediction.get('class_confidence', 0.5)
+                probabilities.append(probability)
+                image_urls.append(url_for('static', filename=f'uploads/{filename}'))
 
-                    # Ensure top_3_predictions is in the format template expects
-                    if 'top_3_predictions' not in prediction and 'top_3_classes' in prediction:
-                        prediction['top_3_predictions'] = prediction['top_3_classes']
-
-                    # Create display text
-                    prediction['display_text'] = f"{prediction['predicted_class']} - {prediction.get('grade', 'Unknown')}"
+                # Determine class
+                if output.numel() == 1:
+                    if probability < 0.1:
+                        predicted_class = 'NULL OR ROTTEN'
+                    elif probability < 0.4:
+                        predicted_class = 'Grade_C'
+                    elif probability < 0.9:
+                        predicted_class = 'Grade_B'
+                    else:
+                        predicted_class = 'Grade_A'
                 else:
-                    # This is the old model output - ensure compatibility
-                    prediction['grade'] = 'Grade_A' if prediction.get('quality') == 'Quality' else 'Grade_B'
-                    prediction['class_confidence'] = prediction.get('confidence', 0.5)
-                    prediction['grade_confidence'] = 0.85  # Default for backward compatibility
-                    prediction['all_class_probabilities'] = prediction.get('all_predictions', {})
-                    prediction['all_grade_probabilities'] = {'Grade_A': 0.85, 'Grade_B': 0.15}  # Default
+                    predicted_idx = torch.softmax(output, dim=1).argmax().item()
+                    class_names = ['Grade_A', 'Grade_B', 'Grade_C', 'NULL']
+                    predicted_class = class_names[predicted_idx]
 
-                # Save to history
-                history_data = {
-                    'component': 'yield_quality',
-                    'input': {'filename': filename},
-                    'output': prediction,
-                    'timestamp': datetime.now(),
-                    'user_id': session.get('user_id')
-                }
-                db_handler.save_prediction(history_data)
+                predicted_classes.append(predicted_class)
 
-                return render_template('yield_quality_scaling.html',
-                                       prediction=prediction,
-                                       image_url=prediction['image_url'])
+            # Calculate mean probability
+            mean_probability = sum(probabilities) / len(probabilities)
+
+            # Determine overall class based on mean probability
+            if mean_probability < 0.1:
+                overall_class = 'NULL OR ROTTEN'
+            elif mean_probability < 0.4:
+                overall_class = 'Grade_C'
+            elif mean_probability < 0.9:
+                overall_class = 'Grade_B'
+            else:
+                overall_class = 'Grade_A'
+
+            prediction = {
+                'mean_probability': round(mean_probability, 4),
+                'individual_probabilities': [round(p, 4) for p in probabilities],
+                'predicted_class': overall_class,
+                'individual_classes': predicted_classes,
+                'image_urls': image_urls,
+                'num_images': len(valid_files),
+                'best_unit_price': best_unit_price,
+                'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+            # Save to history
+            history_data = {
+                'component': 'yield_quality',
+                'input': {'num_files': len(valid_files), 'best_unit_price': best_unit_price},
+                'output': prediction,
+                'timestamp': datetime.now(),
+                'user_id': session.get('user_id')
+            }
+            db_handler.save_prediction(history_data)
+
+            return render_template('yield_quality_scaling.html',
+                                   prediction=prediction)
 
         except Exception as e:
             logger.error(f"Yield quality prediction error: {str(e)}")
@@ -686,6 +786,7 @@ def yield_quality():
 
     return render_template('yield_quality_scaling.html')
 
+# End 0f Updated code of component 04
 
 # Import Component 5
 from component_5 import BusinessIdeaPredictor
