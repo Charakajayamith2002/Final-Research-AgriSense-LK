@@ -439,7 +439,7 @@
           <div class="form-card-body">
 
             {% if error %}
-            <div class="error-banner">
+            <div class="error-banner" id="errorBanner">
               <i class="fas fa-exclamation-circle"></i>
               <span>{{ error }}</span>
             </div>
@@ -643,8 +643,10 @@
 var imageInput   = document.getElementById('imageInput');
 var previewGrid  = document.getElementById('previewContainer');
 var previewCount = document.getElementById('previewCount');
+var errorBanner  = document.getElementById('errorBanner');
 
 imageInput.addEventListener('change', function(e) {
+  if (errorBanner) { errorBanner.style.display = 'none'; }
   previewGrid.innerHTML = '';
   var files = e.target.files;
   for (var i = 0; i < files.length; i++) {
@@ -670,6 +672,9 @@ imageInput.addEventListener('change', function(e) {
 
 /* ── Drag & drop ── */
 var dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('click', function() {
+  if (errorBanner) { errorBanner.style.display = 'none'; }
+});
 dropzone.addEventListener('dragover',  function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
 dropzone.addEventListener('dragleave', function()   { dropzone.classList.remove('dragover'); });
 dropzone.addEventListener('drop', function(e) {
@@ -677,6 +682,11 @@ dropzone.addEventListener('drop', function(e) {
   dropzone.classList.remove('dragover');
   imageInput.files = e.dataTransfer.files;
   imageInput.dispatchEvent(new Event('change'));
+});
+
+var bestUnitPrice = document.getElementById('bestUnitPrice');
+bestUnitPrice.addEventListener('input', function() {
+  if (errorBanner) { errorBanner.style.display = 'none'; }
 });
 
 /* ── Submit loading state ── */

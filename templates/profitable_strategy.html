@@ -247,13 +247,10 @@
           <div class="fields-grid cols-4" style="margin-bottom:0;">
             <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_income">Monthly Income</span> <span class="tip">(LKR)</span></label><input type="number" class="form-control" id="monthly_income" name="monthly_income" value="85000" min="0" step="1000" required></div>
             <div class="field-group"><label class="form-label" data-i18n="ps_lbl_income_src">Income Source</label><select class="form-select" id="income_source" name="income_source" required><option value="both" selected data-i18n="ps_opt_both">Both</option><option value="profession" data-i18n="ps_opt_prof_only">Profession Only</option><option value="business" data-i18n="ps_opt_biz_only">Business Only</option></select></div>
-            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_marital">Marital Status</label><select class="form-select" id="marital_status" name="marital_status" required><option value="" disabled selected data-i18n="ps_opt_select_status">Select status</option><option value="married" data-i18n="ps_opt_married">Married</option><option value="unmarried" data-i18n="ps_opt_unmarried">Unmarried</option></select></div>
-            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_family">Family Members</label><input type="number" class="form-control" id="family_members" name="family_members" value="0" min="1" max="20"></div>
           </div>
           <div class="section-divider"></div>
           <div class="section-label" data-i18n="ps_sec_financial"><i class="fas fa-wallet" style="color:var(--green-500)"></i> Financial Information</div>
           <div class="fields-grid cols-4">
-            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_children">Children Under 16</label><input type="number" class="form-control" id="children_under_16" name="children_under_16" value="0" min="0" max="10"></div>
             <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_budget">Available Budget</span> <span class="tip">(LKR)</span></label><input type="number" class="form-control" id="available_budget" name="available_budget" value="250000" min="0" step="10000" required></div>
             <div class="field-group" style="grid-column:span 2;"><label class="form-label" data-i18n="ps_lbl_budget_src">Budget Source</label><select class="form-select" id="budget_source" name="budget_source" required><option value="" disabled selected data-i18n="ps_opt_select_src">Select a source</option><option value="saving" data-i18n="ps_opt_saving">Savings</option><option value="exchange" data-i18n="ps_opt_exchange">Exchange</option><option value="pawning" data-i18n="ps_opt_pawning">Pawning</option><option value="bank_loan" data-i18n="ps_opt_bank_loan">Bank Loan</option><option value="private_loan" data-i18n="ps_opt_private_loan">Private Loan</option></select></div>
           </div>
@@ -631,8 +628,7 @@ document.getElementById('predictionForm').addEventListener('submit', async funct
   var fd = {
     role: document.getElementById('role').value, purpose: document.getElementById('purpose').value,
     profession: document.getElementById('profession').value, monthly_income: parseFloat(document.getElementById('monthly_income').value),
-    income_source: document.getElementById('income_source').value, marital_status: document.getElementById('marital_status').value,
-    family_members: parseInt(document.getElementById('family_members').value)||0, children_under_16: parseInt(document.getElementById('children_under_16').value)||0,
+    income_source: document.getElementById('income_source').value,
     available_budget: parseFloat(document.getElementById('available_budget').value), budget_source: document.getElementById('budget_source').value,
     market_item: document.getElementById('market_item').value, market_name: document.getElementById('market_name').value,
     predicted_price: parseFloat(document.getElementById('predicted_price').value), distance_km: parseFloat(document.getElementById('distance_km').value),
@@ -701,7 +697,7 @@ function _createChart(predictions) {
 ───────────────────────────────────────────── */
 document.getElementById('resetBtn').addEventListener('click', function() {
   document.getElementById('predictionForm').reset();
-  var defaults = {role:'farmer',profession:'farming',income_source:'both',monthly_income:'85000',available_budget:'250000',marital_status:'',family_members:'0',children_under_16:'0',market_item:'',market_name:'',predicted_price:'0',distance_km:'',transport_cost:'',net_advantage:'',cultivation_item:'',cultivation_profitability:'0',cultivation_risk:'0',optimal_month:'1',season:'Spring',latitude:'7.2906',longitude:'80.6337'};
+  var defaults = {role:'farmer',profession:'farming',income_source:'both',monthly_income:'85000',available_budget:'250000',market_item:'',market_name:'',predicted_price:'0',distance_km:'',transport_cost:'',net_advantage:'',cultivation_item:'',cultivation_profitability:'0',cultivation_risk:'0',optimal_month:'1',season:'Spring',latitude:'7.2906',longitude:'80.6337'};
   Object.entries(defaults).forEach(function(e) { var el = document.getElementById(e[0]); if (el) el.value = e[1]; });
   document.getElementById('role').dispatchEvent(new Event('change'));
   document.getElementById('resultsSection').classList.remove('visible');
