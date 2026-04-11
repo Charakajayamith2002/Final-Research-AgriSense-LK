@@ -7,7 +7,9 @@
       "Bash(where flutter:*)",
       "Read(//c/flutter/bin/**)",
       "Read(//c/src/flutter/bin/**)",
-      "Read(//c/Users/My PC/flutter/bin/**)"
+      "Read(//c/Users/My PC/flutter/bin/**)",
+      "Bash(C:/flutter/bin/flutter analyze:*)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }

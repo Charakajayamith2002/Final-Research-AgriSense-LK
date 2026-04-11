@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme/auth_widgets.dart';
 import 'home_screen.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,139 +12,184 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _usernameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
-  String _userType = 'farmer';
-  bool _loading = false;
-  bool _obscure = true;
-
-  final List<Map<String, String>> _userTypes = [
-    {'value': 'farmer', 'label': 'Farmer'},
-    {'value': 'buyer', 'label': 'Buyer'},
-    {'value': 'trader', 'label': 'Trader'},
-    {'value': 'researcher', 'label': 'Researcher'},
-  ];
+  final _formKey       = GlobalKey<FormState>();
+  final _emailCtrl     = TextEditingController();
+  final _usernameCtrl  = TextEditingController();
+  final _passCtrl      = TextEditingController();
+  final _confirmCtrl   = TextEditingController();
+  String _userType     = 'buyer';
+  bool _loading        = false;
+  bool _obscure        = true;
+  bool _obscureConfirm = true;
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_passCtrl.text != _confirmCtrl.text) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Passwords do not match'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
     setState(() => _loading = true);
     final result = await ApiService().register(
       _usernameCtrl.text.trim(),
       _emailCtrl.text.trim(),
-      _passwordCtrl.text,
+      _passCtrl.text,
       _userType,
     );
     setState(() => _loading = false);
+    if (!mounted) return;
     if (result['success'] == true) {
-      if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-      }
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()));
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Registration failed'), backgroundColor: Colors.red),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(result['message'] ?? 'Registration failed'),
+        backgroundColor: Colors.red.shade700,
+      ));
     }
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose(); _usernameCtrl.dispose();
+    _passCtrl.dispose(); _confirmCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F8E9),
-      appBar: AppBar(title: const Text('Create Account')),
+      backgroundColor: authBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text('Join AgriSense LK',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    const Text('Create your account to get started',
-                        style: TextStyle(color: Colors.grey)),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _usernameCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: Icon(Icons.person_outlined),
+          child: Column(
+            children: [
+              // ── Hero ──────────────────────────────────
+              AuthHeroSection(
+                headline: 'Your farm\'s AI\nadvantage\nstarts here.',
+                features: const [
+                  AuthFeature(Icons.lightbulb_outline,     'Profitable Strategy', 'AI recommends the most profitable business type for your profile.'),
+                  AuthFeature(Icons.trending_up,           'Price Forecasting',   'Know what your crop will fetch before harvest day.'),
+                  AuthFeature(Icons.map_outlined,          'Market Ranking',      'Find the best market with lowest transport cost.'),
+                  AuthFeature(Icons.grass,                 'Cultivation AI',      'AI tells you exactly what to plant next season.'),
+                ],
+              ),
+
+              // ── Card ──────────────────────────────────
+              AuthCard(
+                activeTab: 1,
+                onTabSwitch: () => Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen())),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AuthCardHeading(title: 'Create your account', sub: ''),
+
+                      // Account info
+                      const AuthSectionLabel('Account info'),
+                      Row(children: [
+                        Expanded(child: AuthField(
+                          label: 'Email Address',
+                          icon: Icons.email_outlined,
+                          controller: _emailCtrl,
+                          hint: 'you@example.com',
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (v) =>
+                              v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                        )),
+                        const SizedBox(width: 10),
+                        Expanded(child: AuthField(
+                          label: 'Username',
+                          icon: Icons.person_outline,
+                          controller: _usernameCtrl,
+                          hint: 'Display name',
+                          validator: (v) =>
+                              v == null || v.isEmpty ? 'Enter username' : null,
+                        )),
+                      ]),
+                      const SizedBox(height: 14),
+
+                      // Security
+                      const AuthSectionLabel('Security'),
+                      Row(children: [
+                        Expanded(child: AuthField(
+                          label: 'Password',
+                          icon: Icons.lock_outline,
+                          controller: _passCtrl,
+                          hint: 'Min. 6 characters',
+                          obscure: _obscure,
+                          onToggleObscure: () => setState(() => _obscure = !_obscure),
+                          validator: (v) =>
+                              v == null || v.length < 6 ? 'Min. 6 characters' : null,
+                        )),
+                        const SizedBox(width: 10),
+                        Expanded(child: AuthField(
+                          label: 'Confirm Password',
+                          icon: Icons.lock_outline,
+                          controller: _confirmCtrl,
+                          hint: 'Repeat password',
+                          obscure: _obscureConfirm,
+                          onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                          validator: (v) =>
+                              v == null || v.isEmpty ? 'Confirm password' : null,
+                        )),
+                      ]),
+                      const SizedBox(height: 16),
+
+                      // User type
+                      const AuthSectionLabel('I am a'),
+                      Row(children: [
+                        Expanded(child: UserTypeCard(
+                          icon: '🛒',
+                          title: 'Buyer',
+                          sub: 'Purchase crops & products',
+                          selected: _userType == 'buyer',
+                          onTap: () => setState(() => _userType = 'buyer'),
+                        )),
+                        const SizedBox(width: 10),
+                        Expanded(child: UserTypeCard(
+                          icon: '🌾',
+                          title: 'Seller',
+                          sub: 'Sell & manage produce',
+                          selected: _userType == 'seller',
+                          onTap: () => setState(() => _userType = 'seller'),
+                        )),
+                      ]),
+                      const SizedBox(height: 18),
+
+                      AuthSubmitBtn(
+                        loading: _loading,
+                        label: 'Create Account',
+                        loadingLabel: 'Creating account…',
+                        icon: Icons.person_add_outlined,
+                        onPressed: _register,
                       ),
-                      validator: (v) => v == null || v.isEmpty ? 'Enter username' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email Address',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (v) =>
-                          v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordCtrl,
-                      obscureText: _obscure,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                      validator: (v) =>
-                          v == null || v.length < 6 ? 'Password must be at least 6 characters' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _userType,
-                      decoration: const InputDecoration(
-                        labelText: 'User Type',
-                        prefixIcon: Icon(Icons.agriculture),
-                      ),
-                      items: _userTypes
-                          .map((t) => DropdownMenuItem(value: t['value'], child: Text(t['label']!)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _userType = v!),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _register,
-                        child: _loading
-                            ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                            : const Text('Create Account', style: TextStyle(fontSize: 16)),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Already have an account? '),
-                        GestureDetector(
+                      const SizedBox(height: 12),
+                      Center(
+                        child: GestureDetector(
                           onTap: () => Navigator.pop(context),
-                          child: const Text('Sign In',
-                              style: TextStyle(
-                                  color: Color(0xFF2E7D32), fontWeight: FontWeight.bold)),
+                          child: RichText(
+                            text: const TextSpan(
+                              style: TextStyle(fontSize: 12.5, color: authMuted),
+                              children: [
+                                TextSpan(text: 'Already have an account? '),
+                                TextSpan(text: 'Sign in',
+                                    style: TextStyle(color: authLeaf, fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 28),
+            ],
           ),
         ),
       ),

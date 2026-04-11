@@ -6,8 +6,10 @@ class ApiConfig {
   // For Android Emulator use: http://10.0.2.2:5000
   // ============================================================
   // For Chrome/Web testing: use localhost
-  // For Android phone over WiFi: change to 'http://192.168.1.4:5000'
-  static const String baseUrl = 'http://192.168.1.4:5001';
+  // For Android phone over WiFi: change to 'http://192.168.1.4:5001'
+  static const String baseUrl = 'http://localhost:5001';
+  // static const String baseUrl = 'http://192.168.1.4:5001';
+
 
   // Auth endpoints (mobile JSON API)
   static const String login = '$baseUrl/api/mobile/login';

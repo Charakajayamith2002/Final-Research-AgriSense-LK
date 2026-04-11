@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -221,12 +220,81 @@ class ApiService {
     }
   }
 
+  // ─── COMPONENT FETCH (used by Profitable Strategy) ────
+
+  /// POST /api/cultivation-predict — returns top crop recommendation
+  Future<Map<String, dynamic>> fetchCultivationRecommendation({
+    required int month,
+    String category = 'All',
+    String riskTolerance = 'medium',
+  }) async {
+    await _loadCookie();
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.cultivationPredict),
+        headers: _jsonHeaders,
+        body: jsonEncode({
+          'month': month,
+          'category': category,
+          'risk_tolerance': riskTolerance,
+        }),
+      ).timeout(const Duration(seconds: 20));
+      _extractCookie(response);
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) return {'success': true, 'data': data};
+      return {'success': false, 'message': data['message'] ?? 'Failed'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// POST /api/market-predict — returns top market recommendation
+  Future<Map<String, dynamic>> fetchMarketRecommendation({
+    required String item,
+    required String userRole,   // seller / buyer
+    required double latitude,
+    required double longitude,
+    double profitability = 0.7,
+    double predictedPrice = 185.5,
+    String priceType = 'Wholesale',
+  }) async {
+    await _loadCookie();
+    try {
+      final double cultivationCost = userRole == 'seller'
+          ? predictedPrice * (1 - profitability)
+          : 0;
+      final response = await http.post(
+        Uri.parse(ApiConfig.marketPredict),
+        headers: _jsonHeaders,
+        body: jsonEncode({
+          'item': item,
+          'price_type': priceType,
+          'user_role': userRole,
+          'latitude': latitude,
+          'longitude': longitude,
+          'transport_cost_per_km': 160,
+          'quantity': 100,
+          'quantity_unit': 'kg',
+          'cultivation_cost': cultivationCost,
+          'profitability': profitability,
+        }),
+      ).timeout(const Duration(seconds: 20));
+      _extractCookie(response);
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) return {'success': true, 'data': data};
+      return {'success': false, 'message': data['message'] ?? 'Failed'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
   // ─── API HELPERS ──────────────────────────────────────────
   Future<List<String>> getDistricts(String province) async {
     await _loadCookie();
     try {
+      final encoded = Uri.encodeComponent(province);
       final response = await http.get(
-        Uri.parse('${ApiConfig.getDistricts}/$province'),
+        Uri.parse('${ApiConfig.getDistricts}/$encoded'),
         headers: _headers,
       );
       if (response.statusCode == 200) {
@@ -235,6 +303,48 @@ class ApiService {
       }
     } catch (_) {}
     return [];
+  }
+
+  Future<List<String>> getDsDivisions(String province, String district) async {
+    await _loadCookie();
+    try {
+      final p = Uri.encodeComponent(province);
+      final d = Uri.encodeComponent(district);
+      final response = await http.get(
+        Uri.parse('${ApiConfig.getDsDivisions}/$p/$d'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<String>.from(data['ds_divisions'] ?? []);
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Returns {lat, lon} or null if not found
+  Future<Map<String, double>?> getDsCoordinates(
+      String province, String district, String dsDivision) async {
+    await _loadCookie();
+    try {
+      final p  = Uri.encodeComponent(province);
+      final d  = Uri.encodeComponent(district);
+      final ds = Uri.encodeComponent(dsDivision);
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/get-ds-coordinates/$p/$d/$ds'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['lat'] != null && data['lon'] != null) {
+          return {
+            'lat': (data['lat'] as num).toDouble(),
+            'lon': (data['lon'] as num).toDouble(),
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<List<String>> getItems(String category) async {

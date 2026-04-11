@@ -98,9 +98,64 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 .map-placeholder i { font-size:2.5rem; opacity:.6 }
 .map-placeholder h5 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; margin:0 }
 .map-placeholder p { font-size:.82rem; opacity:.6; margin:0 }
-.map-legend-strip { display:grid; grid-template-columns:repeat(3,1fr); background:var(--g50); border-top:1px solid var(--bdr); padding:12px 20px }
-.map-legend-item { display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--tm) }
-.map-legend-item i { font-size:.9rem }
+.map-legend-strip { display:flex; gap:28px; background:var(--g50); border-top:1px solid var(--bdr); padding:13px 22px; justify-content:center }
+.map-legend-item { display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--tm); font-weight:500 }
+.map-legend-item i { font-size:.95rem }
+
+/* ── CUSTOM MAP MARKERS ── */
+.lf-you {
+  background:#e53935;
+  color:#fff;
+  padding:5px 11px;
+  border-radius:6px;
+  font-size:.78rem;
+  font-weight:800;
+  white-space:nowrap;
+  letter-spacing:.04em;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.7);
+  position:relative;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+}
+.lf-you::after {
+  content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-top-color:#e53935; border-bottom:0;
+}
+.lf-mkt {
+  background:#1a5c16;
+  color:#fff;
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:.73rem;
+  font-weight:700;
+  white-space:nowrap;
+  letter-spacing:.02em;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.55);
+  position:relative;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+.lf-mkt::after {
+  content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-top-color:#1a5c16; border-bottom:0;
+}
+.lf-mkt-rank {
+  border-radius:6px;
+  padding:5px 10px;
+  font-size:.73rem;
+  font-weight:700;
+  white-space:nowrap;
+  letter-spacing:.02em;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.55);
+  position:relative;
+  color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+.lf-mkt-rank::after {
+  content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-bottom:0;
+}
 
 /* ── RIGHT SIDEBAR ── */
 .sidebar-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--md); overflow:hidden; margin-bottom:18px }
@@ -488,9 +543,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
             </div>
           </div>
           <div class="map-legend-strip">
-            <div class="map-legend-item" data-i18n="mr_legend_you"><i class="fas fa-map-pin" style="color:#ef4444;"></i> Your Location</div>
-            <div class="map-legend-item" data-i18n="mr_legend_markets"><i class="fas fa-shopping-cart" style="color:var(--g500);"></i> Market Locations</div>
-            <div class="map-legend-item" data-i18n="mr_legend_route"><i class="fas fa-route" style="color:#f59e0b;"></i> Best Route</div>
+            <div class="map-legend-item"><i class="fas fa-map-pin" style="color:#e53935;"></i> Your Location</div>
+            <div class="map-legend-item"><i class="fas fa-map-marker-alt" style="color:#1e571a;"></i> Market Locations</div>
           </div>
         </div>
         <!-- /MAP CARD -->
@@ -664,6 +718,36 @@ const markets = {
 let map, markers = [], polylines = [], mapLoaded = false;
 let recommendationsData = null, formDataData = null;
 
+/* ── CUSTOM ICON HELPERS ── */
+function youIcon() {
+  return L.divIcon({
+    className: '',
+    html: '<div class="lf-you" style="font-family:\'DM Sans\',sans-serif;">You</div>',
+    iconSize: [46, 28],
+    iconAnchor: [23, 37],
+    popupAnchor: [0, -40]
+  });
+}
+function mktIcon(name, color) {
+  const estW = Math.max(60, name.length * 7 + 20);
+  if (color) {
+    return L.divIcon({
+      className: '',
+      html: `<div class="lf-mkt-rank" style="background:${color};font-family:'DM Sans',sans-serif;">${name}</div>`,
+      iconSize: [estW, 28],
+      iconAnchor: [estW / 2, 37],
+      popupAnchor: [0, -40]
+    });
+  }
+  return L.divIcon({
+    className: '',
+    html: `<div class="lf-mkt" style="font-family:'DM Sans',sans-serif;">${name}</div>`,
+    iconSize: [estW, 28],
+    iconAnchor: [estW / 2, 37],
+    popupAnchor: [0, -40]
+  });
+}
+
 /* ── MAP ── */
 function initLeafletMap() {
   try {
@@ -673,6 +757,13 @@ function initLeafletMap() {
     }).addTo(map);
     document.getElementById('mapPlaceholder').style.display = 'none';
     mapLoaded = true;
+
+    /* Always show all market label markers on load */
+    Object.entries(markets).forEach(([name, loc]) => {
+      const mk = L.marker([loc[0], loc[1]], { icon: mktIcon(name), title: name + ' Market' }).addTo(map);
+      markers.push(mk);
+    });
+
     const lat = parseFloat(document.getElementById('latitude').value);
     const lon = parseFloat(document.getElementById('longitude').value);
     if (!isNaN(lat) && !isNaN(lon)) updateMap(lat, lon);
@@ -683,29 +774,32 @@ function initLeafletMap() {
 
 function updateMap(lat, lon) {
   if (!mapLoaded) { setTimeout(() => updateMap(lat,lon), 500); return; }
-  clearMap();
-  map.setView([lat, lon], 12);
-  markers.push(L.marker([lat,lon], {title:'Your Location'}).addTo(map));
+  clearMap(true);
+  map.setView([lat, lon], 10);
+  /* User "You" marker */
+  markers.push(L.marker([lat, lon], { icon: youIcon(), title: 'Your Location' }).addTo(map));
+  /* All market label markers */
   Object.entries(markets).forEach(([name, loc]) =>
-    markers.push(L.marker([loc[0],loc[1]], {title:name+' Market'}).addTo(map)));
+    markers.push(L.marker([loc[0], loc[1]], { icon: mktIcon(name), title: name + ' Market' }).addTo(map)));
 }
 
 function showRecommendationsOnMap() {
   if (!mapLoaded) { setTimeout(() => showRecommendationsOnMap(), 500); return; }
-  clearMap();
+  clearMap(true);
   const lat = parseFloat(document.getElementById('latitude').value);
   const lon = parseFloat(document.getElementById('longitude').value);
   if (isNaN(lat) || isNaN(lon)) return;
   const ul = [lat, lon];
   map.setView(ul, 10);
-  markers.push(L.marker(ul, {title:'Your Location'}).addTo(map));
+  markers.push(L.marker(ul, { icon: youIcon(), title: 'Your Location' }).addTo(map));
   const recs = recommendationsData;
   if (!recs || !recs.recommendations) return;
-  const cols = {1:'#22c55e', 2:'#4169E1', 3:'#FFA500', other:'#808080'};
+  const cols = {1:'#22c55e', 2:'#4169E1', 3:'#FFA500', other:'#6b7280'};
   recs.recommendations.forEach(rec => {
     const mc = markets[rec.market]; if (!mc) return;
     const ml = [mc[0], mc[1]];
     const color = cols[rec.rank] || cols.other;
+    const label = `#${rec.rank} ${rec.market}`;
     const popup = `<div style="padding:8px;min-width:200px;font-family:'DM Sans',sans-serif">
       <strong style="font-size:.95rem">${rec.market} (Rank #${rec.rank})</strong><br>
       <span style="font-size:.82rem;color:#666">${rec.distance_km} km away</span><br><br>
@@ -713,10 +807,10 @@ function showRecommendationsOnMap() {
       <span style="font-size:.82rem">Transport: <strong>Rs.${rec.transport_cost}</strong></span><br>
       <span style="font-size:.82rem;color:${rec.net_advantage>=0?'#22c55e':'#ef4444'}">Net: <strong>Rs.${rec.net_advantage}</strong></span>
     </div>`;
-    const mk = L.marker(ml, {title:`${rec.market} (Rank #${rec.rank})`}).addTo(map).bindPopup(popup);
+    const mk = L.marker(ml, { icon: mktIcon(label, color), title: `${rec.market} (Rank #${rec.rank})` }).addTo(map).bindPopup(popup);
     markers.push(mk);
     polylines.push(L.polyline([ul, ml], {
-      color, opacity: rec.rank===1 ? 1.0 : 0.65, weight: rec.rank===1 ? 4 : 2
+      color, opacity: rec.rank===1 ? 1.0 : 0.6, weight: rec.rank===1 ? 4 : 2
     }).addTo(map));
   });
   addMapLegend();
@@ -738,11 +832,17 @@ function addMapLegend() {
   map._legendControl = legend;
 }
 
-function clearMap() {
+function clearMap(keepMarkets) {
   if (!map) return;
   markers.forEach(m => { try { map.removeLayer(m); } catch(e){} }); markers = [];
   polylines.forEach(p => { try { map.removeLayer(p); } catch(e){} }); polylines = [];
   if (map._legendControl) { map.removeControl(map._legendControl); map._legendControl = null; }
+  /* Re-add base market label markers unless caller handles it */
+  if (!keepMarkets) {
+    Object.entries(markets).forEach(([name, loc]) => {
+      markers.push(L.marker([loc[0], loc[1]], { icon: mktIcon(name), title: name + ' Market' }).addTo(map));
+    });
+  }
 }
 
 /* ── FORM LOGIC ── */
@@ -945,8 +1045,9 @@ function resetFormAndResults() {
   if (locNameCard) locNameCard.style.display = 'none';
   var locStatus = document.getElementById('locStatus');
   if (locStatus) locStatus.style.display = 'none';
-  document.getElementById('mapPlaceholder').style.display = 'flex';
+  /* Map stays visible with base market markers after reset */
   clearMap();
+  if (map) map.setView([7.8731, 80.7718], 8);
   const rs = document.getElementById('recommendationsSection');
   const ar = document.getElementById('allRecommendationsSection');
   if (rs) rs.style.display = 'none';

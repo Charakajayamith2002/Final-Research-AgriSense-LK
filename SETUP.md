@@ -119,6 +119,10 @@ python app.py
 **CMD 2 — Flutter Web:**
 ```cmd
 cd AgriSense-LK\agrisense_flutter
+cd agrisense_flutter
+flutter run -d chrome
+
+
 flutter run -d chrome --web-browser-flag "--disable-web-security"
 ```
 
