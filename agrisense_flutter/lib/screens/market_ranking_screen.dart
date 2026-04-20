@@ -3,8 +3,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/api_service.dart';
 import '../services/gps_service.dart';
-import '../widgets/result_webview.dart';
+import '../services/language_service.dart';
+import '../widgets/language_switcher.dart';
 import '../widgets/location_dropdowns.dart';
+import 'market_ranking_result_screen.dart';
 import '../theme/app_theme.dart';
 
 class MarketRankingScreen extends StatefulWidget {
@@ -14,7 +16,7 @@ class MarketRankingScreen extends StatefulWidget {
   State<MarketRankingScreen> createState() => _MarketRankingScreenState();
 }
 
-class _MarketRankingScreenState extends State<MarketRankingScreen> {
+class _MarketRankingScreenState extends State<MarketRankingScreen> with LangMixin {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
 
@@ -85,26 +87,25 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
 
   // Formula hint shown based on role
   String get _formulaHint {
-    if (_role == 'seller') {
-      return '💡 Seller formula: Revenue − (Cultivation Cost + Transport Cost)';
-    } else if (_role == 'buyer') {
-      return '💡 Buyer formula: Reference Cost − (Price × Qty + Transport Cost)';
-    }
-    return '📋 Select your role to see the calculation formula';
+    final lang = LanguageService();
+    if (_role == 'seller') return lang.t('mr_formula_seller');
+    if (_role == 'buyer')  return lang.t('mr_formula_buyer');
+    return lang.t('mr_formula_default');
   }
 
   Future<void> _predict() async {
     if (!_formKey.currentState!.validate()) return;
+    final lang = LanguageService();
     if (_role.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please select your role'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(lang.t('mr_select_role_err')),
         backgroundColor: Colors.red,
       ));
       return;
     }
     if (_item.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please select an item'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(lang.t('mr_select_item_err')),
         backgroundColor: Colors.red,
       ));
       return;
@@ -134,7 +135,8 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
     if (!mounted) return;
     if (result['success'] == true) {
       Navigator.push(context, MaterialPageRoute(
-        builder: (_) => ResultWebView(title: 'Market Ranking Result', html: result['html']),
+        builder: (_) => MarketRankingResultScreen(
+            data: result['data'] as Map<String, dynamic>),
       ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -175,13 +177,15 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService();
     return Scaffold(
       backgroundColor: AppColors.g50,
       appBar: AppBar(
-        title: const Text('Market Opportunity Ranking'),
+        title: Text(lang.t('mr_title')),
         backgroundColor: AppColors.g600,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: const [LanguageSwitcher()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -192,23 +196,23 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
               // ── Market Search Parameters ─────────────
               FlaskCard(
                 icon: Icons.tune,
-                title: 'Market Search Parameters',
+                title: lang.t('mr_card'),
                 children: [
                   // ── ROLE SELECTION ──────────────────
-                  _SecLabel(Icons.person_outline, 'ROLE SELECTION'),
+                  _SecLabel(Icons.person_outline, lang.t('mr_role_section')),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: 220,
                     child: _dropNullable(
-                      'Your Role *', _role, ['buyer', 'seller'],
+                      '${lang.t('select_role')} *', _role, ['buyer', 'seller'],
                       (v) => setState(() => _role = v ?? ''),
-                      hint: 'Select Role',
+                      hint: lang.t('select_role'),
                     ),
                   ),
                   const SizedBox(height: 20),
 
                   // ── COST INFORMATION ────────────────
-                  _SecLabel(Icons.attach_money, 'COST INFORMATION'),
+                  _SecLabel(Icons.attach_money, lang.t('mr_cost_section')),
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(child: Column(
@@ -217,8 +221,8 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                         TextFormField(
                           controller: _transportCostCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Transport Cost (Rs./km) *'),
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          decoration: flaskInput('${lang.t('mr_transport')} *'),
+                          validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                         ),
                         const SizedBox(height: 4),
                         const Text('Default: Rs.160 per km',
@@ -232,7 +236,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                         TextFormField(
                           controller: _addTransportCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Additional Transport Cost (Rs.)'),
+                          decoration: flaskInput(lang.t('mr_add_transport')),
                         ),
                         const SizedBox(height: 4),
                         const Text('Fixed extra charge (e.g. refrigerated vehicle)',
@@ -248,7 +252,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                         TextFormField(
                           controller: _cultivationCostCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Total Cost (Cultivation)'),
+                          decoration: flaskInput(lang.t('mr_cult_cost')),
                         ),
                         const SizedBox(height: 4),
                         const Text('Required only for Sellers',
@@ -262,7 +266,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                         TextFormField(
                           controller: _referencePriceCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Current Market Price (Rs./kg)',
+                          decoration: flaskInput(lang.t('mr_ref_price'),
                               hint: 'Optional — improves accuracy'),
                         ),
                         const SizedBox(height: 4),
@@ -274,30 +278,30 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                   const SizedBox(height: 20),
 
                   // ── TARGET ITEM & QUANTITY ───────────
-                  _SecLabel(Icons.inventory_2_outlined, 'TARGET ITEM & QUANTITY'),
+                  _SecLabel(Icons.inventory_2_outlined, lang.t('mr_item_section')),
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(child: _dropNullable(
-                      'Item *', _item, _items,
+                      '${lang.t('mr_item')}', _item, _items,
                       (v) => setState(() => _item = v ?? ''),
-                      hint: 'Select Item',
+                      hint: lang.t('mr_select_item'),
                     )),
                     const SizedBox(width: 14),
-                    Expanded(child: _drop('Price Type *', _priceType,
+                    Expanded(child: _drop('${lang.t('mr_price_type')} *', _priceType,
                         ['Wholesale', 'Retail'],
                         (v) => setState(() => _priceType = v!))),
                   ]),
                   const SizedBox(height: 14),
                   Row(children: [
-                    Expanded(child: _drop('Quantity Unit *', _quantityUnit,
+                    Expanded(child: _drop('${lang.t('mr_unit')} *', _quantityUnit,
                         ['kg', 'g'],
                         (v) => setState(() => _quantityUnit = v!))),
                     const SizedBox(width: 14),
                     Expanded(child: TextFormField(
                       controller: _quantityCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Quantity *'),
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      decoration: flaskInput('${lang.t('mr_quantity')} *'),
+                      validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                     )),
                   ]),
                   const SizedBox(height: 14),
@@ -339,7 +343,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SecLabel(Icons.location_on_outlined, 'YOUR LOCATION'),
+                    _SecLabel(Icons.location_on_outlined, lang.t('mr_your_location')),
                     const SizedBox(height: 8),
                     const Text(
                       'Select your location using the dropdowns below, or use GPS to auto-fill coordinates.',
@@ -378,7 +382,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                             const Icon(Icons.my_location,
                                 color: Colors.white70, size: 13),
                             const SizedBox(width: 6),
-                            Text('GPS COORDINATES',
+                            Text(lang.t('mr_gps_coords'),
                                 style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -415,7 +419,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                                           color: Colors.white, strokeWidth: 1.5))
                                   : const Icon(Icons.navigation, size: 15),
                               label: Text(
-                                  _gpsLoading ? 'Locating…' : 'Use My Current Location',
+                                  _gpsLoading ? lang.t('locating') : lang.t('use_my_location'),
                                   style: const TextStyle(fontSize: 13)),
                             ),
                           ),
@@ -425,14 +429,14 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                               controller: _latCtrl,
                               keyboardType: TextInputType.number,
                               style: const TextStyle(color: Colors.white),
-                              decoration: _darkInput('Latitude'),
+                              decoration: _darkInput(lang.t('latitude')),
                             )),
                             const SizedBox(width: 12),
                             Expanded(child: TextFormField(
                               controller: _lonCtrl,
                               keyboardType: TextInputType.number,
                               style: const TextStyle(color: Colors.white),
-                              decoration: _darkInput('Longitude'),
+                              decoration: _darkInput(lang.t('longitude')),
                             )),
                           ]),
                           if (_locationName.isNotEmpty) ...[
@@ -461,8 +465,8 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                   flex: 3,
                   child: SubmitButton(
                     loading: _loading,
-                    label: 'Find Best Markets',
-                    loadingLabel: 'Analyzing…',
+                    label: lang.t('mr_find'),
+                    loadingLabel: lang.t('analyzing'),
                     icon: Icons.search,
                     onPressed: _predict,
                   ),
@@ -481,8 +485,8 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                             borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Clear / Reset',
-                          style: TextStyle(fontSize: 13)),
+                      label: Text(lang.t('mr_reset'),
+                          style: const TextStyle(fontSize: 13)),
                     ),
                   ),
                 ),
@@ -526,7 +530,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                           child: const Icon(Icons.map_outlined, color: Colors.white, size: 16),
                         ),
                         const SizedBox(width: 10),
-                        const Text('Market Locations Map',
+                        const Text('Market Locations Map',   // map section header — kept in English
                             style: TextStyle(color: Colors.white, fontSize: 14,
                                 fontWeight: FontWeight.w600)),
                       ]),
@@ -558,7 +562,7 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _legendItem(Icons.location_on, Colors.red, 'Your Location'),
+                          _legendItem(Icons.location_on, Colors.red, lang.t('mr_your_location')),
                           const SizedBox(width: 24),
                           _legendItem(Icons.location_on, Colors.blue, 'Market Locations'),
                         ],

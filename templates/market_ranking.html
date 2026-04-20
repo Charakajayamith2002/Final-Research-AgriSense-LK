@@ -276,6 +276,24 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 .loc-coord-chip strong { color:rgba(255,255,255,.85); margin-left:1px }
 .loc-status { display:none; font-size:.78rem; border-radius:8px; padding:9px 13px; margin-bottom:12px; color:#fff }
 .loc-status.loc-error { background:rgba(248,113,113,.15); border:1px solid rgba(248,113,113,.35) }
+
+/* ── ABOUT LIST (sidebar) ── */
+.about-list { list-style:none; padding:0; margin:10px 0 0 }
+.about-list li { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--g100); font-size:.81rem; color:var(--td); line-height:1.5 }
+.about-list li:last-child { border-bottom:none }
+.about-list li i { color:var(--g500); font-size:.73rem; margin-top:3px; flex-shrink:0 }
+.about-footer { margin-top:12px; padding-top:10px; border-top:1px solid var(--g100); font-size:.72rem; color:var(--tmut); display:flex; align-items:flex-start; gap:7px }
+.about-footer i { color:var(--g400); margin-top:2px; flex-shrink:0 }
+/* ── FAQ (full width below map) ── */
+.sc-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--sm); overflow:hidden }
+.faq-item { border-bottom:1px solid var(--g100) }
+.faq-item:last-child { border-bottom:none }
+.faq-trigger { width:100%; background:none; border:none; text-align:left; padding:14px 20px; font-family:'DM Sans',sans-serif; font-size:.86rem; font-weight:600; color:var(--td); cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; transition:color .2s }
+.faq-trigger:hover { color:var(--g600) }
+.faq-trigger i { color:var(--g500); font-size:.72rem; transition:transform .3s; flex-shrink:0 }
+.faq-trigger.open i { transform:rotate(180deg) }
+.faq-answer { font-size:.83rem; color:var(--tmut); line-height:1.75; max-height:0; overflow:hidden; transition:max-height .35s ease, padding-bottom .3s ease; padding:0 20px }
+.faq-answer.open { max-height:200px; padding-bottom:16px }
 </style>
 {% endblock %}
 
@@ -557,6 +575,30 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 
       <!-- ══ RIGHT SIDEBAR ══ -->
       <div>
+
+        <!-- About Card (always visible in sidebar) -->
+        <div class="sidebar-card animate-in">
+          <div class="sc-header green">
+            <div class="hi"><i class="fas fa-info-circle"></i></div>
+            <h3 data-i18n="mr_about_title">About Market Ranking</h3>
+          </div>
+          <div class="sc-body">
+            <p style="font-size:.79rem;color:var(--tmut);margin-bottom:0;" data-i18n="mr_about_desc">Our AI model analyses multiple factors to rank the best markets for your produce:</p>
+            <ul class="about-list">
+              <li><i class="fas fa-tag"></i><span data-i18n="mr_about_item1">Real-time &amp; predicted market prices per kg</span></li>
+              <li><i class="fas fa-route"></i><span data-i18n="mr_about_item2">Distance &amp; transport cost from your location</span></li>
+              <li><i class="fas fa-hand-holding-usd"></i><span data-i18n="mr_about_item3">Net advantage (revenue minus all costs)</span></li>
+              <li><i class="fas fa-user-tag"></i><span data-i18n="mr_about_item4">Buyer vs. Seller role optimisation</span></li>
+              <li><i class="fas fa-boxes"></i><span data-i18n="mr_about_item5">Quantity-based bulk pricing analysis</span></li>
+              <li><i class="fas fa-map-marked-alt"></i><span data-i18n="mr_about_item6">Market accessibility &amp; route efficiency</span></li>
+            </ul>
+            <div class="about-footer">
+              <i class="fas fa-database"></i>
+              <span data-i18n="mr_about_footer">Price predictions use machine learning trained on historical Sri Lanka market data.</span>
+            </div>
+          </div>
+        </div>
+
         {% if recommendations %}
         <div class="sidebar-card animate-in" id="recommendationsSection">
           <div class="sc-header green">
@@ -687,8 +729,32 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
     {% endif %}
     <!-- /FULL-WIDTH ALL RECS TABLE -->
 
-  </div>
-</div>
+    <!-- ══ FAQ (full width, below map) ══ -->
+    <div class="sc-card animate-in" style="margin-top:28px;">
+      <div class="sc-header green">
+        <div class="hi"><i class="fas fa-question-circle"></i></div>
+        <h3 data-i18n="mr_faq_title">Frequently Asked Questions</h3>
+      </div>
+      <div class="sc-body">
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q1">How is the net advantage calculated?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a1">Net advantage = (Predicted Price × Quantity) − Transport Cost − Cultivation Cost (for sellers). A higher positive value means more profit for your trip.</span></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q2">Why do prices differ between markets?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a2">Each market has different supply-demand dynamics, buyer types, and seasonal patterns. Our model predicts prices based on historical data for each location.</span></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q3">Should I always pick the #1 ranked market?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a3">Not necessarily. Consider road conditions, vehicle capacity, and perishability. The top market offers the best calculated net advantage but other factors matter too.</span></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q4">How often is market price data updated?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a4">Predictions are based on ML models trained on historical data. For live rates, cross-check with the Dambulla Economic Centre or local collectors.</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- /FAQ -->
 
 <!-- Page data for JS -->
 <div id="marketRankingData"
@@ -1218,6 +1284,16 @@ function downloadResultsPdf() {
   doc.text('AgriSense LK — AI-Powered Agricultural Market Intelligence', 10, finalY);
 
   doc.save('AgriSense_Market_Ranking.pdf');
+}
+
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = answer.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.faq-trigger').forEach(b => b.classList.remove('open'));
+  // Open clicked if it was closed
+  if (!isOpen) { answer.classList.add('open'); btn.classList.add('open'); }
 }
 
 </script>

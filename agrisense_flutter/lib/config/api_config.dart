@@ -31,6 +31,10 @@ class ApiConfig {
   static const String getDsDivisions = '$baseUrl/api/get-ds-divisions';
   static const String getItems = '$baseUrl/api/get-items';
   static const String businessPredict = '$baseUrl/api/business-predict';
+  static const String mobileProfitableStrategy = '$baseUrl/api/mobile/profitable-strategy';
+  static const String mobileMarketRanking = '$baseUrl/api/mobile/market-ranking';
+  static const String mobileCultivationTargeting = '$baseUrl/api/mobile/cultivation-targeting';
+  static const String mobileYieldQuality = '$baseUrl/api/mobile/yield-quality';
   static const String cultivationPredict = '$baseUrl/api/cultivation-predict';
   static const String marketPredict = '$baseUrl/api/market-predict';
   static const String exportCsv = '$baseUrl/api/export-history/csv';

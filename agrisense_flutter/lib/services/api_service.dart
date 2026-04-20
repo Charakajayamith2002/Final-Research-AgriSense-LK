@@ -131,12 +131,16 @@ class ApiService {
     await _loadCookie();
     try {
       final response = await http.post(
-        Uri.parse(ApiConfig.marketRanking),
-        headers: _headers,
-        body: data.map((k, v) => MapEntry(k, v.toString())),
+        Uri.parse(ApiConfig.mobileMarketRanking),
+        headers: _jsonHeaders,
+        body: jsonEncode(data),
       ).timeout(const Duration(seconds: 30));
       _extractCookie(response);
-      return {'success': true, 'html': response.body};
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['success'] == true) {
+        return {'success': true, 'data': decoded};
+      }
+      return {'success': false, 'message': decoded['message'] ?? decoded['error'] ?? 'Failed'};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -147,12 +151,16 @@ class ApiService {
     await _loadCookie();
     try {
       final response = await http.post(
-        Uri.parse(ApiConfig.cultivationTargeting),
-        headers: _headers,
-        body: data.map((k, v) => MapEntry(k, v.toString())),
+        Uri.parse(ApiConfig.mobileCultivationTargeting),
+        headers: _jsonHeaders,
+        body: jsonEncode(data),
       ).timeout(const Duration(seconds: 30));
       _extractCookie(response);
-      return {'success': true, 'html': response.body};
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['success'] == true) {
+        return {'success': true, 'data': decoded};
+      }
+      return {'success': false, 'message': decoded['message'] ?? decoded['error'] ?? 'Failed'};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -165,7 +173,7 @@ class ApiService {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse(ApiConfig.yieldQuality),
+        Uri.parse(ApiConfig.mobileYieldQuality),
       );
       if (_sessionCookie != null) {
         request.headers['Cookie'] = _sessionCookie!;
@@ -183,7 +191,11 @@ class ApiService {
       final streamed = await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamed);
       _extractCookie(response);
-      return {'success': true, 'html': response.body};
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['success'] == true) {
+        return {'success': true, 'data': decoded};
+      }
+      return {'success': false, 'message': decoded['message'] ?? decoded['error'] ?? 'Prediction failed'};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -194,12 +206,16 @@ class ApiService {
     await _loadCookie();
     try {
       final response = await http.post(
-        Uri.parse(ApiConfig.profitableStrategy),
-        headers: _headers,
-        body: data.map((k, v) => MapEntry(k, v.toString())),
+        Uri.parse(ApiConfig.mobileProfitableStrategy),
+        headers: _jsonHeaders,
+        body: jsonEncode(data),
       ).timeout(const Duration(seconds: 30));
       _extractCookie(response);
-      return {'success': true, 'html': response.body};
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (decoded['success'] == true) {
+        return {'success': true, 'data': decoded};
+      }
+      return {'success': false, 'message': decoded['error'] ?? decoded['message'] ?? 'Prediction failed'};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }

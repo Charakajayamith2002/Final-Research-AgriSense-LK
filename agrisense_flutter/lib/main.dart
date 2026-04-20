@@ -9,14 +9,36 @@ void main() {
   runApp(const AgriSenseApp());
 }
 
-class AgriSenseApp extends StatelessWidget {
+class AgriSenseApp extends StatefulWidget {
   const AgriSenseApp({super.key});
+
+  @override
+  State<AgriSenseApp> createState() => _AgriSenseAppState();
+}
+
+class _AgriSenseAppState extends State<AgriSenseApp> {
+  @override
+  void initState() {
+    super.initState();
+    LanguageService().addListener(_onLangChange);
+  }
+
+  @override
+  void dispose() {
+    LanguageService().removeListener(_onLangChange);
+    super.dispose();
+  }
+
+  void _onLangChange() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AgriSense LK',
       debugShowCheckedModeBanner: false,
+      // Changing the key forces a full widget-tree rebuild when language changes,
+      // so every mounted screen picks up the new translations.
+      key: ValueKey(LanguageService().lang),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.g600,
@@ -87,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLogin() async {
-    await Future.delayed(const Duration(seconds: 2));
+    // Load saved language then check login — no artificial delay
     await LanguageService().load();
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('is_logged_in') ?? false;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
+import '../widgets/language_switcher.dart';
 import '../widgets/result_webview.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -9,7 +11,7 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with LangMixin {
   bool _loading = true;
   String? _html;
   String? _error;
@@ -35,11 +37,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService();
     return Scaffold(
       backgroundColor: const Color(0xFFF1F8E9),
       appBar: AppBar(
-        title: const Text('Prediction History'),
+        title: Text(lang.t('hist_title')),
         actions: [
+          const LanguageSwitcher(),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadHistory),
         ],
       ),
@@ -58,7 +62,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ElevatedButton.icon(
                         onPressed: _loadHistory,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
+                        label: Text(lang.t('retry')),
                       ),
                     ],
                   ),
@@ -74,16 +78,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           color: const Color(0xFF2E7D32).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Column(
+                        child: Column(
                           children: [
-                            Icon(Icons.history, size: 48, color: Color(0xFF2E7D32)),
-                            SizedBox(height: 8),
-                            Text('Your Prediction History',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
+                            const Icon(Icons.history, size: 48, color: Color(0xFF2E7D32)),
+                            const SizedBox(height: 8),
+                            Text(lang.t('hist_header'),
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
                                     color: Color(0xFF2E7D32))),
-                            SizedBox(height: 4),
-                            Text('All your past predictions are saved here',
-                                style: TextStyle(color: Colors.grey, fontSize: 13)),
+                            const SizedBox(height: 4),
+                            Text(lang.t('hist_saved'),
+                                style: const TextStyle(color: Colors.grey, fontSize: 13)),
                           ],
                         ),
                       ),
@@ -91,27 +95,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.open_in_browser, color: Color(0xFF2E7D32)),
-                          title: const Text('View Full History'),
-                          subtitle: const Text('Open detailed history with filters and export'),
+                          title: Text(lang.t('hist_view_full')),
+                          subtitle: Text(lang.t('hist_view_sub')),
                           trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                           onTap: () => Navigator.push(context, MaterialPageRoute(
                             builder: (_) => ResultWebView(
-                              title: 'Prediction History',
+                              title: lang.t('hist_title'),
                               html: _html ?? '',
                             ),
                           )),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Export buttons
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Export History',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Text(lang.t('hist_export'),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                               const SizedBox(height: 12),
                               Row(
                                 children: [

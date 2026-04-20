@@ -226,27 +226,73 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--td);min-
 
               <!-- Location -->
               <div class="fsec-title" data-i18n="ct_sec_location"><i class="fas fa-map-marker-alt"></i> Location</div>
-              <div class="loc-alert">
-                <i class="fas fa-info-circle"></i>
-                <span data-i18n="ct_loc_alert">Enter coordinates for accurate weather-based recommendations.</span>
-                <button type="button" class="btn-loc" data-i18n="ct_loc_btn" onclick="useCurrentLocation()">
-                  <i class="fas fa-location-arrow"></i> Use My Location
+
+              <!-- Location mode toggle -->
+              <div style="display:flex;gap:8px;margin-bottom:14px;">
+                <button type="button" id="btnGpsMode" onclick="setLocationMode('gps')"
+                  style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:9px;border:1.5px solid var(--g400);background:var(--g600);color:#fff;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;">
+                  <i class="fas fa-location-arrow"></i> Use GPS
+                </button>
+                <button type="button" id="btnManualMode" onclick="setLocationMode('manual')"
+                  style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:9px;border:1.5px solid var(--bdr);background:var(--g50);color:var(--tm);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;">
+                  <i class="fas fa-list-ul"></i> Select Manually
                 </button>
               </div>
-              <div id="locationNameBox" style="display:none;background:var(--g50);border:1px solid var(--g200);border-left:3px solid var(--g500);border-radius:9px;padding:9px 14px;font-size:.82rem;color:var(--tm);display:none;align-items:center;gap:9px;margin-bottom:10px;">
-                <i class="fas fa-map-marker-alt" style="color:var(--g500);flex-shrink:0;"></i>
-                <span id="locationNameText">Detecting location...</span>
+
+              <!-- GPS panel -->
+              <div id="gpsPanel">
+                <div class="loc-alert">
+                  <i class="fas fa-info-circle"></i>
+                  <span>Click "Use GPS" button above to auto-detect your location.</span>
+                  <button type="button" class="btn-loc" onclick="useCurrentLocation()">
+                    <i class="fas fa-location-arrow"></i> Detect Now
+                  </button>
+                </div>
+                <div id="locationNameBox" style="display:none;background:var(--g50);border:1px solid var(--g200);border-left:3px solid var(--g500);border-radius:9px;padding:9px 14px;font-size:.82rem;color:var(--tm);align-items:center;gap:9px;margin-bottom:10px;">
+                  <i class="fas fa-map-marker-alt" style="color:var(--g500);flex-shrink:0;"></i>
+                  <span id="locationNameText">Detecting location...</span>
+                </div>
               </div>
+
+              <!-- Manual select panel -->
+              <div id="manualPanel" style="display:none;">
+                <div class="fields-grid c3" style="margin-bottom:10px;">
+                  <div class="fg">
+                    <label class="form-label"><i class="fas fa-map" style="margin-right:4px;color:var(--g500);"></i>Province *</label>
+                    <select class="form-select" id="provinceSelect" onchange="onProvinceChange()">
+                      <option value="">-- Select Province --</option>
+                    </select>
+                  </div>
+                  <div class="fg">
+                    <label class="form-label"><i class="fas fa-map-marked" style="margin-right:4px;color:var(--g500);"></i>District *</label>
+                    <select class="form-select" id="districtSelect" onchange="onDistrictChange()" disabled>
+                      <option value="">-- Select District --</option>
+                    </select>
+                  </div>
+                  <div class="fg">
+                    <label class="form-label"><i class="fas fa-map-pin" style="margin-right:4px;color:var(--g500);"></i>DS Division *</label>
+                    <select class="form-select" id="divisionSelect" onchange="onDivisionChange()" disabled>
+                      <option value="">-- Select DS Division --</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="manualLocationNameBox" style="display:none;background:var(--g50);border:1px solid var(--g200);border-left:3px solid var(--g500);border-radius:9px;padding:9px 14px;font-size:.82rem;color:var(--tm);align-items:center;gap:9px;margin-bottom:10px;">
+                  <i class="fas fa-map-marker-alt" style="color:var(--g500);flex-shrink:0;"></i>
+                  <span id="manualLocationNameText"></span>
+                </div>
+              </div>
+
+              <!-- Coordinates (always visible, auto-filled) -->
               <div class="fields-grid c2" style="margin-bottom:4px;">
                 <div class="fg">
                   <label class="form-label" data-i18n="ct_lbl_lat">Latitude *</label>
-                  <input type="number" class="form-control" name="latitude" id="latitude" step="0.000001" required value="{% if form_data and form_data.latitude %}{{ form_data.latitude }}{% else %}7.75{% endif %}">
-                  <span class="form-hint" data-i18n="ct_hint_lat">e.g. 7.75 for central Sri Lanka</span>
+                  <input type="number" class="form-control" name="latitude" id="latitude" step="0.000001" required placeholder="e.g. 7.75" value="{% if form_data and form_data.latitude %}{{ form_data.latitude }}{% endif %}">
+                  <span class="form-hint" data-i18n="ct_hint_lat">Auto-filled from selection above</span>
                 </div>
                 <div class="fg">
                   <label class="form-label" data-i18n="ct_lbl_lon">Longitude *</label>
-                  <input type="number" class="form-control" name="longitude" id="longitude" step="0.000001" required value="{% if form_data and form_data.longitude %}{{ form_data.longitude }}{% else %}80.75{% endif %}">
-                  <span class="form-hint" data-i18n="ct_hint_lon">e.g. 80.75 for central Sri Lanka</span>
+                  <input type="number" class="form-control" name="longitude" id="longitude" step="0.000001" required placeholder="e.g. 80.75" value="{% if form_data and form_data.longitude %}{{ form_data.longitude }}{% endif %}">
+                  <span class="form-hint" data-i18n="ct_hint_lon">Auto-filled from selection above</span>
                 </div>
               </div>
 
@@ -444,14 +490,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--td);min-
         <div class="weather-hero animate-in">
           <i class="wh-icon fas fa-sun"></i>
           <div class="wh-label" data-i18n="ct_weather_label">Current Weather</div>
-          <div class="wh-temp" id="temperature-display">30.1°C</div>
-          <div class="wh-desc" id="weatherCondition">Clear sky with mild conditions</div>
-          <div class="wh-coords" id="coordinates">Lat: 7.75°N, Lon: 80.75°E</div>
+          <div class="wh-temp" id="temperature-display">--°C</div>
+          <div class="wh-desc" id="weatherCondition">Set your location to load weather</div>
+          <div class="wh-coords" id="coordinates">No location set</div>
           <div class="wh-metrics">
-            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_humidity">Humidity</span><span class="val" id="humidityValue">49%</span></div>
-            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_wind">Wind Speed</span><span class="val" id="windSpeedValue">11.2 km/h</span></div>
-            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_precip">Precipitation</span><span class="val" id="precipitationValue">0.00 mm</span></div>
-            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_soil_temp">Soil Temp</span><span class="val" id="soilTempValue">24.0°C</span></div>
+            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_humidity">Humidity</span><span class="val" id="humidityValue">--%</span></div>
+            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_wind">Wind Speed</span><span class="val" id="windSpeedValue">-- km/h</span></div>
+            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_precip">Precipitation</span><span class="val" id="precipitationValue">-- mm</span></div>
+            <div class="wh-metric"><span class="lbl" data-i18n="ct_wh_soil_temp">Soil Temp</span><span class="val" id="soilTempValue">--°C</span></div>
           </div>
           <div class="wh-impact">
             <div class="wh-impact-title" data-i18n="ct_wh_impact"><i class="fas fa-chart-line"></i> Cultivation Impact</div>
@@ -559,16 +605,152 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--td);min-
 <script>
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// ── Sri Lanka Province / District / DS Division data ──
+const SL_DATA = {
+  'Western Province': {
+    'Colombo District': {
+      'Colombo': {lat:6.9271,lon:79.8612},
+      'Dehiwala': {lat:6.8567,lon:79.8633},
+      'Moratuwa': {lat:6.7833,lon:79.8833},
+      'Sri Jayawardenepura Kotte': {lat:6.9100,lon:79.8950}
+    },
+    'Gampaha District': {
+      'Gampaha': {lat:7.0916,lon:79.9997},
+      'Negombo': {lat:7.2083,lon:79.8358},
+      'Kelaniya': {lat:6.9500,lon:79.9167}
+    },
+    'Kalutara District': {
+      'Kalutara': {lat:6.5831,lon:79.9597},
+      'Panadura': {lat:6.7133,lon:79.9042},
+      'Horana': {lat:6.7167,lon:80.0667}
+    }
+  },
+  'Central Province': {
+    'Kandy District': {
+      'Kandy': {lat:7.2964,lon:80.6350},
+      'Kundasale': {lat:7.2667,lon:80.7000}
+    },
+    'Matale District': {
+      'Matale': {lat:7.4717,lon:80.6242},
+      'Dambulla': {lat:7.8569,lon:80.6514}
+    },
+    'Nuwara Eliya District': {
+      'Nuwara Eliya': {lat:6.9706,lon:80.7828}
+    }
+  },
+  'Southern Province': {
+    'Galle District': {'Galle': {lat:6.0536,lon:80.2117}},
+    'Matara District': {'Matara': {lat:5.9483,lon:80.5353}},
+    'Hambantota District': {'Hambantota': {lat:6.1244,lon:81.1186}}
+  },
+  'Northern Province': {
+    'Jaffna District': {'Jaffna': {lat:9.6617,lon:80.0256}}
+  },
+  'Eastern Province': {
+    'Batticaloa District': {'Batticaloa': {lat:7.7167,lon:81.7000}}
+  },
+  'North Western Province': {
+    'Kurunegala District': {'Kurunegala': {lat:7.4833,lon:80.3667}},
+    'Puttalam District': {'Puttalam': {lat:8.0333,lon:79.8167}}
+  },
+  'North Central Province': {
+    'Anuradhapura District': {'Anuradhapura': {lat:8.3350,lon:80.4108}},
+    'Polonnaruwa District': {'Polonnaruwa': {lat:7.9333,lon:81.0000}}
+  },
+  'Uva Province': {
+    'Badulla District': {'Badulla': {lat:6.9897,lon:81.0560}},
+    'Monaragala District': {'Monaragala': {lat:6.8714,lon:81.3486}}
+  },
+  'Sabaragamuwa Province': {
+    'Ratnapura District': {'Ratnapura': {lat:6.6828,lon:80.3992}},
+    'Kegalle District': {'Kegalle': {lat:7.2514,lon:80.3464}}
+  }
+};
+
+// ── Location mode toggle ──
+function setLocationMode(mode){
+  const gpsPanel=document.getElementById('gpsPanel');
+  const manualPanel=document.getElementById('manualPanel');
+  const btnGps=document.getElementById('btnGpsMode');
+  const btnManual=document.getElementById('btnManualMode');
+  if(mode==='gps'){
+    gpsPanel.style.display='';
+    manualPanel.style.display='none';
+    btnGps.style.background='var(--g600)';btnGps.style.color='#fff';btnGps.style.borderColor='var(--g400)';
+    btnManual.style.background='var(--g50)';btnManual.style.color='var(--tm)';btnManual.style.borderColor='var(--bdr)';
+  } else {
+    gpsPanel.style.display='none';
+    manualPanel.style.display='';
+    btnManual.style.background='var(--g600)';btnManual.style.color='#fff';btnManual.style.borderColor='var(--g400)';
+    btnGps.style.background='var(--g50)';btnGps.style.color='var(--tm)';btnGps.style.borderColor='var(--bdr)';
+  }
+}
+
+// ── Populate province dropdown on load ──
+function initProvinceDropdown(){
+  const sel=document.getElementById('provinceSelect');
+  Object.keys(SL_DATA).sort().forEach(p=>{
+    const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);
+  });
+}
+
+function onProvinceChange(){
+  const province=document.getElementById('provinceSelect').value;
+  const distSel=document.getElementById('districtSelect');
+  const divSel=document.getElementById('divisionSelect');
+  // reset downstream
+  distSel.innerHTML='<option value="">-- Select District --</option>';
+  divSel.innerHTML='<option value="">-- Select DS Division --</option>';
+  distSel.disabled=true;divSel.disabled=true;
+  hideManualLocationBox();
+  if(!province) return;
+  Object.keys(SL_DATA[province]).forEach(d=>{
+    const o=document.createElement('option');o.value=d;o.textContent=d;distSel.appendChild(o);
+  });
+  distSel.disabled=false;
+}
+
+function onDistrictChange(){
+  const province=document.getElementById('provinceSelect').value;
+  const district=document.getElementById('districtSelect').value;
+  const divSel=document.getElementById('divisionSelect');
+  divSel.innerHTML='<option value="">-- Select DS Division --</option>';
+  divSel.disabled=true;
+  hideManualLocationBox();
+  if(!province||!district) return;
+  Object.keys(SL_DATA[province][district]).forEach(div=>{
+    const o=document.createElement('option');o.value=div;o.textContent=div;divSel.appendChild(o);
+  });
+  divSel.disabled=false;
+}
+
+function onDivisionChange(){
+  const province=document.getElementById('provinceSelect').value;
+  const district=document.getElementById('districtSelect').value;
+  const division=document.getElementById('divisionSelect').value;
+  if(!province||!district||!division){hideManualLocationBox();return;}
+  const coords=SL_DATA[province][district][division];
+  if(!coords){showToast('Coordinates not found for this location.','warning');return;}
+  applyLocationCoords(coords.lat,coords.lon);
+  // Show location name box
+  const box=document.getElementById('manualLocationNameBox');
+  document.getElementById('manualLocationNameText').textContent=`${division}, ${district}, ${province}`;
+  box.style.display='flex';
+  showToast(`Location set: ${division}, ${district}`,'success');
+}
+
+function hideManualLocationBox(){
+  const box=document.getElementById('manualLocationNameBox');
+  if(box)box.style.display='none';
+}
+
 function useCurrentLocation(){
   if(!navigator.geolocation){showToast('Geolocation is not supported by your browser.','warning');return;}
   showToast('Detecting your location...','info');
   navigator.geolocation.getCurrentPosition(pos=>{
     const lat=pos.coords.latitude.toFixed(6);
     const lon=pos.coords.longitude.toFixed(6);
-    document.getElementById('latitude').value=lat;
-    document.getElementById('longitude').value=lon;
-    document.getElementById('coordinates').textContent=`Lat: ${lat}°N, Lon: ${lon}°E`;
-    updateWeatherForLocation(lat,lon);
+    applyLocationCoords(lat,lon);
 
     // Show the location name box with a loading state
     const box=document.getElementById('locationNameBox');
@@ -601,21 +783,59 @@ function useCurrentLocation(){
   },{enableHighAccuracy:true,timeout:10000,maximumAge:0});
 }
 
-function updateWeatherForLocation(lat,lon){
+async function updateWeatherForLocation(lat,lon){
   document.getElementById('coordinates').textContent=`Lat: ${lat}°N, Lon: ${lon}°E`;
-  const latN=parseFloat(lat);
-  let temp=21.1,humidity=83,cond='Clear sky with mild conditions',icon='fa-sun';
-  if(latN>8){temp=23.5;humidity=75;cond='Partly cloudy, warm conditions';icon='fa-cloud-sun';}
-  else if(latN<7){temp=19.8;humidity=88;cond='Mostly clear, cool conditions';icon='fa-sun';}
+  // Show loading state
   const td=document.getElementById('temperature-display');
-  if(td)td.textContent=`${temp}°C`;
   const wc=document.getElementById('weatherCondition');
-  if(wc)wc.textContent=cond;
-  const wi=document.querySelector('.wh-icon');
-  if(wi)wi.className=`wh-icon fas ${icon}`;
-  const hv=document.getElementById('humidityValue');
-  if(hv)hv.textContent=`${humidity}%`;
-  updateWeatherImpact(temp,humidity);
+  if(td)td.textContent='...';
+  if(wc)wc.textContent='Fetching weather...';
+
+  try {
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+      +`&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,soil_temperature_0cm,weather_code`
+      +`&timezone=Asia%2FColombo`;
+    const res=await fetch(url);
+    const data=await res.json();
+    const cur=data.current||{};
+
+    const temp=cur.temperature_2m??25;
+    const humidity=cur.relative_humidity_2m??70;
+    const wind=cur.wind_speed_10m??0;
+    const precip=cur.precipitation??0;
+    const soilTemp=cur.soil_temperature_0cm??temp;
+    const wCode=cur.weather_code??0;
+
+    // Map WMO weather code to description + icon
+    let cond='Clear sky',icon='fa-sun';
+    if(wCode===0){cond='Clear sky';icon='fa-sun';}
+    else if(wCode<=2){cond='Partly cloudy';icon='fa-cloud-sun';}
+    else if(wCode===3){cond='Overcast';icon='fa-cloud';}
+    else if(wCode<=49){cond='Foggy conditions';icon='fa-smog';}
+    else if(wCode<=59){cond='Light drizzle';icon='fa-cloud-drizzle';}
+    else if(wCode<=69){cond='Rainy conditions';icon='fa-cloud-rain';}
+    else if(wCode<=79){cond='Snow or sleet';icon='fa-snowflake';}
+    else if(wCode<=84){cond='Rain showers';icon='fa-cloud-showers-heavy';}
+    else if(wCode<=99){cond='Thunderstorm';icon='fa-bolt';}
+
+    if(td)td.textContent=`${temp}°C`;
+    if(wc)wc.textContent=cond;
+    const wi=document.querySelector('.wh-icon');
+    if(wi)wi.className=`wh-icon fas ${icon}`;
+    const hv=document.getElementById('humidityValue');
+    if(hv)hv.textContent=`${humidity}%`;
+    const wv=document.getElementById('windSpeedValue');
+    if(wv)wv.textContent=`${wind} km/h`;
+    const pv=document.getElementById('precipitationValue');
+    if(pv)pv.textContent=`${precip.toFixed(2)} mm`;
+    const sv=document.getElementById('soilTempValue');
+    if(sv)sv.textContent=`${soilTemp.toFixed(1)}°C`;
+
+    updateWeatherImpact(temp,humidity);
+  } catch(e) {
+    if(wc)wc.textContent='Weather unavailable';
+    console.error('Weather fetch failed:',e);
+  }
 }
 
 function updateWeatherImpact(temp,humidity){
@@ -642,19 +862,38 @@ function showToast(msg,type='info'){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  initProvinceDropdown();
+  setLocationMode('gps'); // default to GPS mode
+
   const ms=document.getElementById('monthSelect');
   if(ms){ms.addEventListener('change',function(){const sd=document.getElementById('seasonDisplay');if(sd)sd.textContent=`${monthNames[this.value-1]} Season`;});}
 
   const latI=document.getElementById('latitude');const lonI=document.getElementById('longitude');
-  function updateCoords(){
+
+  // Central helper: call this any time lat/lon values change (GPS, manual, or user typing)
+  window.applyLocationCoords=function(lat,lon){
+    latI.value=lat;
+    lonI.value=lon;
+    document.getElementById('coordinates').textContent=`Lat: ${lat}°N, Lon: ${lon}°E`;
+    updateWeatherForLocation(lat,lon);
+  };
+
+  // When user types directly in the lat/lon boxes → update display + weather
+  function onManualCoordInput(){
     const l=latI.value;const o=lonI.value;
-    if(l&&o){const c=document.getElementById('coordinates');if(c)c.textContent=`Lat: ${l}°N, Lon: ${o}°E`;}
-    // Hide location name box when user manually edits coordinates
-    const box=document.getElementById('locationNameBox');
-    if(box)box.style.display='none';
+    if(l&&o){
+      document.getElementById('coordinates').textContent=`Lat: ${l}°N, Lon: ${o}°E`;
+      updateWeatherForLocation(l,o);
+    }
   }
-  if(latI)latI.addEventListener('change',updateCoords);
-  if(lonI)lonI.addEventListener('change',updateCoords);
+  if(latI)latI.addEventListener('change',onManualCoordInput);
+  if(lonI)lonI.addEventListener('change',onManualCoordInput);
+
+  // Load real weather on page load if coords already set (e.g. after form submit)
+  if(latI&&lonI&&latI.value&&lonI.value){
+    document.getElementById('coordinates').textContent=`Lat: ${latI.value}°N, Lon: ${lonI.value}°E`;
+    updateWeatherForLocation(latI.value,lonI.value);
+  }
 
   const rb=document.getElementById('refreshBtn');
   if(rb)rb.addEventListener('click',()=>window.location.href=window.location.pathname);

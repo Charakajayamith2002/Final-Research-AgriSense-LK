@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with LangMixin {
   String _username = 'User';
 
   @override
@@ -35,14 +35,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout() async {
+    final lang = LanguageService();
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(lang.t('logout')),
+        content: Text(lang.t('logout_confirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Logout')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(lang.t('cancel'))),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(lang.t('logout'))),
         ],
       ),
     );
@@ -115,19 +120,19 @@ class _HomeScreenState extends State<HomeScreen> {
           const LanguageSwitcher(),
           IconButton(
             icon: const Icon(Icons.history),
-            tooltip: 'History',
+            tooltip: lang.t('hist_title'),
             onPressed: () => Navigator.push(
                 context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            tooltip: 'Profile',
+            tooltip: lang.t('profile_title'),
             onPressed: () => Navigator.push(
                 context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+            tooltip: lang.t('logout'),
             onPressed: _logout,
           ),
         ],
@@ -188,9 +193,9 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
 
             // ── Section Label ───────────────────────────
-            const Text(
-              'AI FEATURES',
-              style: TextStyle(
+            Text(
+              lang.t('ai_features'),
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.2,
@@ -219,6 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: f['subtitle'],
                   icon: f['icon'],
                   color: f['color'],
+                  predictLabel: lang.t('predict'),
                   onTap: () => Navigator.push(
                       context, MaterialPageRoute(builder: (_) => f['screen'])),
                 );
@@ -227,9 +233,9 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
 
             // ── Quick Access ────────────────────────────
-            const Text(
-              'QUICK ACCESS',
-              style: TextStyle(
+            Text(
+              lang.t('quick_access'),
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.2,
@@ -243,14 +249,14 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Expanded(child: _QuickCard(
                   icon: Icons.history,
-                  label: 'View History',
+                  label: lang.t('view_history'),
                   onTap: () => Navigator.push(
                       context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
                 )),
                 const SizedBox(width: 12),
                 Expanded(child: _QuickCard(
                   icon: Icons.person_outline,
-                  label: 'My Profile',
+                  label: lang.t('my_profile'),
                   onTap: () => Navigator.push(
                       context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
                 )),
@@ -269,6 +275,7 @@ class _FeatureCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final Color color;
+  final String predictLabel;
   final VoidCallback onTap;
 
   const _FeatureCard({
@@ -276,6 +283,7 @@ class _FeatureCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.color,
+    required this.predictLabel,
     required this.onTap,
   });
 
@@ -324,7 +332,7 @@ class _FeatureCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis),
               const Spacer(),
               Row(children: [
-                Text('Predict',
+                Text(predictLabel,
                     style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12)),
                 const SizedBox(width: 3),
                 Icon(Icons.arrow_forward_ios, size: 10, color: color),
@@ -360,12 +368,15 @@ class _QuickCard extends StatelessWidget {
           child: Row(children: [
             Icon(icon, color: AppColors.g600, size: 20),
             const SizedBox(width: 10),
-            Text(label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                  fontSize: 13.5,
-                )),
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                    fontSize: 13.5,
+                  ),
+                  overflow: TextOverflow.ellipsis),
+            ),
           ]),
         ),
       ),

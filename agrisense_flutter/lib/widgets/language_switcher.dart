@@ -10,13 +10,7 @@ class LanguageSwitcher extends StatelessWidget {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.language, color: Colors.white),
       tooltip: 'Change Language',
-      onSelected: (lang) async {
-        await svc.setLanguage(lang);
-        // Rebuild entire app
-        if (context.mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
-        }
-      },
+      onSelected: (lang) => svc.setLanguage(lang),
       itemBuilder: (_) => LanguageService.languages.entries.map((e) {
         final isSelected = svc.lang == e.key;
         return PopupMenuItem<String>(
@@ -24,7 +18,7 @@ class LanguageSwitcher extends StatelessWidget {
           child: Row(
             children: [
               if (isSelected)
-                const Icon(Icons.check, color: Color(0xFF2E7D32), size: 18)
+                const Icon(Icons.check, color: Color(0xFF2A7525), size: 18)
               else
                 const SizedBox(width: 18),
               const SizedBox(width: 8),

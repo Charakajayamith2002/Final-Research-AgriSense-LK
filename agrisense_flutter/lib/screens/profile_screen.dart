@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
+import '../widgets/language_switcher.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -10,7 +12,7 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with LangMixin {
   String _username = '';
   String _email = '';
   String _userType = 'farmer';
@@ -43,9 +45,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService();
     return Scaffold(
       backgroundColor: const Color(0xFFF1F8E9),
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(
+        title: Text(lang.t('profile_title')),
+        actions: const [LanguageSwitcher()],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -92,11 +98,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Card(
               child: Column(
                 children: [
-                  _infoTile(Icons.person, 'Username', _username),
+                  _infoTile(Icons.person, lang.t('profile_username'), _username),
                   const Divider(height: 1),
-                  _infoTile(Icons.email, 'Email', _email),
+                  _infoTile(Icons.email, lang.t('profile_email'), _email),
                   const Divider(height: 1),
-                  _infoTile(Icons.agriculture, 'User Type', _userType),
+                  _infoTile(Icons.agriculture, lang.t('profile_type'), _userType),
                 ],
               ),
             ),
@@ -109,30 +115,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('About App',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(lang.t('profile_about'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                     const Divider(),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('App Version', style: TextStyle(color: Colors.grey)),
-                        Text('1.0.0'),
+                        Text(lang.t('profile_version'), style: const TextStyle(color: Colors.grey)),
+                        const Text('1.0.0'),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Platform', style: TextStyle(color: Colors.grey)),
-                        Text('Flutter'),
+                        Text(lang.t('profile_platform'), style: const TextStyle(color: Colors.grey)),
+                        const Text('Flutter'),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Backend', style: TextStyle(color: Colors.grey)),
-                        Text('Flask + ML Models'),
+                        Text(lang.t('profile_backend'), style: const TextStyle(color: Colors.grey)),
+                        const Text('Flask + ML Models'),
                       ],
                     ),
                   ],
@@ -152,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 onPressed: _logout,
                 icon: const Icon(Icons.logout),
-                label: const Text('Logout', style: TextStyle(fontSize: 16)),
+                label: Text(lang.t('logout'), style: const TextStyle(fontSize: 16)),
               ),
             ),
             const SizedBox(height: 20),

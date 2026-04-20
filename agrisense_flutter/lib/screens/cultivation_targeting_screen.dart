@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/app_cache.dart';
 import '../services/gps_service.dart';
-import '../widgets/result_webview.dart';
+import '../services/language_service.dart';
+import '../widgets/language_switcher.dart';
 import '../theme/app_theme.dart';
+import 'cultivation_targeting_result_screen.dart';
 
 class CultivationTargetingScreen extends StatefulWidget {
   const CultivationTargetingScreen({super.key});
@@ -12,7 +14,8 @@ class CultivationTargetingScreen extends StatefulWidget {
   State<CultivationTargetingScreen> createState() => _CultivationTargetingScreenState();
 }
 
-class _CultivationTargetingScreenState extends State<CultivationTargetingScreen> {
+class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
+    with LangMixin {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
 
@@ -76,7 +79,6 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
       'soil_type':              _soilValues[_soilType] ?? 'loam',
     };
 
-    // Cache data so Profitable Strategy can fetch from it
     AppCache.lastCultivationData = Map<String, String>.from(data);
 
     final result = await ApiService().predictCultivation(data);
@@ -85,7 +87,8 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
     if (!mounted) return;
     if (result['success'] == true) {
       Navigator.push(context, MaterialPageRoute(
-        builder: (_) => ResultWebView(title: 'Cultivation Recommendations', html: result['html']),
+        builder: (_) => CultivationTargetingResultScreen(
+            data: result['data'] as Map<String, dynamic>),
       ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -101,6 +104,7 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
       _riskTolerance = 'Low (Conservative)';
       _waterAvailability = 'High';
       _soilType = 'Clay';
+      _locationName = '';
     });
     _latCtrl.text = '7.75';
     _lonCtrl.text = '80.75';
@@ -119,13 +123,15 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService();
     return Scaffold(
       backgroundColor: AppColors.g50,
       appBar: AppBar(
-        title: const Text('Cultivation Targeting'),
+        title: Text(lang.t('ct_title')),
         backgroundColor: AppColors.g600,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: const [LanguageSwitcher()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -135,11 +141,11 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
             children: [
               FlaskCard(
                 icon: Icons.eco_outlined,
-                title: 'Cultivation Parameters',
+                title: lang.t('ct_card'),
                 children: [
 
                   // ── LOCATION ──────────────────────────
-                  _SecLabel(Icons.location_on_outlined, 'LOCATION'),
+                  _SecLabel(Icons.location_on_outlined, lang.t('ct_location')),
                   const SizedBox(height: 12),
 
                   // Info banner with "Use My Location" button
@@ -153,10 +159,10 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                     child: Row(children: [
                       const Icon(Icons.info_outline, color: AppColors.g600, size: 16),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Enter coordinates for accurate weather-based recommendations.',
-                          style: TextStyle(fontSize: 12, color: AppColors.textMedium),
+                          lang.t('ct_location_info'),
+                          style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -187,8 +193,10 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                                   child: CircularProgressIndicator(
                                       color: Colors.white, strokeWidth: 1.5))
                               : const Icon(Icons.my_location, size: 13),
-                          label: Text(_gpsLoading ? 'Locating…' : 'Use My Location',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                          label: Text(
+                            _gpsLoading ? lang.t('locating') : lang.t('use_my_location'),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     ]),
@@ -203,12 +211,12 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                         TextFormField(
                           controller: _latCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Latitude *'),
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          decoration: flaskInput('${lang.t('latitude')} *'),
+                          validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                         ),
                         const SizedBox(height: 4),
-                        const Text('e.g. 7.75 for central Sri Lanka',
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        Text(lang.t('ct_lat_hint'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       ],
                     )),
                     const SizedBox(width: 14),
@@ -218,12 +226,12 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                         TextFormField(
                           controller: _lonCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Longitude *'),
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          decoration: flaskInput('${lang.t('longitude')} *'),
+                          validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                         ),
                         const SizedBox(height: 4),
-                        const Text('e.g. 80.75 for central Sri Lanka',
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        Text(lang.t('ct_lon_hint'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       ],
                     )),
                   ]),
@@ -234,23 +242,21 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                   const SizedBox(height: 22),
 
                   // ── CORE PARAMETERS ───────────────────
-                  _SecLabel(Icons.tune, 'CORE PARAMETERS'),
+                  _SecLabel(Icons.tune, lang.t('ct_core_params')),
                   const SizedBox(height: 12),
 
-                  // Month | Category | Risk Tolerance
                   Row(children: [
-                    Expanded(child: _drop('Month *', _month, _monthValues.keys.toList(),
+                    Expanded(child: _drop(lang.t('ct_month'), _month, _monthValues.keys.toList(),
                         (v) => setState(() => _month = v!))),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Category *', _category, _categoryValues.keys.toList(),
+                    Expanded(child: _drop(lang.t('ct_category'), _category, _categoryValues.keys.toList(),
                         (v) => setState(() => _category = v!))),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Risk Tolerance *', _riskTolerance, _riskValues.keys.toList(),
+                    Expanded(child: _drop(lang.t('ct_risk'), _riskTolerance, _riskValues.keys.toList(),
                         (v) => setState(() => _riskTolerance = v!))),
                   ]),
                   const SizedBox(height: 14),
 
-                  // Previous Profitability | Available Budget
                   Row(children: [
                     Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,11 +264,11 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                         TextFormField(
                           controller: _prevProfitabilityCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Previous Profitability (%)'),
+                          decoration: flaskInput(lang.t('ct_prev_profit')),
                         ),
                         const SizedBox(height: 4),
-                        const Text('Your average profitability from previous crops',
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        Text(lang.t('ct_prev_hint'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       ],
                     )),
                     const SizedBox(width: 14),
@@ -272,35 +278,34 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                         TextFormField(
                           controller: _budgetCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: flaskInput('Available Budget (Rs.)'),
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          decoration: flaskInput(lang.t('ct_budget')),
+                          validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                         ),
                         const SizedBox(height: 4),
-                        const Text('Your cultivation budget for the season',
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        Text(lang.t('ct_budget_hint'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       ],
                     )),
                   ]),
                   const SizedBox(height: 22),
 
                   // ── FIELD CONDITIONS ──────────────────
-                  _SecLabel(Icons.grass, 'FIELD CONDITIONS'),
+                  _SecLabel(Icons.grass, lang.t('ct_field_cond')),
                   const SizedBox(height: 12),
 
-                  // Land Size | Water Availability | Soil Type
                   Row(children: [
                     Expanded(child: TextFormField(
                       controller: _landSizeCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Land Size (Acres)'),
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      decoration: flaskInput(lang.t('ct_land_size')),
+                      validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                     )),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Water Availability', _waterAvailability,
+                    Expanded(child: _drop(lang.t('ct_water'), _waterAvailability,
                         _waterValues.keys.toList(),
                         (v) => setState(() => _waterAvailability = v!))),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Soil Type', _soilType,
+                    Expanded(child: _drop(lang.t('ct_soil'), _soilType,
                         _soilValues.keys.toList(),
                         (v) => setState(() => _soilType = v!))),
                   ]),
@@ -314,8 +319,8 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                   flex: 4,
                   child: SubmitButton(
                     loading: _loading,
-                    label: 'Get Recommendations',
-                    loadingLabel: 'Analyzing…',
+                    label: lang.t('ct_get_rec'),
+                    loadingLabel: lang.t('ct_analyzing'),
                     icon: Icons.search,
                     onPressed: _predict,
                   ),
@@ -334,8 +339,8 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                             borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Clear',
-                          style: TextStyle(fontSize: 13)),
+                      label: Text(lang.t('clear'),
+                          style: const TextStyle(fontSize: 13)),
                     ),
                   ),
                 ),

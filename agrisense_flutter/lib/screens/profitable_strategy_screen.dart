@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/gps_service.dart';
-import '../widgets/result_webview.dart';
+import '../services/language_service.dart';
+import '../widgets/language_switcher.dart';
 import '../theme/app_theme.dart';
+import 'profitable_strategy_result_screen.dart';
 
 class ProfitableStrategyScreen extends StatefulWidget {
   const ProfitableStrategyScreen({super.key});
@@ -11,7 +13,7 @@ class ProfitableStrategyScreen extends StatefulWidget {
   State<ProfitableStrategyScreen> createState() => _ProfitableStrategyScreenState();
 }
 
-class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
+class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> with LangMixin {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
 
@@ -99,7 +101,8 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
     if (!mounted) return;
     if (result['success'] == true) {
       Navigator.push(context, MaterialPageRoute(
-        builder: (_) => ResultWebView(title: 'Profitable Strategy', html: result['html']),
+        builder: (_) => ProfitableStrategyResultScreen(
+            data: result['data'] as Map<String, dynamic>),
       ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -289,13 +292,15 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService();
     return Scaffold(
       backgroundColor: AppColors.g50,
       appBar: AppBar(
-        title: const Text('Profitable Strategy'),
+        title: Text(lang.t('ps_title')),
         backgroundColor: AppColors.g600,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: const [LanguageSwitcher()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -306,21 +311,21 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
               // ── Profile, Family & Financial Information ──
               FlaskCard(
                 icon: Icons.person_outline,
-                title: 'Profile, Family & Financial Information',
+                title: lang.t('ps_card1'),
                 children: [
-                  _SectionLabel(Icons.person, 'BASIC INFORMATION'),
+                  _SectionLabel(Icons.person, lang.t('ps_sec_profile')),
                   const SizedBox(height: 12),
                   // Role | Profession | Purpose
                   Row(children: [
-                    Expanded(child: _drop('Role', _role,
+                    Expanded(child: _drop(lang.t('ps_role'), _role,
                         ['farmer', 'buyer', 'seller', 'consumer'],
                         (v) => setState(() => _role = v!))),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Profession', _profession,
+                    Expanded(child: _drop(lang.t('ps_profession'), _profession,
                         ['farming', 'business', 'government', 'private'],
                         (v) => setState(() => _profession = v!))),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Purpose', _purpose, _purposes,
+                    Expanded(child: _drop(lang.t('ps_purpose'), _purpose, _purposes,
                         (v) => setState(() => _purpose = v!))),
                   ]),
                   const SizedBox(height: 14),
@@ -329,28 +334,28 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                     Expanded(child: TextFormField(
                       controller: _monthlyIncomeCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Monthly Income (LKR)'),
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      decoration: flaskInput(lang.t('ps_income')),
+                      validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                     )),
                     const SizedBox(width: 12),
-                    Expanded(child: _drop('Income Source', _incomeSource,
+                    Expanded(child: _drop(lang.t('ps_income_source'), _incomeSource,
                         ['both', 'profession', 'business'],
                         (v) => setState(() => _incomeSource = v!))),
                   ]),
                   const SizedBox(height: 20),
 
-                  _SectionLabel(Icons.attach_money, 'FINANCIAL INFORMATION'),
+                  _SectionLabel(Icons.attach_money, lang.t('ps_sec_financial')),
                   const SizedBox(height: 12),
                   // Budget | Budget Source
                   Row(children: [
                     Expanded(child: TextFormField(
                       controller: _budgetCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Available Budget (LKR)'),
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      decoration: flaskInput(lang.t('budget')),
+                      validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                     )),
                     const SizedBox(width: 12),
-                    Expanded(child: _drop('Budget Source', _budgetSource,
+                    Expanded(child: _drop(lang.t('ps_budget_source'), _budgetSource,
                         ['savings', 'bank_loan', 'microfinance', 'family', 'other'],
                         (v) => setState(() => _budgetSource = v!))),
                   ]),
@@ -358,12 +363,12 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
               ),
               const SizedBox(height: 16),
 
-              // ── Cultivation Targeting ────────────────────
+              // ── Cultivation Targeting ───────────────��────
               FlaskCard(
                 icon: Icons.grass,
-                title: 'Cultivation Targeting',
+                title: lang.t('ps_card2'),
                 action: _FetchButton(
-                  label: 'Fetch from Component 3',
+                  label: lang.t('ps_fetch_cult'),
                   loading: _fetchingCultivation,
                   onTap: _fetchingCultivation ? null : _fetchFromCultivation,
                 ),
@@ -372,19 +377,19 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                   Row(children: [
                     Expanded(child: DropdownButtonFormField<String>(
                       value: _cultivationItem.isEmpty ? null : _cultivationItem,
-                      decoration: flaskInput('Cultivation Item'),
+                      decoration: flaskInput(lang.t('ps_cult_item')),
                       isExpanded: true,
-                      hint: const Text('Select an item',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                      hint: Text(lang.t('mr_select_item'),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                       items: _cultivationItems.map((i) => DropdownMenuItem(
                           value: i, child: Text(i, overflow: TextOverflow.ellipsis))).toList(),
                       onChanged: (v) => setState(() => _cultivationItem = v ?? ''),
                     )),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Optimal Month', _optimalMonth, _months,
+                    Expanded(child: _drop(lang.t('ps_optimal_month'), _optimalMonth, _months,
                         (v) => setState(() => _optimalMonth = v!))),
                     const SizedBox(width: 10),
-                    Expanded(child: _drop('Season', _season,
+                    Expanded(child: _drop(lang.t('ps_season'), _season,
                         ['Spring', 'Summer', 'Autumn', 'Winter'],
                         (v) => setState(() => _season = v!))),
                   ]),
@@ -394,13 +399,13 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                     Expanded(child: TextFormField(
                       controller: _cultivationProfitCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Profitability (0–1)', hint: '0.00 – 1.00'),
+                      decoration: flaskInput(lang.t('ps_cult_profit'), hint: '0.00 – 1.00'),
                     )),
                     const SizedBox(width: 12),
                     Expanded(child: TextFormField(
                       controller: _cultivationRiskCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Risk (0–1)', hint: '0.00 – 1.00'),
+                      decoration: flaskInput(lang.t('ps_cult_risk'), hint: '0.00 – 1.00'),
                     )),
                   ]),
                 ],
@@ -410,9 +415,9 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
               // ── Market Information ───────────────────────
               FlaskCard(
                 icon: Icons.store_outlined,
-                title: 'Market Information',
+                title: lang.t('ps_card3'),
                 action: _FetchButton(
-                  label: 'Fetch from Component 2',
+                  label: lang.t('ps_fetch_market'),
                   loading: _fetchingMarket,
                   onTap: _fetchingMarket ? null : _fetchFromMarket,
                 ),
@@ -421,15 +426,15 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                   Row(children: [
                     Expanded(child: TextFormField(
                       controller: _marketItemCtrl,
-                      decoration: flaskInput('Item', hint: 'e.g. Tomato'),
+                      decoration: flaskInput(lang.t('ps_market_item'), hint: 'e.g. Tomato'),
                     )),
                     const SizedBox(width: 10),
                     Expanded(child: DropdownButtonFormField<String>(
                       value: _marketName.isEmpty ? null : _marketName,
-                      decoration: flaskInput('Market Name'),
+                      decoration: flaskInput(lang.t('ps_market_name')),
                       isExpanded: true,
-                      hint: const Text('Select a market',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                      hint: Text(lang.t('mr_select_item'),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                       items: _markets.map((m) => DropdownMenuItem(
                           value: m, child: Text(m, overflow: TextOverflow.ellipsis))).toList(),
                       onChanged: (v) => setState(() => _marketName = v ?? ''),
@@ -438,8 +443,8 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                     Expanded(child: TextFormField(
                       controller: _predictedPriceCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Predicted Price (Rs/kg)'),
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      decoration: flaskInput(lang.t('ps_pred_price')),
+                      validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                     )),
                   ]),
                   const SizedBox(height: 14),
@@ -448,19 +453,19 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                     Expanded(child: TextFormField(
                       controller: _distanceCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Distance (km)'),
+                      decoration: flaskInput(lang.t('ps_distance')),
                     )),
                     const SizedBox(width: 10),
                     Expanded(child: TextFormField(
                       controller: _transportCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Transport Cost (Rs)'),
+                      decoration: flaskInput(lang.t('ps_transport')),
                     )),
                     const SizedBox(width: 10),
                     Expanded(child: TextFormField(
                       controller: _netAdvantageCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: flaskInput('Net Advantage (Rs)'),
+                      decoration: flaskInput(lang.t('ps_net_adv')),
                     )),
                   ]),
                 ],
@@ -470,7 +475,7 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
               // ── Location Information ─────────────────────
               FlaskCard(
                 icon: Icons.location_on_outlined,
-                title: 'Location Information',
+                title: lang.t('ps_card4'),
                 children: [
                   // GPS dark sub-panel
                   Container(
@@ -485,7 +490,7 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                         Row(children: [
                           const Icon(Icons.my_location, color: Colors.white70, size: 13),
                           const SizedBox(width: 6),
-                          Text('GPS COORDINATES',
+                          Text(lang.t('mr_gps_coords'),
                               style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -520,7 +525,7 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                                         color: Colors.white, strokeWidth: 1.5))
                                 : const Icon(Icons.navigation, size: 15),
                             label: Text(
-                                _gpsLoading ? 'Locating…' : 'Use My Current Location',
+                                _gpsLoading ? lang.t('locating') : lang.t('use_my_location'),
                                 style: const TextStyle(fontSize: 13)),
                           ),
                         ),
@@ -530,14 +535,14 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
                             controller: _latCtrl,
                             keyboardType: TextInputType.number,
                             style: const TextStyle(color: Colors.white),
-                            decoration: _darkInput('Latitude'),
+                            decoration: _darkInput(lang.t('latitude')),
                           )),
                           const SizedBox(width: 12),
                           Expanded(child: TextFormField(
                             controller: _lonCtrl,
                             keyboardType: TextInputType.number,
                             style: const TextStyle(color: Colors.white),
-                            decoration: _darkInput('Longitude'),
+                            decoration: _darkInput(lang.t('longitude')),
                           )),
                         ]),
                         if (_locationName.isNotEmpty) ...[
@@ -561,8 +566,8 @@ class _ProfitableStrategyScreenState extends State<ProfitableStrategyScreen> {
 
               SubmitButton(
                 loading: _loading,
-                label: 'Predict My Strategy',
-                loadingLabel: 'Generating Strategy…',
+                label: lang.t('ps_get_strategy'),
+                loadingLabel: lang.t('ps_analyzing'),
                 icon: Icons.lightbulb_outline,
                 onPressed: _predict,
               ),
