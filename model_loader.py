@@ -6,12 +6,20 @@ import numpy as np
 import pandas as pd
 import lightgbm as lgb
 from geopy.distance import geodesic
+import requests
 import warnings
 
 # Import Model4 from separate module
 from model_4 import Model4
 
 warnings.filterwarnings('ignore')
+
+
+def _load_markets_config(path='markets.json'):
+    """Load market list from JSON config. Returns dict of {name: (lat, lon)}."""
+    with open(path, 'r') as f:
+        data = json.load(f)
+    return {m['name']: (m['lat'], m['lon']) for m in data['markets']}
 
 
 class ModelLoader:
@@ -21,8 +29,9 @@ class ModelLoader:
         self.scalers = {}
         self.features = {}
         self.metadata = {}
-        self.model_status = {}  # Add model_status here
-        self.model4 = None  # Separate instance for Component 4
+        self.model_status = {}
+        self.model4 = None
+        self.markets_geo = _load_markets_config()
 
     def load_all_models(self):
         """Load all models for the 4 components"""
@@ -993,15 +1002,15 @@ class ModelLoader:
                 os.path.join(model_path, 'label_encoders.joblib')
             )
 
-            # Load historical predictions for market price lookup
+            # Load historical data — keep full latest row per item/market/price_type
+            # Used for live prediction: historical lag/volatility features + today's date
             market_data = pd.read_csv(os.path.join(model_path, 'data_with_predictions.csv'))
             market_data['report_date'] = pd.to_datetime(market_data['report_date'])
-            # Keep only the latest predicted_price per item/market/price_type
             self.metadata['component2_market_data'] = (
                 market_data
                 .sort_values('report_date')
                 .groupby(['item_standard', 'market', 'price_type'], as_index=False)
-                .last()[['item_standard', 'market', 'price_type', 'predicted_price', 'anomaly_score']]
+                .last()
             )
 
             print("Component 2 models loaded")
@@ -1013,18 +1022,30 @@ class ModelLoader:
             self.encoders['component2'] = {}
             self.metadata['component2_market_data'] = pd.DataFrame()
 
+    def _road_distance_km(self, origin, destination):
+        """Get actual road distance in km using OSRM (free, no API key).
+        Falls back to geodesic × 1.4 if OSRM is unreachable.
+        """
+        try:
+            lat1, lon1 = origin
+            lat2, lon2 = destination
+            url = (
+                f"http://router.project-osrm.org/route/v1/driving/"
+                f"{lon1},{lat1};{lon2},{lat2}"
+                f"?overview=false"
+            )
+            resp = requests.get(url, timeout=5)
+            data = resp.json()
+            if data.get('code') == 'Ok':
+                return data['routes'][0]['distance'] / 1000.0
+        except Exception:
+            pass
+        return geodesic(origin, destination).km * 1.4
+
     def predict_component2(self, input_data):
         """Get market recommendations with quantity-based calculations"""
         try:
-            # Market coordinates
-            markets_geo = {
-                'Pettah': (6.9341, 79.9861),
-                'Dambulla': (7.8643, 80.6501),
-                'Narahenpita': (6.9300, 79.9681),
-                'Marandagahamula': (7.2903, 80.5327),
-                'Peliyagoda': (6.9682, 79.9815),
-                'Negombo': (7.2085, 79.9743)
-            }
+            markets_geo = self.markets_geo
 
             user_location = (input_data['latitude'], input_data['longitude'])
             transport_cost_per_km = input_data.get('transport_cost_per_km', 160)
@@ -1064,8 +1085,8 @@ class ModelLoader:
 
             for market, coords in markets_geo.items():
                 try:
-                    # Calculate distance
-                    distance = geodesic(user_location, coords).km
+                    # Calculate road distance via OSRM (falls back to geodesic × 1.35)
+                    distance = self._road_distance_km(user_location, coords)
                     base_transport_cost = distance * transport_cost_per_km
                     transport_cost_total = base_transport_cost + additional_transport_cost
 
@@ -1162,22 +1183,87 @@ class ModelLoader:
         explanation += f" (Distance: {distance:.1f} km)"
         return explanation
 
-    def _estimate_price(self, item, market, price_type, reference_price=None):
-        """Look up the latest model-predicted price for a given item/market/price_type."""
+    def _predict_price_live(self, item, market, price_type):
+        """Run LightGBM model live using today's date + latest historical lag features.
+        Returns fresh predicted price in LKR/kg, or None if model unavailable.
+        """
+        model    = self.models.get('component2')
+        encoders = self.encoders.get('component2', {})
+        features = self.features.get('component2', [])
         market_data = self.metadata.get('component2_market_data')
 
-        if market_data is None or market_data.empty:
-            raise Exception("Component 2 market data not loaded")
+        if model is None or not encoders or market_data is None or market_data.empty:
+            return None
 
-        # Try exact match first
+        # Find latest row for this item/market/price_type
         mask = (
             (market_data['item_standard'].str.lower() == item.lower()) &
             (market_data['market'] == market) &
             (market_data['price_type'] == price_type)
         )
         row = market_data[mask]
+        if row.empty:
+            mask = (
+                market_data['item_standard'].str.contains(item, case=False, na=False) &
+                (market_data['market'] == market) &
+                (market_data['price_type'] == price_type)
+            )
+            row = market_data[mask]
+        if row.empty:
+            return None
 
-        # Fallback: partial item name match
+        latest = row.iloc[0]
+        today  = datetime.now()
+
+        try:
+            feature_row = {
+                # Time features — replaced with TODAY's date
+                'month':        today.month,
+                'day_of_week':  today.weekday(),
+                'week_of_year': int(today.strftime('%W')),
+                # Categorical features — encoded
+                'category_encoded':     int(encoders['category'].transform([latest['category']])[0]),
+                'item_standard_encoded': int(encoders['item_standard'].transform([latest['item_standard']])[0]),
+                'origin_type_encoded':  int(encoders['origin_type'].transform([latest['origin_type']])[0]),
+                'price_type_encoded':   int(encoders['price_type'].transform([price_type])[0]),
+                'market_encoded':       int(encoders['market'].transform([market])[0]),
+                # Historical lag/volatility features from latest CSV row
+                'price_prev':           float(latest['price_prev']),
+                'anomaly_score':        float(latest['anomaly_score']),
+                'price_volatility':     float(latest['price_volatility']),
+                'price_change_pct':     float(latest['price_change_pct']),
+                'price_lag_1':          float(latest['price_lag_1']),
+                'price_lag_7':          float(latest['price_lag_7']),
+                'price_rolling_mean_7': float(latest['price_rolling_mean_7']),
+            }
+
+            X = pd.DataFrame([feature_row], columns=features)
+            predicted = float(model.predict(X)[0])
+            return round(predicted, 2)
+
+        except Exception as e:
+            print(f"Live prediction failed for {item}/{market}/{price_type}: {e}")
+            return None
+
+    def _estimate_price(self, item, market, price_type, reference_price=None):
+        """Predict price live using today's date features, falling back to CSV lookup."""
+        market_data = self.metadata.get('component2_market_data')
+
+        if market_data is None or market_data.empty:
+            raise Exception("Component 2 market data not loaded")
+
+        # Try live prediction first (uses today's date features)
+        live_price = self._predict_price_live(item, market, price_type)
+        if live_price is not None:
+            return live_price
+
+        # Fallback: return pre-computed price from CSV
+        mask = (
+            (market_data['item_standard'].str.lower() == item.lower()) &
+            (market_data['market'] == market) &
+            (market_data['price_type'] == price_type)
+        )
+        row = market_data[mask]
         if row.empty:
             mask = (
                 market_data['item_standard'].str.contains(item, case=False, na=False) &

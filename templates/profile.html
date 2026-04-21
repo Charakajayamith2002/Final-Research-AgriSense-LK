@@ -9,7 +9,7 @@
             <!-- User Profile Card -->
             <div class="card shadow mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i>Profile</h4>
+                    <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i><span data-i18n="prof_title">Profile</span></h4>
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">
@@ -25,9 +25,9 @@
                     </div>
                     
                     <div class="mt-4">
-                        <p class="mb-1"><small>Member since</small></p>
+                        <p class="mb-1"><small data-i18n="prof_member_since">Member since</small></p>
                         <p class="mb-0"><strong>{{ user.created_at.strftime('%d %B %Y') }}</strong></p>
-                        <p class="text-muted small mt-2">Last login: {{ user.last_login.strftime('%d %B %Y %H:%M') }}</p>
+                        <p class="text-muted small mt-2"><span data-i18n="prof_last_login">Last login</span>: {{ user.last_login.strftime('%d %B %Y %H:%M') }}</p>
                     </div>
                 </div>
             </div>
@@ -35,18 +35,18 @@
             <!-- Profile Actions -->
             <div class="card shadow">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0">Actions</h5>
+                    <h5 class="mb-0" data-i18n="prof_actions">Actions</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            <i class="fas fa-edit me-2"></i>Edit Profile
+                            <i class="fas fa-edit me-2"></i><span data-i18n="prof_edit_profile">Edit Profile</span>
                         </button>
                         <a href="{{ url_for('history') }}" class="btn btn-outline-info">
-                            <i class="fas fa-history me-2"></i>View History
+                            <i class="fas fa-history me-2"></i><span data-i18n="prof_view_history">View History</span>
                         </a>
                         <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            <i class="fas fa-sign-out-alt me-2"></i><span data-i18n="prof_logout">Logout</span>
                         </a>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
             <!-- Statistics Card -->
             <div class="card shadow mb-4">
                 <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Usage Statistics</h4>
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i><span data-i18n="prof_usage_stats">Usage Statistics</span></h4>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
@@ -65,7 +65,7 @@
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <h1 class="display-4 text-primary">{{ history|length }}</h1>
-                                    <p class="mb-0">Total Predictions</p>
+                                    <p class="mb-0" data-i18n="prof_total_pred">Total Predictions</p>
                                 </div>
                             </div>
                         </div>
@@ -73,7 +73,7 @@
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <h1 class="display-4 text-success">{{ (history|selectattr('component', 'equalto', 'price_demand')|list)|length }}</h1>
-                                    <p class="mb-0">Price Predictions</p>
+                                    <p class="mb-0" data-i18n="prof_price_pred">Price Predictions</p>
                                 </div>
                             </div>
                         </div>
@@ -81,7 +81,7 @@
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <h1 class="display-4 text-info">{{ (history|selectattr('component', 'equalto', 'market_ranking')|list)|length }}</h1>
-                                    <p class="mb-0">Market Rankings</p>
+                                    <p class="mb-0" data-i18n="prof_market_rank">Market Rankings</p>
                                 </div>
                             </div>
                         </div>
@@ -92,7 +92,7 @@
             <!-- Recent Activity -->
             <div class="card shadow">
                 <div class="card-header bg-info text-white">
-                    <h4 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h4>
+                    <h4 class="mb-0"><i class="fas fa-history me-2"></i><span data-i18n="prof_recent">Recent Activity</span></h4>
                 </div>
                 <div class="card-body">
                     {% if history %}
@@ -100,9 +100,9 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Component</th>
-                                    <th>Date & Time</th>
-                                    <th>Action</th>
+                                    <th data-i18n="prof_col_component">Component</th>
+                                    <th data-i18n="prof_col_datetime">Date & Time</th>
+                                    <th data-i18n="prof_col_action">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -116,7 +116,7 @@
                                     <td>{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-secondary" onclick="viewDetails('{{ item._id }}')">
-                                            View Details
+                                            <span data-i18n="prof_view_details">View Details</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -127,8 +127,8 @@
                     {% else %}
                     <div class="text-center py-4">
                         <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No activity yet. Start using the components!</p>
-                        <a href="{{ url_for('price_demand') }}" class="btn btn-primary">Make First Prediction</a>
+                        <p class="text-muted" data-i18n="prof_no_activity">No activity yet. Start using the components!</p>
+                        <a href="{{ url_for('price_demand') }}" class="btn btn-primary" data-i18n="prof_first_pred">Make First Prediction</a>
                     </div>
                     {% endif %}
                 </div>
@@ -142,31 +142,31 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Edit Profile</h5>
+                <h5 class="modal-title" data-i18n="prof_edit_title">Edit Profile</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('update_profile') }}">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Username</label>
+                        <label class="form-label" data-i18n="label_username">Username</label>
                         <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">User Type</label>
+                        <label class="form-label" data-i18n="prof_label_usertype">User Type</label>
                         <select class="form-select" name="user_type" required>
-                            <option value="buyer" {% if user.user_type == 'buyer' %}selected{% endif %}>Buyer</option>
-                            <option value="seller" {% if user.user_type == 'seller' %}selected{% endif %}>Seller</option>
+                            <option value="buyer" {% if user.user_type == 'buyer' %}selected{% endif %} data-i18n="buyer_title">Buyer</option>
+                            <option value="seller" {% if user.user_type == 'seller' %}selected{% endif %} data-i18n="seller_title">Seller</option>
                         </select>
                     </div>
                     <div class="alert alert-info">
                         <small><i class="fas fa-info-circle me-2"></i>
-                            Note: Email cannot be changed. Contact support for email changes.
+                            <span data-i18n="prof_email_note">Note: Email cannot be changed. Contact support for email changes.</span>
                         </small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="prof_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="prof_save">Save Changes</button>
                 </div>
             </form>
         </div>

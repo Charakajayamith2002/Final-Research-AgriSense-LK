@@ -1,0 +1,52 @@
+{
+  "markets": [
+    {
+      "name": "Pettah",
+      "lat": 6.9363,
+      "lon": 79.8500,
+      "province": "Western",
+      "district": "Colombo",
+      "type": "wholesale"
+    },
+    {
+      "name": "Peliyagoda",
+      "lat": 6.9634,
+      "lon": 79.8819,
+      "province": "Western",
+      "district": "Gampaha",
+      "type": "wholesale"
+    },
+    {
+      "name": "Narahenpita",
+      "lat": 6.9057,
+      "lon": 79.8821,
+      "province": "Western",
+      "district": "Colombo",
+      "type": "wholesale"
+    },
+    {
+      "name": "Negombo",
+      "lat": 7.2111,
+      "lon": 79.8318,
+      "province": "Western",
+      "district": "Gampaha",
+      "type": "wholesale"
+    },
+    {
+      "name": "Marandagahamula",
+      "lat": 7.2290,
+      "lon": 79.9886,
+      "province": "Western",
+      "district": "Gampaha",
+      "type": "wholesale"
+    },
+    {
+      "name": "Dambulla",
+      "lat": 7.8665,
+      "lon": 80.6517,
+      "province": "Central",
+      "district": "Matale",
+      "type": "wholesale"
+    }
+  ]
+}

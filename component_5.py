@@ -291,53 +291,167 @@ class BusinessIdeaPredictor:
                 print(f"  ⚠️ Pickle loading failed: {e2}")
                 return None
 
+    # ── lookup tables ─────────────────────────────────────────────────────────
+    _REGION_COORDS = {
+        'Western Province':       (6.9271, 79.8612),
+        'Central Province':       (7.2906, 80.6337),
+        'Southern Province':      (5.9549, 80.5550),
+        'Northern Province':      (9.6615, 80.0255),
+        'Eastern Province':       (7.8731, 81.3152),
+        'North Western Province': (7.4818, 80.3609),
+        'North Central Province': (8.3114, 80.4037),
+        'Uva Province':           (6.9934, 81.0550),
+        'Sabaragamuwa Province':  (6.6828, 80.3992),
+    }
+    _CROP_PRICE = {
+        'Vegetables': 80, 'Fruits': 120, 'Grains': 55, 'Spices': 450, 'Mixed': 95,
+    }
+    _CROP_BASE = {   # (profitability, risk)
+        'Vegetables': (0.75, 0.45), 'Fruits':  (0.80, 0.35),
+        'Grains':     (0.65, 0.30), 'Spices':  (0.85, 0.40),
+        'Mixed':      (0.72, 0.38),
+    }
+    _EXP_FACTOR = {  # (prof_mult, risk_mult)
+        'beginner':     (0.85, 1.20),
+        'intermediate': (1.00, 1.00),
+        'expert':       (1.15, 0.80),
+    }
+    _MARKET_DISTANCE = {'local': 15, 'regional': 60, 'national': 150, 'export': 350}
+    _FARM_INCOME_RATIO = {'small': 0.25, 'medium': 0.40, 'large': 0.60}
+
     def _create_feature_vector(self, user_data):
-        """Create a proper feature vector from user data"""
-        features = []
+        """Map Flutter form fields → 30 raw features the model was trained on."""
+        # ── Flutter form inputs ───────────────────────────────────────────────
+        crop_type  = user_data.get('crop_type', 'Vegetables')
+        farm_size  = user_data.get('farm_size', 'small')
+        region     = user_data.get('region', 'Western Province')
+        experience = user_data.get('experience_level', 'beginner')
+        market_acc = user_data.get('market_access', 'local')
+        budget     = float(user_data.get('budget', user_data.get('available_budget', 50000)))
+        land_area  = float(user_data.get('land_area', 1.0))
 
-        # Extract key numerical values
-        monthly_income = float(user_data.get('monthly_income', 85000))
-        available_budget = float(user_data.get('available_budget', 250000))
-        family_members = int(user_data.get('family_members', 4))
-        children = int(user_data.get('children_under_16', 2))
+        # ── location ──────────────────────────────────────────────────────────
+        lat, lon = self._REGION_COORDS.get(region, (7.0, 80.5))
 
-        # Calculate derived features
-        budget_to_income = available_budget / max(monthly_income, 1)
-        dependency_ratio = children / max(family_members, 1)
+        # ── cultivation ───────────────────────────────────────────────────────
+        predicted_price = float(self._CROP_PRICE.get(crop_type, 95))
+        base_prof, base_risk = self._CROP_BASE.get(crop_type, (0.72, 0.40))
+        pm, rm = self._EXP_FACTOR.get(experience, (1.0, 1.0))
+        cultivation_profitability = min(0.98, base_prof * pm)
+        cultivation_risk          = min(0.98, base_risk * rm)
 
-        # Market factors
-        distance = float(user_data.get('distance_km', 45.2))
-        transport_cost = float(user_data.get('transport_cost', 7200))
-        net_advantage = float(user_data.get('net_advantage', 12800))
-        predicted_price = float(user_data.get('predicted_price', 185.5))
+        # ── market / distance ─────────────────────────────────────────────────
+        distance_km    = float(self._MARKET_DISTANCE.get(market_acc, 15))
+        transport_cost = distance_km * 55.0   # ~55 LKR/km
 
-        # Cultivation factors (if farmer)
-        cultivation_profit = float(user_data.get('cultivation_profitability', 0.85))
-        cultivation_risk = float(user_data.get('cultivation_risk', 0.4))
+        # ── income / family ───────────────────────────────────────────────────
+        income_ratio   = self._FARM_INCOME_RATIO.get(farm_size, 0.25)
+        monthly_income = max(budget * income_ratio, 15000.0)
+        family_members    = 4.0
+        children_under_16 = 2.0
+        adult_members     = family_members - children_under_16
 
-        # Role and purpose
-        role = user_data.get('role', 'farmer')
-        purpose = user_data.get('purpose', 'cultivate_sell')
+        # ── loan (not in form → zeros) ────────────────────────────────────────
+        loan_amount        = 0.0
+        loan_rate          = 0.0
+        loan_period_months = 0.0
+        has_loan_data      = 0.0
 
-        # Create a rich feature vector that will produce varied results
-        # This is a simplified version - in production, you'd use the actual model features
+        # ── derived financial features ────────────────────────────────────────
+        land_area_kg            = land_area * 400.0
+        gross_revenue           = predicted_price * land_area_kg
+        input_cost              = budget * 0.40
+        net_advantage           = gross_revenue - transport_cost - input_cost
+        expected_monthly_profit = gross_revenue * cultivation_profitability - (transport_cost / 12.0)
+        break_even_months       = float(max(1, round(budget / max(expected_monthly_profit, 1))))
+        success                 = 1.0 if cultivation_profitability > 0.70 else 0.0
+        feasibility_score       = cultivation_profitability * (budget / 200000.0) - cultivation_risk
+
+        budget_to_income_ratio = budget / max(monthly_income, 1)
+        loan_to_budget_ratio   = 0.0
+        dependency_ratio       = children_under_16 / max(family_members, 1)
+        cost_per_km            = transport_cost / max(distance_km, 1)
+        price_distance_ratio   = predicted_price / max(distance_km, 1)
+        advantage_per_kg       = net_advantage / max(predicted_price * land_area_kg, 1)
+        market_attractiveness  = predicted_price / max(distance_km, 1) * 10.0
+        financial_health       = (budget - loan_amount) / max(monthly_income, 1)
+        optimal_month          = float(datetime.now().month)
 
         return {
-            'monthly_income': monthly_income,
-            'available_budget': available_budget,
-            'family_members': family_members,
-            'children_under_16': children,
-            'budget_to_income': budget_to_income,
-            'dependency_ratio': dependency_ratio,
-            'distance_km': distance,
-            'transport_cost': transport_cost,
-            'net_advantage': net_advantage,
-            'predicted_price': predicted_price,
-            'cultivation_profitability': cultivation_profit,
-            'cultivation_risk': cultivation_risk,
-            'role': role,
-            'purpose': purpose
+            # ── 30 model features (same names/order as feature_names.json) ────
+            'monthly_income':            monthly_income,
+            'family_members':            family_members,
+            'children_under_16':         children_under_16,
+            'available_budget':          budget,
+            'loan_amount':               loan_amount,
+            'loan_rate':                 loan_rate,
+            'loan_period_months':        loan_period_months,
+            'location_lat':              lat,
+            'location_lon':              lon,
+            'cultivation_profitability': cultivation_profitability,
+            'cultivation_risk':          cultivation_risk,
+            'optimal_month':             optimal_month,
+            'predicted_price':           predicted_price,
+            'distance_km':               distance_km,
+            'net_advantage':             net_advantage,
+            'feasibility_score':         feasibility_score,
+            'expected_monthly_profit':   expected_monthly_profit,
+            'break_even_months':         break_even_months,
+            'success':                   success,
+            'has_loan_data':             has_loan_data,
+            'budget_to_income_ratio':    budget_to_income_ratio,
+            'loan_to_budget_ratio':      loan_to_budget_ratio,
+            'adult_members':             adult_members,
+            'dependency_ratio':          dependency_ratio,
+            'cost_per_km':               cost_per_km,
+            'price_distance_ratio':      price_distance_ratio,
+            'advantage_per_kg':          advantage_per_kg,
+            'market_attractiveness':     market_attractiveness,
+            'financial_health':          financial_health,
+            'role':                      'farmer',
+            # ── extras for rule-based fallback ────────────────────────────────
+            'purpose':          'cultivate_sell',
+            'crop_type':        crop_type,
+            'experience_level': experience,
+            'market_access':    market_acc,
         }
+
+    def _broad_class_to_specific_code(self, broad_class, features):
+        """Map a broad class (FARMING/RETAIL_WHOLESALE/CONSUMER) to a specific BUS_Xxx code."""
+        budget     = features.get('available_budget', 50000)
+        experience = features.get('experience_level', 'beginner')
+        market_acc = features.get('market_access', 'local')
+        crop_type  = features.get('crop_type', 'Vegetables')
+
+        if broad_class == 'FARMING':
+            if experience == 'expert':
+                if market_acc in ('national', 'export') and crop_type in ('Spices', 'Fruits'):
+                    return 'BUS_F03'   # Value-Added Farm Products
+                if budget >= 500000:
+                    return 'BUS_F01'   # Commercial Crop Farming
+                return 'BUS_F04'       # Contract Farming
+            elif experience == 'intermediate':
+                if market_acc in ('national', 'export'):
+                    return 'BUS_F04'   # Contract Farming
+                return 'BUS_F01'       # Commercial Crop Farming
+            else:                       # beginner
+                return 'BUS_F02'       # Organic Farming (lower risk entry)
+
+        elif broad_class == 'RETAIL_WHOLESALE':
+            if budget >= 1_000_000 and market_acc == 'export':
+                return 'BUS_B02'       # Value-Added Products for Export
+            if budget >= 500_000:
+                return 'BUS_B03'       # Food Processing Business
+            if budget >= 150_000:
+                return 'BUS_B01'       # Retail Fruit & Vegetable Shop
+            if budget >= 80_000:
+                return 'BUS_S01'       # Wholesale Produce Trader
+            return 'BUS_S02'           # Agricultural Collector
+
+        else:  # CONSUMER
+            if budget >= 50_000:
+                return 'BUS_C02'       # Community Buying Group
+            return 'BUS_C01'           # Monthly Budget Optimization
 
     def _rule_based_prediction(self, features):
         """Generate prediction based on rules when model is not available"""
@@ -433,67 +547,62 @@ class BusinessIdeaPredictor:
             # Extract features
             features = self._create_feature_vector(user_data)
 
-            # Generate prediction
-            if self.model is not None and hasattr(self.model, 'predict'):
+            # ── Build feature DataFrame in exact model order ──────────────────
+            feature_order = [
+                'monthly_income', 'family_members', 'children_under_16',
+                'available_budget', 'loan_amount', 'loan_rate',
+                'loan_period_months', 'location_lat', 'location_lon',
+                'cultivation_profitability', 'cultivation_risk', 'optimal_month',
+                'predicted_price', 'distance_km', 'net_advantage',
+                'feasibility_score', 'expected_monthly_profit', 'break_even_months',
+                'success', 'has_loan_data', 'budget_to_income_ratio',
+                'loan_to_budget_ratio', 'adult_members', 'dependency_ratio',
+                'cost_per_km', 'price_distance_ratio', 'advantage_per_kg',
+                'market_attractiveness', 'financial_health', 'role',
+            ]
+
+            # ── Generate prediction ───────────────────────────────────────────
+            if self.model is not None and self.scaler is not None:
                 try:
-                    # In a real implementation, you would:
-                    # 1. Encode categorical variables
-                    # 2. Create the full feature vector
-                    # 3. Scale the features
-                    # 4. Get prediction from model
+                    # 1. Encode categorical 'role'
+                    role_val = features['role']
+                    if self.label_encoders and 'role' in self.label_encoders:
+                        role_encoded = int(self.label_encoders['role'].transform([role_val])[0])
+                    else:
+                        role_encoded = 2  # 'farmer' alphabetical fallback
 
-                    # For now, use a deterministic but varied approach
-                    # based on input features
-                    budget_score = features['available_budget'] / 1000000
-                    income_score = features['monthly_income'] / 100000
-                    advantage_score = max(0, features['net_advantage'] / 50000)
+                    # 2. Build raw feature row
+                    row = {k: features[k] for k in feature_order}
+                    row['role'] = float(role_encoded)
 
-                    # Create a pseudo-random but deterministic index
-                    seed = (int(features['monthly_income']) +
-                           int(features['available_budget']) +
-                           int(features['distance_km'] * 10))
+                    X_raw = pd.DataFrame([row], columns=feature_order)
 
-                    # Map to business types based on role
-                    if features['role'] == 'farmer':
-                        if budget_score > 0.5:
-                            idx = 0  # BUS_F01
-                        elif advantage_score > 0.2:
-                            idx = 3  # BUS_F04
-                        elif income_score > 0.8:
-                            idx = 2  # BUS_F03
-                        else:
-                            idx = 1  # BUS_F02
-                    elif features['role'] == 'buyer':
-                        if budget_score > 1.0:
-                            idx = 8  # BUS_B02
-                        elif budget_score > 0.5:
-                            idx = 9  # BUS_B03
-                        else:
-                            idx = 7  # BUS_B01
-                    elif features['role'] == 'seller':
-                        if budget_score > 0.5:
-                            idx = 4  # BUS_S01
-                        elif advantage_score > 0.1:
-                            idx = 5  # BUS_S02
-                        else:
-                            idx = 6  # BUS_S03
-                    else:  # consumer
-                        if budget_score > 0.05:
-                            idx = 11  # BUS_C02
-                        else:
-                            idx = 10  # BUS_C01
+                    # 3. Scale
+                    X_scaled = self.scaler.transform(X_raw)
 
-                    business_code = self.business_mapping.get(idx % 12, 'BUS_F02')
+                    # 4. Predict broad class + probabilities
+                    broad_idx   = self.model.predict(X_scaled)[0]
+                    proba       = self.model.predict_proba(X_scaled)[0]
+                    confidence  = float(np.max(proba))
 
-                    # Calculate confidence based on how well the features match
-                    confidence = 0.7 + (budget_score * 0.2) + (advantage_score * 0.1)
-                    confidence = min(0.95, max(0.5, confidence))
+                    if self.target_encoder is not None:
+                        broad_class = self.target_encoder.inverse_transform([broad_idx])[0]
+                    elif hasattr(self.model, 'classes_'):
+                        broad_class = self.model.classes_[broad_idx]
+                    else:
+                        broad_class = 'FARMING'
+
+                    # 5. Map broad class → specific business code
+                    business_code = self._broad_class_to_specific_code(broad_class, features)
+
+                    print(f"  ✓ RF predicted broad class: {broad_class} (conf={confidence:.2%})")
+                    print(f"  ✓ Specific code: {business_code}")
 
                 except Exception as e:
                     print(f"Model prediction error, using fallback: {e}")
+                    import traceback; traceback.print_exc()
                     business_code, confidence = self._rule_based_prediction(features)
             else:
-                # Use rule-based prediction
                 business_code, confidence = self._rule_based_prediction(features)
 
             # Get alternatives

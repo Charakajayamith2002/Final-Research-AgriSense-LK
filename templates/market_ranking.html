@@ -98,9 +98,64 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 .map-placeholder i { font-size:2.5rem; opacity:.6 }
 .map-placeholder h5 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; margin:0 }
 .map-placeholder p { font-size:.82rem; opacity:.6; margin:0 }
-.map-legend-strip { display:grid; grid-template-columns:repeat(3,1fr); background:var(--g50); border-top:1px solid var(--bdr); padding:12px 20px }
-.map-legend-item { display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--tm) }
-.map-legend-item i { font-size:.9rem }
+.map-legend-strip { display:flex; gap:28px; background:var(--g50); border-top:1px solid var(--bdr); padding:13px 22px; justify-content:center }
+.map-legend-item { display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--tm); font-weight:500 }
+.map-legend-item i { font-size:.95rem }
+
+/* ── CUSTOM MAP MARKERS ── */
+.lf-you {
+  background:#e53935;
+  color:#fff;
+  padding:5px 11px;
+  border-radius:6px;
+  font-size:.78rem;
+  font-weight:800;
+  white-space:nowrap;
+  letter-spacing:.04em;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.7);
+  position:relative;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+}
+.lf-you::after {
+  content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-top-color:#e53935; border-bottom:0;
+}
+.lf-mkt {
+  background:#1a5c16;
+  color:#fff;
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:.73rem;
+  font-weight:700;
+  white-space:nowrap;
+  letter-spacing:.02em;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.55);
+  position:relative;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+.lf-mkt::after {
+  content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-top-color:#1a5c16; border-bottom:0;
+}
+.lf-mkt-rank {
+  border-radius:6px;
+  padding:5px 10px;
+  font-size:.73rem;
+  font-weight:700;
+  white-space:nowrap;
+  letter-spacing:.02em;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
+  border:2px solid rgba(255,255,255,.55);
+  position:relative;
+  color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+.lf-mkt-rank::after {
+  content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%);
+  border:8px solid transparent; border-bottom:0;
+}
 
 /* ── RIGHT SIDEBAR ── */
 .sidebar-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--md); overflow:hidden; margin-bottom:18px }
@@ -221,6 +276,24 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 .loc-coord-chip strong { color:rgba(255,255,255,.85); margin-left:1px }
 .loc-status { display:none; font-size:.78rem; border-radius:8px; padding:9px 13px; margin-bottom:12px; color:#fff }
 .loc-status.loc-error { background:rgba(248,113,113,.15); border:1px solid rgba(248,113,113,.35) }
+
+/* ── ABOUT LIST (sidebar) ── */
+.about-list { list-style:none; padding:0; margin:10px 0 0 }
+.about-list li { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--g100); font-size:.81rem; color:var(--td); line-height:1.5 }
+.about-list li:last-child { border-bottom:none }
+.about-list li i { color:var(--g500); font-size:.73rem; margin-top:3px; flex-shrink:0 }
+.about-footer { margin-top:12px; padding-top:10px; border-top:1px solid var(--g100); font-size:.72rem; color:var(--tmut); display:flex; align-items:flex-start; gap:7px }
+.about-footer i { color:var(--g400); margin-top:2px; flex-shrink:0 }
+/* ── FAQ (full width below map) ── */
+.sc-card { background:var(--white); border:1px solid var(--bdr); border-radius:var(--r); box-shadow:var(--sm); overflow:hidden }
+.faq-item { border-bottom:1px solid var(--g100) }
+.faq-item:last-child { border-bottom:none }
+.faq-trigger { width:100%; background:none; border:none; text-align:left; padding:14px 20px; font-family:'DM Sans',sans-serif; font-size:.86rem; font-weight:600; color:var(--td); cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; transition:color .2s }
+.faq-trigger:hover { color:var(--g600) }
+.faq-trigger i { color:var(--g500); font-size:.72rem; transition:transform .3s; flex-shrink:0 }
+.faq-trigger.open i { transform:rotate(180deg) }
+.faq-answer { font-size:.83rem; color:var(--tmut); line-height:1.75; max-height:0; overflow:hidden; transition:max-height .35s ease, padding-bottom .3s ease; padding:0 20px }
+.faq-answer.open { max-height:200px; padding-bottom:16px }
 </style>
 {% endblock %}
 
@@ -232,13 +305,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
   <div class="container">
     <div class="hero-inner">
       <div class="animate-in">
-        <div class="hero-badge"><i class="fas fa-map-marked-alt"></i> Geo-Optimized</div>
-        <h1>Market Opportunity<br><em>Ranking</em></h1>
-        <p>Find the best markets based on predicted prices, transport cost, and your selected quantity — ordered by highest net advantage.</p>
+        <div class="hero-badge" data-i18n="mr_badge"><i class="fas fa-map-marked-alt"></i> Geo-Optimized</div>
+        <h1><span data-i18n="mr_hero_title">Market Opportunity</span><br><em data-i18n="mr_hero_title_em">Ranking</em></h1>
+        <p data-i18n="mr_hero_desc">Find the best markets based on predicted prices, transport cost, and your selected quantity — ordered by highest net advantage.</p>
       </div>
       <div class="animate-in" style="animation-delay:.12s">
         <div class="hero-steps">
-          <strong>Select role</strong> → <strong>Enter values</strong> → <strong>Get results</strong>
+          <strong data-i18n="mr_step1">Select role</strong> → <strong data-i18n="mr_step2">Enter values</strong> → <strong data-i18n="mr_step3">Get results</strong>
         </div>
       </div>
     </div>
@@ -258,7 +331,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
           <div class="fc-header">
             <div class="fc-header-left">
               <div class="hi"><i class="fas fa-sliders-h"></i></div>
-              <h3>Market Search Parameters</h3>
+              <h3 data-i18n="mr_form_title">Market Search Parameters</h3>
             </div>
           </div>
           <div class="fc-body">
@@ -272,15 +345,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
             <form method="POST" id="rankingForm">
 
               <!-- Role -->
-              <div class="fsec-title"><i class="fas fa-user-tag"></i> Role Selection</div>
+              <div class="fsec-title" data-i18n="mr_sec_role"><i class="fas fa-user-tag"></i> Role Selection</div>
               <div class="fields-grid c2" style="margin-bottom:20px;">
                 <div class="fg">
-                  <label class="form-label req">Your Role</label>
+                  <label class="form-label req" data-i18n="mr_lbl_role">Your Role</label>
                   <select class="form-select" name="user_role" id="user_role" required
                           onchange="toggleCostField();updateSectionTitles();">
-                    <option value="">Select Role</option>
-                    <option value="buyer"  {% if form_data and form_data.user_role=='buyer'  %}selected{% endif %}>Buyer</option>
-                    <option value="seller" {% if form_data and form_data.user_role=='seller' %}selected{% endif %}>Seller</option>
+                    <option value="" data-i18n="mr_opt_select_role">Select Role</option>
+                    <option value="buyer"  {% if form_data and form_data.user_role=='buyer'  %}selected{% endif %} data-i18n="ps_opt_buyer">Buyer</option>
+                    <option value="seller" {% if form_data and form_data.user_role=='seller' %}selected{% endif %} data-i18n="ps_opt_seller">Seller</option>
                   </select>
                 </div>
               </div>
@@ -288,39 +361,39 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
               <div class="sec-divider"></div>
 
               <!-- Costs -->
-              <div class="fsec-title"><i class="fas fa-coins"></i> Cost Information</div>
+              <div class="fsec-title" data-i18n="mr_sec_cost"><i class="fas fa-coins"></i> Cost Information</div>
               <div class="fields-grid c2" style="margin-bottom:14px;">
                 <div class="fg">
-                  <label class="form-label req">Transport Cost <span style="font-weight:400;color:var(--tmut)">(Rs./km)</span></label>
+                  <label class="form-label req"><span data-i18n="mr_lbl_transport">Transport Cost</span> <span style="font-weight:400;color:var(--tmut)">(Rs./km)</span></label>
                   <input type="number" class="form-control" name="transport_cost" id="transport_cost"
                          step="0.1" min="1" max="1000" required
                          value="{% if form_data %}{{ form_data.transport_cost }}{% else %}160{% endif %}">
-                  <span class="form-hint">Default: Rs.160 per km</span>
+                  <span class="form-hint" data-i18n="mr_hint_transport">Default: Rs.160 per km</span>
                 </div>
                 <div class="fg">
-                  <label class="form-label">Additional Transport Cost <span style="font-weight:400;color:var(--tmut)">(Rs.)</span></label>
+                  <label class="form-label"><span data-i18n="mr_lbl_add_transport">Additional Transport Cost</span> <span style="font-weight:400;color:var(--tmut)">(Rs.)</span></label>
                   <input type="number" class="form-control" name="additional_transport_cost" id="additional_transport_cost"
                          step="0.1" min="0" max="1000000"
                          value="{% if form_data %}{{ form_data.additional_transport_cost|default(0) }}{% else %}0{% endif %}">
-                  <span class="form-hint">Fixed extra charge (e.g. refrigerated vehicle)</span>
+                  <span class="form-hint" data-i18n="mr_hint_add_transport">Fixed extra charge (e.g. refrigerated vehicle)</span>
                 </div>
               </div>
               <div class="fields-grid c2">
                 <div class="fg" id="cultivation_cost_container">
-                  <label class="form-label" id="cultivation_cost_label">Total Cost <span style="font-weight:400;color:var(--tmut)">(Cultivation)</span></label>
+                  <label class="form-label" id="cultivation_cost_label"><span data-i18n="mr_lbl_cult_cost">Total Cost</span> <span style="font-weight:400;color:var(--tmut)">(Cultivation)</span></label>
                   <input type="number" class="form-control" name="cultivation_cost" id="cultivation_cost"
                          step="0.1" min="0" max="1000000"
                          value="{% if form_data %}{{ form_data.cultivation_cost }}{% else %}0{% endif %}"
-                         placeholder="Required for Sellers only">
-                  <span class="form-hint" id="cultivation_cost_note">Required only for Sellers</span>
+                         data-i18n-placeholder="mr_ph_cult_cost" placeholder="Required for Sellers only">
+                  <span class="form-hint" id="cultivation_cost_note" data-i18n="mr_hint_cult_cost">Required only for Sellers</span>
                 </div>
                 <div class="fg">
-                  <label class="form-label">Current Market Price <span style="font-weight:400;color:var(--tmut)">(Rs./kg)</span></label>
+                  <label class="form-label"><span data-i18n="mr_lbl_ref_price">Current Market Price</span> <span style="font-weight:400;color:var(--tmut)">(Rs./kg)</span></label>
                   <input type="number" class="form-control" name="reference_price" id="reference_price"
                          step="0.01" min="0"
                          value="{% if form_data %}{{ form_data.get('reference_price','') }}{% endif %}"
-                         placeholder="Optional — improves accuracy">
-                  <span class="form-hint">Enter today's price if you know it</span>
+                         data-i18n-placeholder="mr_ph_ref_price" placeholder="Optional — improves accuracy">
+                  <span class="form-hint" data-i18n="mr_hint_ref_price">Enter today's price if you know it</span>
                 </div>
               </div>
 
@@ -334,9 +407,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
               </div>
               <div class="fields-grid c2" style="margin-bottom:14px;">
                 <div class="fg">
-                  <label class="form-label req">Item</label>
+                  <label class="form-label req" data-i18n="mr_lbl_item">Item</label>
                   <select class="form-select" name="item" id="item" required>
-                    <option value="">Select Item</option>
+                    <option value="" data-i18n="mr_opt_select_item">Select Item</option>
                     {% for category, data in items.items() %}
                       <optgroup label="{{ category }}">
                         {% for item in data.local %}
@@ -352,27 +425,27 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
                   </select>
                 </div>
                 <div class="fg">
-                  <label class="form-label req">Price Type</label>
+                  <label class="form-label req" data-i18n="mr_lbl_price_type">Price Type</label>
                   <select class="form-select" name="price_type" required>
-                    <option value="Wholesale" {% if form_data and form_data.price_type=='Wholesale' %}selected{% endif %}>Wholesale</option>
-                    <option value="Retail"    {% if form_data and form_data.price_type=='Retail'    %}selected{% endif %}>Retail</option>
+                    <option value="Wholesale" {% if form_data and form_data.price_type=='Wholesale' %}selected{% endif %} data-i18n="mr_opt_wholesale">Wholesale</option>
+                    <option value="Retail"    {% if form_data and form_data.price_type=='Retail'    %}selected{% endif %} data-i18n="mr_opt_retail">Retail</option>
                   </select>
                 </div>
               </div>
               <div class="fields-grid c2" style="margin-bottom:12px;">
                 <div class="fg">
-                  <label class="form-label req">Quantity Unit</label>
+                  <label class="form-label req" data-i18n="mr_lbl_qty_unit">Quantity Unit</label>
                   <select class="form-select" name="quantity_unit" id="quantity_unit" required>
-                    <option value="kg" {% if form_data and form_data.quantity_unit=='kg' %}selected{% endif %}>Kilogram (kg)</option>
-                    <option value="g"  {% if form_data and form_data.quantity_unit=='g'  %}selected{% endif %}>Gram (g)</option>
+                    <option value="kg" {% if form_data and form_data.quantity_unit=='kg' %}selected{% endif %} data-i18n="mr_opt_kg">Kilogram (kg)</option>
+                    <option value="g"  {% if form_data and form_data.quantity_unit=='g'  %}selected{% endif %} data-i18n="mr_opt_g">Gram (g)</option>
                   </select>
                 </div>
                 <div class="fg">
-                  <label class="form-label req">Quantity</label>
+                  <label class="form-label req" data-i18n="mr_lbl_qty">Quantity</label>
                   <input type="number" class="form-control" name="quantity" id="quantity"
                          step="0.01" min="0.01" max="10000" required
                          value="{% if form_data %}{{ form_data.quantity }}{% else %}1{% endif %}"
-                         placeholder="Enter quantity">
+                         data-i18n-placeholder="mr_ph_qty" placeholder="Enter quantity">
                 </div>
               </div>
               <div class="calc-note">
@@ -387,40 +460,40 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
               <div class="sec-divider"></div>
 
               <!-- Location -->
-              <div class="fsec-title"><i class="fas fa-map-marker-alt"></i> Your Location</div>
-              <p style="font-size:.82rem;color:var(--tmut);margin-bottom:12px;">Select your location using the dropdowns below, or use GPS to auto-fill coordinates.</p>
+              <div class="fsec-title" data-i18n="mr_sec_location"><i class="fas fa-map-marker-alt"></i> Your Location</div>
+              <p style="font-size:.82rem;color:var(--tmut);margin-bottom:12px;" data-i18n="mr_loc_desc">Select your location using the dropdowns below, or use GPS to auto-fill coordinates.</p>
 
               <div class="fields-grid c3" style="margin-bottom:14px;">
                 <div class="fg">
-                  <label class="form-label">Province</label>
+                  <label class="form-label" data-i18n="mr_lbl_province">Province</label>
                   <select class="form-select" name="province" id="province" onchange="updateDistricts()" disabled>
-                    <option value="">Select Province</option>
+                    <option value="" data-i18n="mr_opt_select_province">Select Province</option>
                     {% for province in provinces %}
                       <option value="{{ province }}">{{ province }}</option>
                     {% endfor %}
                   </select>
                 </div>
                 <div class="fg">
-                  <label class="form-label">District</label>
+                  <label class="form-label" data-i18n="mr_lbl_district">District</label>
                   <select class="form-select" name="district" id="district" onchange="updateDSDivisions()" disabled>
-                    <option value="">Select District</option>
+                    <option value="" data-i18n="mr_opt_select_district">Select District</option>
                   </select>
                 </div>
                 <div class="fg">
-                  <label class="form-label">DS Division</label>
+                  <label class="form-label" data-i18n="mr_lbl_ds">DS Division</label>
                   <select class="form-select" name="ds_division" id="ds_division" onchange="updateCoordinates()" disabled>
-                    <option value="">Select DS Division</option>
+                    <option value="" data-i18n="mr_opt_select_ds">Select DS Division</option>
                   </select>
                 </div>
               </div>
 
               <div class="location-panel">
-                <div class="location-panel-label"><i class="fas fa-crosshairs"></i> GPS Coordinates</div>
+                <div class="location-panel-label" data-i18n="mr_gps_label"><i class="fas fa-crosshairs"></i> GPS Coordinates</div>
 
                 <!-- Live location button -->
                 <button type="button" id="locBtn" class="loc-btn" onclick="getLiveLocation()">
                   <i class="fas fa-location-arrow" id="locBtnIcon"></i>
-                  <span id="locBtnText">Use My Current Location</span>
+                  <span id="locBtnText" data-i18n="mr_loc_btn">Use My Current Location</span>
                 </button>
 
                 <!-- Location name card (shown after GPS success) -->
@@ -445,13 +518,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
                 <!-- Coordinate inputs (auto-filled by GPS or dropdown) -->
                 <div class="fields-grid c2">
                   <div class="fg">
-                    <label class="form-label">Latitude</label>
+                    <label class="form-label" data-i18n="mr_lbl_lat">Latitude</label>
                     <input type="number" class="form-control" name="latitude" id="latitude"
                            step="0.000001" required readonly
                            value="{% if form_data %}{{ form_data.latitude }}{% else %}7.2906{% endif %}">
                   </div>
                   <div class="fg">
-                    <label class="form-label">Longitude</label>
+                    <label class="form-label" data-i18n="mr_lbl_lon">Longitude</label>
                     <input type="number" class="form-control" name="longitude" id="longitude"
                            step="0.000001" required readonly
                            value="{% if form_data %}{{ form_data.longitude }}{% else %}80.6337{% endif %}">
@@ -460,10 +533,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
               </div>
 
               <div class="form-actions" style="margin-top:22px;">
-                <button type="submit" class="btn-submit">
+                <button type="submit" class="btn-submit" data-i18n="mr_btn_submit">
                   <i class="fas fa-search"></i> Find Best Markets
                 </button>
-                <button type="button" class="btn-reset" onclick="resetFormAndResults()">
+                <button type="button" class="btn-reset" data-i18n="mr_btn_reset" onclick="resetFormAndResults()">
                   <i class="fas fa-eraser"></i> Clear / Reset
                 </button>
               </div>
@@ -477,20 +550,19 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
         <div class="map-card animate-in" style="animation-delay:.1s;">
           <div class="map-header">
             <div class="hi"><i class="fas fa-map"></i></div>
-            <h3>Market Locations Map</h3>
+            <h3 data-i18n="mr_map_title">Market Locations Map</h3>
           </div>
           <div class="map-container">
             <div id="googleMap"></div>
             <div class="map-placeholder" id="mapPlaceholder">
               <i class="fas fa-map-marked-alt"></i>
-              <h5>Market Locations</h5>
-              <p>Select a location to view routes on the map</p>
+              <h5 data-i18n="mr_map_state_title">Market Locations</h5>
+              <p data-i18n="mr_map_state_desc">Select a location to view routes on the map</p>
             </div>
           </div>
           <div class="map-legend-strip">
-            <div class="map-legend-item"><i class="fas fa-map-pin" style="color:#ef4444;"></i> Your Location</div>
-            <div class="map-legend-item"><i class="fas fa-shopping-cart" style="color:var(--g500);"></i> Market Locations</div>
-            <div class="map-legend-item"><i class="fas fa-route" style="color:#f59e0b;"></i> Best Route</div>
+            <div class="map-legend-item"><i class="fas fa-map-pin" style="color:#e53935;"></i> Your Location</div>
+            <div class="map-legend-item"><i class="fas fa-map-marker-alt" style="color:#1e571a;"></i> Market Locations</div>
           </div>
         </div>
         <!-- /MAP CARD -->
@@ -503,6 +575,30 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 
       <!-- ══ RIGHT SIDEBAR ══ -->
       <div>
+
+        <!-- About Card (always visible in sidebar) -->
+        <div class="sidebar-card animate-in">
+          <div class="sc-header green">
+            <div class="hi"><i class="fas fa-info-circle"></i></div>
+            <h3 data-i18n="mr_about_title">About Market Ranking</h3>
+          </div>
+          <div class="sc-body">
+            <p style="font-size:.79rem;color:var(--tmut);margin-bottom:0;" data-i18n="mr_about_desc">Our AI model analyses multiple factors to rank the best markets for your produce:</p>
+            <ul class="about-list">
+              <li><i class="fas fa-tag"></i><span data-i18n="mr_about_item1">Real-time &amp; predicted market prices per kg</span></li>
+              <li><i class="fas fa-route"></i><span data-i18n="mr_about_item2">Distance &amp; transport cost from your location</span></li>
+              <li><i class="fas fa-hand-holding-usd"></i><span data-i18n="mr_about_item3">Net advantage (revenue minus all costs)</span></li>
+              <li><i class="fas fa-user-tag"></i><span data-i18n="mr_about_item4">Buyer vs. Seller role optimisation</span></li>
+              <li><i class="fas fa-boxes"></i><span data-i18n="mr_about_item5">Quantity-based bulk pricing analysis</span></li>
+              <li><i class="fas fa-map-marked-alt"></i><span data-i18n="mr_about_item6">Market accessibility &amp; route efficiency</span></li>
+            </ul>
+            <div class="about-footer">
+              <i class="fas fa-database"></i>
+              <span data-i18n="mr_about_footer">Price predictions use machine learning trained on historical Sri Lanka market data.</span>
+            </div>
+          </div>
+        </div>
+
         {% if recommendations %}
         <div class="sidebar-card animate-in" id="recommendationsSection">
           <div class="sc-header green">
@@ -512,7 +608,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
           <div class="sc-body">
 
             <div class="best-mkt-hero">
-              <div class="best-mkt-label">Best Market</div>
+              <div class="best-mkt-label" data-i18n="mr_best_label">Best Market</div>
               <div class="best-mkt-name">{{ recommendations.best_market }}</div>
               <div class="best-mkt-sub">Out of {{ recommendations.total_markets }} markets analyzed</div>
             </div>
@@ -530,7 +626,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
               <p class="rank-expl">{{ rec.explanation }}</p>
               <div class="rank-meta">
                 <div class="rank-meta-cell">
-                  <span class="lbl">Transport</span>
+                  <span class="lbl" data-i18n="mr_lbl_transport_meta">Transport</span>
                   <span class="val">Rs. {{ rec.transport_cost }}</span>
                 </div>
                 <div class="rank-meta-cell">
@@ -543,15 +639,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
 
             <div class="summary-strip">
               <div class="summary-cell">
-                <span class="lbl">Avg. Price</span>
+                <span class="lbl" data-i18n="mr_sum_avg_price">Avg. Price</span>
                 <span class="val">Rs. {{ "%.2f"|format(recommendations.recommendations|map(attribute='predicted_price')|sum / recommendations.recommendations|length) }}/kg</span>
               </div>
               <div class="summary-cell">
-                <span class="lbl">Avg. Distance</span>
+                <span class="lbl" data-i18n="mr_sum_avg_dist">Avg. Distance</span>
                 <span class="val">{{ "%.1f"|format(recommendations.recommendations|map(attribute='distance_km')|sum / recommendations.recommendations|length) }} km</span>
               </div>
               <div class="summary-cell" style="grid-column:span 2;">
-                <span class="lbl">Quantity Analyzed</span>
+                <span class="lbl" data-i18n="mr_sum_qty">Quantity Analyzed</span>
                 <span class="val">{{ form_data.quantity if form_data else 1 }} {{ form_data.quantity_unit if form_data else 'kg' }} ({{ recommendations.quantity_kg|default((form_data.quantity|float if form_data and form_data.quantity else 1)) }} kg)</span>
               </div>
             </div>
@@ -565,8 +661,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
           <div style="width:60px;height:60px;background:var(--g100);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--g500);margin:0 auto 14px;">
             <i class="fas fa-chart-bar"></i>
           </div>
-          <h4 style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--td);margin-bottom:7px;">Results appear here</h4>
-          <p style="font-size:.84rem;color:var(--tmut);line-height:1.6;">Fill in the form and click <strong>Find Best Markets</strong> to see ranked market recommendations.</p>
+          <h4 style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--td);margin-bottom:7px;" data-i18n="mr_empty_title">Results appear here</h4>
+          <p style="font-size:.84rem;color:var(--tmut);line-height:1.6;" data-i18n="mr_empty_desc">Fill in the form and click Find Best Markets to see ranked market recommendations.</p>
         </div>
         {% endif %}
       </div>
@@ -586,7 +682,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="tc-badge"><i class="fas fa-map-marker-alt" style="margin-right:4px;"></i>{{ recommendations.recommendations|length }} Markets</span>
           <button id="downloadPdfBtn" onclick="downloadResultsPdf()" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.32)'" onmouseout="this.style.background='rgba(255,255,255,.2)'">
-            <i class="fas fa-file-pdf"></i> Download PDF
+            <i class="fas fa-file-pdf"></i> <span data-i18n="mr_btn_pdf">Download PDF</span>
           </button>
         </div>
       </div>
@@ -594,13 +690,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
         <table class="as-table">
           <thead>
             <tr>
-              <th style="text-align:center;">Rank</th>
-              <th>Market</th>
-              <th>Price (Rs/kg)</th>
-              <th>Distance</th>
-              <th>Transport (Rs)</th>
+              <th style="text-align:center;" data-i18n="mr_th_rank">Rank</th>
+              <th data-i18n="mr_th_market">Market</th>
+              <th data-i18n="mr_th_price">Price (Rs/kg)</th>
+              <th data-i18n="mr_th_distance">Distance</th>
+              <th data-i18n="mr_th_transport">Transport (Rs)</th>
               <th>{% if form_data and form_data.user_role=='buyer' %}Net Advantage{% else %}Net Revenue{% endif %} (Rs)</th>
-              <th style="width:100%;">Explanation</th>
+              <th style="width:100%;" data-i18n="mr_th_explanation">Explanation</th>
             </tr>
           </thead>
           <tbody>
@@ -633,8 +729,32 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
     {% endif %}
     <!-- /FULL-WIDTH ALL RECS TABLE -->
 
-  </div>
-</div>
+    <!-- ══ FAQ (full width, below map) ══ -->
+    <div class="sc-card animate-in" style="margin-top:28px;">
+      <div class="sc-header green">
+        <div class="hi"><i class="fas fa-question-circle"></i></div>
+        <h3 data-i18n="mr_faq_title">Frequently Asked Questions</h3>
+      </div>
+      <div class="sc-body">
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q1">How is the net advantage calculated?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a1">Net advantage = (Predicted Price × Quantity) − Transport Cost − Cultivation Cost (for sellers). A higher positive value means more profit for your trip.</span></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q2">Why do prices differ between markets?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a2">Each market has different supply-demand dynamics, buyer types, and seasonal patterns. Our model predicts prices based on historical data for each location.</span></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q3">Should I always pick the #1 ranked market?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a3">Not necessarily. Consider road conditions, vehicle capacity, and perishability. The top market offers the best calculated net advantage but other factors matter too.</span></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="mr_faq_q4">How often is market price data updated?</span><i class="fas fa-chevron-down"></i></button>
+          <div class="faq-answer"><span data-i18n="mr_faq_a4">Predictions are based on ML models trained on historical data. For live rates, cross-check with the Dambulla Economic Centre or local collectors.</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- /FAQ -->
 
 <!-- Page data for JS -->
 <div id="marketRankingData"
@@ -664,6 +784,36 @@ const markets = {
 let map, markers = [], polylines = [], mapLoaded = false;
 let recommendationsData = null, formDataData = null;
 
+/* ── CUSTOM ICON HELPERS ── */
+function youIcon() {
+  return L.divIcon({
+    className: '',
+    html: '<div class="lf-you" style="font-family:\'DM Sans\',sans-serif;">You</div>',
+    iconSize: [46, 28],
+    iconAnchor: [23, 37],
+    popupAnchor: [0, -40]
+  });
+}
+function mktIcon(name, color) {
+  const estW = Math.max(60, name.length * 7 + 20);
+  if (color) {
+    return L.divIcon({
+      className: '',
+      html: `<div class="lf-mkt-rank" style="background:${color};font-family:'DM Sans',sans-serif;">${name}</div>`,
+      iconSize: [estW, 28],
+      iconAnchor: [estW / 2, 37],
+      popupAnchor: [0, -40]
+    });
+  }
+  return L.divIcon({
+    className: '',
+    html: `<div class="lf-mkt" style="font-family:'DM Sans',sans-serif;">${name}</div>`,
+    iconSize: [estW, 28],
+    iconAnchor: [estW / 2, 37],
+    popupAnchor: [0, -40]
+  });
+}
+
 /* ── MAP ── */
 function initLeafletMap() {
   try {
@@ -673,6 +823,13 @@ function initLeafletMap() {
     }).addTo(map);
     document.getElementById('mapPlaceholder').style.display = 'none';
     mapLoaded = true;
+
+    /* Always show all market label markers on load */
+    Object.entries(markets).forEach(([name, loc]) => {
+      const mk = L.marker([loc[0], loc[1]], { icon: mktIcon(name), title: name + ' Market' }).addTo(map);
+      markers.push(mk);
+    });
+
     const lat = parseFloat(document.getElementById('latitude').value);
     const lon = parseFloat(document.getElementById('longitude').value);
     if (!isNaN(lat) && !isNaN(lon)) updateMap(lat, lon);
@@ -683,29 +840,32 @@ function initLeafletMap() {
 
 function updateMap(lat, lon) {
   if (!mapLoaded) { setTimeout(() => updateMap(lat,lon), 500); return; }
-  clearMap();
-  map.setView([lat, lon], 12);
-  markers.push(L.marker([lat,lon], {title:'Your Location'}).addTo(map));
+  clearMap(true);
+  map.setView([lat, lon], 10);
+  /* User "You" marker */
+  markers.push(L.marker([lat, lon], { icon: youIcon(), title: 'Your Location' }).addTo(map));
+  /* All market label markers */
   Object.entries(markets).forEach(([name, loc]) =>
-    markers.push(L.marker([loc[0],loc[1]], {title:name+' Market'}).addTo(map)));
+    markers.push(L.marker([loc[0], loc[1]], { icon: mktIcon(name), title: name + ' Market' }).addTo(map)));
 }
 
 function showRecommendationsOnMap() {
   if (!mapLoaded) { setTimeout(() => showRecommendationsOnMap(), 500); return; }
-  clearMap();
+  clearMap(true);
   const lat = parseFloat(document.getElementById('latitude').value);
   const lon = parseFloat(document.getElementById('longitude').value);
   if (isNaN(lat) || isNaN(lon)) return;
   const ul = [lat, lon];
   map.setView(ul, 10);
-  markers.push(L.marker(ul, {title:'Your Location'}).addTo(map));
+  markers.push(L.marker(ul, { icon: youIcon(), title: 'Your Location' }).addTo(map));
   const recs = recommendationsData;
   if (!recs || !recs.recommendations) return;
-  const cols = {1:'#22c55e', 2:'#4169E1', 3:'#FFA500', other:'#808080'};
+  const cols = {1:'#22c55e', 2:'#4169E1', 3:'#FFA500', other:'#6b7280'};
   recs.recommendations.forEach(rec => {
     const mc = markets[rec.market]; if (!mc) return;
     const ml = [mc[0], mc[1]];
     const color = cols[rec.rank] || cols.other;
+    const label = `#${rec.rank} ${rec.market}`;
     const popup = `<div style="padding:8px;min-width:200px;font-family:'DM Sans',sans-serif">
       <strong style="font-size:.95rem">${rec.market} (Rank #${rec.rank})</strong><br>
       <span style="font-size:.82rem;color:#666">${rec.distance_km} km away</span><br><br>
@@ -713,10 +873,10 @@ function showRecommendationsOnMap() {
       <span style="font-size:.82rem">Transport: <strong>Rs.${rec.transport_cost}</strong></span><br>
       <span style="font-size:.82rem;color:${rec.net_advantage>=0?'#22c55e':'#ef4444'}">Net: <strong>Rs.${rec.net_advantage}</strong></span>
     </div>`;
-    const mk = L.marker(ml, {title:`${rec.market} (Rank #${rec.rank})`}).addTo(map).bindPopup(popup);
+    const mk = L.marker(ml, { icon: mktIcon(label, color), title: `${rec.market} (Rank #${rec.rank})` }).addTo(map).bindPopup(popup);
     markers.push(mk);
     polylines.push(L.polyline([ul, ml], {
-      color, opacity: rec.rank===1 ? 1.0 : 0.65, weight: rec.rank===1 ? 4 : 2
+      color, opacity: rec.rank===1 ? 1.0 : 0.6, weight: rec.rank===1 ? 4 : 2
     }).addTo(map));
   });
   addMapLegend();
@@ -738,11 +898,17 @@ function addMapLegend() {
   map._legendControl = legend;
 }
 
-function clearMap() {
+function clearMap(keepMarkets) {
   if (!map) return;
   markers.forEach(m => { try { map.removeLayer(m); } catch(e){} }); markers = [];
   polylines.forEach(p => { try { map.removeLayer(p); } catch(e){} }); polylines = [];
   if (map._legendControl) { map.removeControl(map._legendControl); map._legendControl = null; }
+  /* Re-add base market label markers unless caller handles it */
+  if (!keepMarkets) {
+    Object.entries(markets).forEach(([name, loc]) => {
+      markers.push(L.marker([loc[0], loc[1]], { icon: mktIcon(name), title: name + ' Market' }).addTo(map));
+    });
+  }
 }
 
 /* ── FORM LOGIC ── */
@@ -945,8 +1111,9 @@ function resetFormAndResults() {
   if (locNameCard) locNameCard.style.display = 'none';
   var locStatus = document.getElementById('locStatus');
   if (locStatus) locStatus.style.display = 'none';
-  document.getElementById('mapPlaceholder').style.display = 'flex';
+  /* Map stays visible with base market markers after reset */
   clearMap();
+  if (map) map.setView([7.8731, 80.7718], 8);
   const rs = document.getElementById('recommendationsSection');
   const ar = document.getElementById('allRecommendationsSection');
   if (rs) rs.style.display = 'none';
@@ -1117,6 +1284,16 @@ function downloadResultsPdf() {
   doc.text('AgriSense LK — AI-Powered Agricultural Market Intelligence', 10, finalY);
 
   doc.save('AgriSense_Market_Ranking.pdf');
+}
+
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = answer.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.faq-trigger').forEach(b => b.classList.remove('open'));
+  // Open clicked if it was closed
+  if (!isOpen) { answer.classList.add('open'); btn.classList.add('open'); }
 }
 
 </script>
