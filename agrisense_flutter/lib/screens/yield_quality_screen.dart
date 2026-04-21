@@ -23,7 +23,15 @@ class _YieldQualityScreenState extends State<YieldQualityScreen> with LangMixin 
 
   Future<void> _pickImages() async {
     final picked = await _picker.pickMultiImage(imageQuality: 80);
-    if (picked.isNotEmpty) setState(() => _selectedImages = picked);
+    if (picked.isEmpty) return;
+    setState(() {
+      for (final img in picked) {
+        final alreadyAdded = _selectedImages.any(
+          (e) => e.name == img.name && e.path == img.path,
+        );
+        if (!alreadyAdded) _selectedImages.add(img);
+      }
+    });
   }
 
   Future<void> _pickFromCamera() async {

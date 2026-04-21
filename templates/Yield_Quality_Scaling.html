@@ -202,12 +202,26 @@
   .preview-grid  { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; min-height: 0; }
   .preview-item  {
     position: relative; width: 72px; height: 72px;
-    border-radius: 10px; overflow: hidden;
+    border-radius: 10px; overflow: visible;
     border: 1.5px solid var(--border); background: var(--green-50);
     animation: fadeUp 0.3s ease both;
   }
-  .preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 10px; }
   .preview-count { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 18px; }
+
+  /* Remove button on preview item */
+  .preview-remove {
+    position: absolute; top: -7px; right: -7px;
+    width: 20px; height: 20px;
+    background: var(--red); color: #fff;
+    border: 2px solid #fff; border-radius: 50%;
+    font-size: 0.55rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    transition: transform 0.15s, background 0.15s;
+    z-index: 10; line-height: 1;
+  }
+  .preview-remove:hover { transform: scale(1.2); background: #b91c1c; }
 
   /* ─── ERROR ALERT ─── */
   .error-banner {
@@ -451,7 +465,7 @@
 
               <!-- Drop zone -->
               <div class="dropzone" id="dropzone">
-                <input type="file" id="imageInput" name="images" accept="image/*" multiple required>
+                <input type="file" id="imageInput" name="images" accept="image/*" multiple>
                 <div class="dropzone-icon">🌿</div>
                 <div class="dropzone-title" data-i18n="yqs_drop_title">Drop images here or click to browse</div>
                 <div class="dropzone-sub" data-i18n="yqs_drop_sub">Supports JPG, PNG, WEBP — multiple files allowed</div>
@@ -639,64 +653,105 @@
 
 {% block extra_js %}
 <script>
-/* ── Image preview ── */
+/* ── State ── */
+var filesArray   = [];
 var imageInput   = document.getElementById('imageInput');
 var previewGrid  = document.getElementById('previewContainer');
 var previewCount = document.getElementById('previewCount');
 var errorBanner  = document.getElementById('errorBanner');
+var dropzone     = document.getElementById('dropzone');
 
-imageInput.addEventListener('change', function(e) {
-  if (errorBanner) { errorBanner.style.display = 'none'; }
+/* ── Render previews with individual remove buttons ── */
+function renderPreviews() {
   previewGrid.innerHTML = '';
-  var files = e.target.files;
-  for (var i = 0; i < files.length; i++) {
-    if (!files[i].type.startsWith('image/')) continue;
-    (function(file) {
+  filesArray.forEach(function(file, idx) {
+    (function(f, i) {
       var reader = new FileReader();
       reader.onload = function(ev) {
         var wrap = document.createElement('div');
         wrap.className = 'preview-item';
+
         var img = document.createElement('img');
         img.src = ev.target.result;
-        img.alt = 'Preview';
+        img.alt = f.name;
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'preview-remove';
+        removeBtn.title = 'Remove image';
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.addEventListener('click', function() {
+          filesArray.splice(i, 1);
+          renderPreviews();
+        });
+
         wrap.appendChild(img);
+        wrap.appendChild(removeBtn);
         previewGrid.appendChild(wrap);
       };
-      reader.readAsDataURL(file);
-    })(files[i]);
-  }
-  previewCount.textContent = files.length > 0
-    ? files.length + ' image' + (files.length !== 1 ? 's' : '') + ' selected'
+      reader.readAsDataURL(f);
+    })(file, idx);
+  });
+
+  previewCount.textContent = filesArray.length > 0
+    ? filesArray.length + ' image' + (filesArray.length !== 1 ? 's' : '') + ' selected'
     : '';
+}
+
+/* ── Append new files (skip duplicates by name+size) ── */
+function addFiles(newFiles) {
+  Array.from(newFiles).forEach(function(f) {
+    if (!f.type.startsWith('image/')) return;
+    var duplicate = filesArray.some(function(existing) {
+      return existing.name === f.name && existing.size === f.size;
+    });
+    if (!duplicate) filesArray.push(f);
+  });
+  renderPreviews();
+}
+
+/* ── File input change: append, don't replace ── */
+imageInput.addEventListener('change', function(e) {
+  if (errorBanner) errorBanner.style.display = 'none';
+  addFiles(e.target.files);
+  imageInput.value = ''; /* reset so same file can be re-added after removal */
 });
 
 /* ── Drag & drop ── */
-var dropzone = document.getElementById('dropzone');
 dropzone.addEventListener('click', function() {
-  if (errorBanner) { errorBanner.style.display = 'none'; }
+  if (errorBanner) errorBanner.style.display = 'none';
 });
 dropzone.addEventListener('dragover',  function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
 dropzone.addEventListener('dragleave', function()   { dropzone.classList.remove('dragover'); });
 dropzone.addEventListener('drop', function(e) {
   e.preventDefault();
   dropzone.classList.remove('dragover');
-  imageInput.files = e.dataTransfer.files;
-  imageInput.dispatchEvent(new Event('change'));
+  if (errorBanner) errorBanner.style.display = 'none';
+  addFiles(e.dataTransfer.files);
 });
 
-var bestUnitPrice = document.getElementById('bestUnitPrice');
-bestUnitPrice.addEventListener('input', function() {
-  if (errorBanner) { errorBanner.style.display = 'none'; }
+/* ── Price field ── */
+document.getElementById('bestUnitPrice').addEventListener('input', function() {
+  if (errorBanner) errorBanner.style.display = 'none';
 });
 
-/* ── Submit loading state ── */
-document.getElementById('uploadForm').addEventListener('submit', function() {
+/* ── Submit: build DataTransfer from filesArray, then submit ── */
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+  if (filesArray.length === 0) {
+    e.preventDefault();
+    alert('Please select at least one image.');
+    return;
+  }
+  var dt = new DataTransfer();
+  filesArray.forEach(function(f) { dt.items.add(f); });
+  imageInput.files = dt.files;
+
   var btn = document.getElementById('analyzeBtn');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Analysing\u2026</span>';
   btn.disabled  = true;
 });
 
-/* ── Animate confidence bar on page load (if results present) ── */
+/* ── Animate confidence bar on load ── */
 document.addEventListener('DOMContentLoaded', function() {
   var fill = document.getElementById('confFill');
   if (fill) {
