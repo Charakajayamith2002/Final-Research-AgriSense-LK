@@ -1,7 +1,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Sinhala:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&display=swap');
+  :lang(si) { font-family: 'Noto Sans Sinhala', 'DM Sans', sans-serif; }
+  :lang(ta) { font-family: 'Noto Sans Tamil', 'DM Sans', sans-serif; }
+  :lang(si) i[class*="fa"], :lang(si) .fas, :lang(si) .far, :lang(si) .fab,
+  :lang(ta) i[class*="fa"], :lang(ta) .fas, :lang(ta) .far, :lang(ta) .fab {
+    font-family: "Font Awesome 5 Free", "Font Awesome 5 Brands", "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+  }
 
   :root {
     --earth:  #1a1a0e;
@@ -183,6 +189,16 @@
   }
 </style>
 
+<!-- Floating language switcher -->
+<div style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;gap:2px;background:rgba(255,255,255,0.07);border:1px solid rgba(122,182,72,0.25);border-radius:8px;padding:3px;">
+  <button class="agri-lang-btn" data-lang="en" onclick="agriApplyLanguage('en')" style="font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.6);background:transparent;border:none;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.18s;">EN</button>
+  <button class="agri-lang-btn" data-lang="si" onclick="agriApplyLanguage('si')" style="font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.6);background:transparent;border:none;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.18s;">සිං</button>
+  <button class="agri-lang-btn" data-lang="ta" onclick="agriApplyLanguage('ta')" style="font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.6);background:transparent;border:none;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.18s;">தமிழ்</button>
+</div>
+<style>
+  .agri-lang-btn.active { color:#1a1a0e !important; background:#7ab648 !important; font-weight:700 !important; }
+</style>
+
 <div class="auth-page">
   <canvas id="auth-canvas"></canvas>
   <div class="hero-glow hero-glow-1"></div>
@@ -195,30 +211,28 @@
         <div class="hero-brand-icon">🌱</div>
         <div class="hero-brand-name">Agri<em>Sense</em></div>
       </div>
-      <h1 class="hero-headline">
-        Your farm's<br>
-        <span class="accent">AI advantage</span><br>
-        starts here.
+      <h1 class="hero-headline" data-i18n="signup_headline">
+        Your farm's AI advantage starts here.
       </h1>
-      <p class="hero-sub">
+      <p class="hero-sub" data-i18n="signup_sub">
         Get AI-powered insights tailored to your crops, market, and season — all in one place.
       </p>
       <div class="feature-list">
         <div class="feat-row">
           <div class="feat-icon-box"><i class="fas fa-lightbulb"></i></div>
-          <div><div class="feat-text-title">Profitable Business Strategy</div><div class="feat-text-sub">AI recommends the most profitable business type for your profile.</div></div>
+          <div><div class="feat-text-title" data-i18n="signup_fc1_title">Profitable Business Strategy</div><div class="feat-text-sub" data-i18n="signup_fc1_desc">AI recommends the most profitable business type for your profile.</div></div>
         </div>
         <div class="feat-row">
           <div class="feat-icon-box"><i class="fas fa-chart-line"></i></div>
-          <div><div class="feat-text-title">Price &amp; Demand Forecasting</div><div class="feat-text-sub">Know what your crop will fetch before harvest day.</div></div>
+          <div><div class="feat-text-title" data-i18n="signup_fc2_title">Price &amp; Demand Forecasting</div><div class="feat-text-sub" data-i18n="signup_fc2_desc">Know what your crop will fetch before harvest day.</div></div>
         </div>
         <div class="feat-row">
           <div class="feat-icon-box"><i class="fas fa-map-marked-alt"></i></div>
-          <div><div class="feat-text-title">Market Opportunity Ranking</div><div class="feat-text-sub">Find the best market with the lowest transport cost.</div></div>
+          <div><div class="feat-text-title" data-i18n="signup_fc3_title">Market Opportunity Ranking</div><div class="feat-text-sub" data-i18n="signup_fc3_desc">Find the best market with the lowest transport cost.</div></div>
         </div>
         <div class="feat-row">
           <div class="feat-icon-box"><i class="fas fa-seedling"></i></div>
-          <div><div class="feat-text-title">Cultivation Targeting</div><div class="feat-text-sub">AI tells you exactly what to plant next season.</div></div>
+          <div><div class="feat-text-title" data-i18n="signup_fc4_title">Cultivation Targeting</div><div class="feat-text-sub" data-i18n="signup_fc4_desc">AI tells you exactly what to plant next season.</div></div>
         </div>
       </div>
     </div>
@@ -229,8 +243,8 @@
     <div class="auth-card">
 
       <div class="card-tabs">
-        <button class="card-tab" onclick="window.location.href='{{ url_for('login') }}'">Sign In</button>
-        <button class="card-tab active">Register</button>
+        <button class="card-tab" onclick="window.location.href='{{ url_for('login') }}'" data-i18n="tab_signin">Sign In</button>
+        <button class="card-tab active" data-i18n="tab_register">Register</button>
       </div>
 
       <div class="card-body">
@@ -243,36 +257,36 @@
           {% endfor %}{% endif %}
         {% endwith %}
         <div class="card-heading">
-          <h2>Create your account</h2>
+          <h2 data-i18n="signup_heading">Create your account</h2>
         </div>
 
         <form method="post" id="registerForm">
 
-          <p class="sec-lbl">Account info</p>
+          <p class="sec-lbl" data-i18n="sec_account">Account info</p>
           <div class="field-row-2">
             <div class="form-field">
-              <label for="email">Email Address</label>
+              <label for="email" data-i18n="label_email_addr">Email Address</label>
               <div class="field-wrap">
                 <i class="fas fa-envelope field-icon"></i>
-                <input type="email" class="field-input" id="email" name="email" required placeholder="you@example.com">
+                <input type="email" class="field-input" id="email" name="email" required placeholder="you@example.com" data-i18n-placeholder="placeholder_email">
               </div>
             </div>
             <div class="form-field">
-              <label for="username">Username</label>
+              <label for="username" data-i18n="label_username">Username</label>
               <div class="field-wrap">
                 <i class="fas fa-user field-icon"></i>
-                <input type="text" class="field-input" id="username" name="username" required placeholder="Display name">
+                <input type="text" class="field-input" id="username" name="username" required placeholder="Display name" data-i18n-placeholder="placeholder_username">
               </div>
             </div>
           </div>
 
-          <p class="sec-lbl">Security</p>
+          <p class="sec-lbl" data-i18n="sec_security">Security</p>
           <div class="field-row-2">
             <div class="form-field">
-              <label for="password">Password</label>
+              <label for="password" data-i18n="label_password">Password</label>
               <div class="field-wrap">
                 <i class="fas fa-lock field-icon"></i>
-                <input type="password" class="field-input" id="password" name="password" required minlength="6" placeholder="Min. 6 characters" oninput="checkStrength(this.value)">
+                <input type="password" class="field-input" id="password" name="password" required minlength="6" placeholder="Min. 6 characters" data-i18n-placeholder="placeholder_min6" oninput="checkStrength(this.value)">
                 <button type="button" class="field-eye" onclick="togglePwd('password',this)"><i class="fas fa-eye"></i></button>
               </div>
               <div class="pwd-strength">
@@ -281,42 +295,42 @@
               </div>
             </div>
             <div class="form-field">
-              <label for="confirm_password">Confirm Password</label>
+              <label for="confirm_password" data-i18n="label_confirm_pwd">Confirm Password</label>
               <div class="field-wrap">
                 <i class="fas fa-lock field-icon"></i>
-                <input type="password" class="field-input" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Repeat password" oninput="checkMatch()">
+                <input type="password" class="field-input" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Repeat password" data-i18n-placeholder="placeholder_repeat" oninput="checkMatch()">
                 <button type="button" class="field-eye" onclick="togglePwd('confirm_password',this)"><i class="fas fa-eye"></i></button>
               </div>
               <div id="pwdMatchMsg"></div>
             </div>
           </div>
 
-          <p class="sec-lbl">I am a</p>
+          <p class="sec-lbl" data-i18n="sec_iam">I am a</p>
           <div class="user-type-grid">
             <label class="ut-opt">
               <input type="radio" name="user_type" value="buyer" checked>
               <div class="ut-card">
                 <span class="ut-icon">🛒</span>
-                <span class="ut-title">Buyer</span>
-                <span class="ut-sub">Purchase crops &amp; products</span>
+                <span class="ut-title" data-i18n="buyer_title">Buyer</span>
+                <span class="ut-sub" data-i18n="buyer_sub">Purchase crops &amp; products</span>
               </div>
             </label>
             <label class="ut-opt">
               <input type="radio" name="user_type" value="seller">
               <div class="ut-card">
                 <span class="ut-icon">🌾</span>
-                <span class="ut-title">Seller</span>
-                <span class="ut-sub">Sell &amp; manage produce</span>
+                <span class="ut-title" data-i18n="seller_title">Seller</span>
+                <span class="ut-sub" data-i18n="seller_sub">Sell &amp; manage produce</span>
               </div>
             </label>
           </div>
 
           <button type="submit" class="btn-primary-auth" id="regBtn">
-            <i class="fas fa-user-plus"></i> Create Account
+            <i class="fas fa-user-plus"></i> <span data-i18n="btn_create">Create Account</span>
           </button>
         </form>
 
-        <p class="card-footer-note">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+        <p class="card-footer-note"><span data-i18n="have_account">Already have an account?</span> <a href="{{ url_for('login') }}" data-i18n="link_signin">Sign in</a></p>
       </div>
     </div>
   </div>
@@ -377,3 +391,4 @@ document.getElementById('registerForm').addEventListener('submit',function(e){
   btn.disabled=true;
 });
 </script>
+<script src="{{ url_for('static', filename='js/translations.js') }}"></script>

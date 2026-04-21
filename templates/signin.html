@@ -1,7 +1,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Sinhala:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&display=swap');
+  :lang(si) { font-family: 'Noto Sans Sinhala', 'DM Sans', sans-serif; }
+  :lang(ta) { font-family: 'Noto Sans Tamil', 'DM Sans', sans-serif; }
+  :lang(si) i[class*="fa"], :lang(si) .fas, :lang(si) .far, :lang(si) .fab,
+  :lang(ta) i[class*="fa"], :lang(ta) .fas, :lang(ta) .far, :lang(ta) .fab {
+    font-family: "Font Awesome 5 Free", "Font Awesome 5 Brands", "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+  }
 
   :root {
     --earth:  #1a1a0e;
@@ -26,7 +32,7 @@
   .auth-page {
     font-family: 'DM Sans', sans-serif;
     position: fixed;
-    left: 0; right: 0; bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: #0d1a0a;
     display: grid;
     grid-template-columns: 1fr 480px;
@@ -200,6 +206,16 @@
   }
 </style>
 
+<!-- Floating language switcher -->
+<div style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;gap:2px;background:rgba(255,255,255,0.07);border:1px solid rgba(122,182,72,0.25);border-radius:8px;padding:3px;">
+  <button class="agri-lang-btn" data-lang="en" onclick="agriApplyLanguage('en')" style="font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.6);background:transparent;border:none;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.18s;">EN</button>
+  <button class="agri-lang-btn" data-lang="si" onclick="agriApplyLanguage('si')" style="font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.6);background:transparent;border:none;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.18s;">සිං</button>
+  <button class="agri-lang-btn" data-lang="ta" onclick="agriApplyLanguage('ta')" style="font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.6);background:transparent;border:none;padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.18s;">தமிழ்</button>
+</div>
+<style>
+  .agri-lang-btn.active { color:#1a1a0e !important; background:#7ab648 !important; font-weight:700 !important; }
+</style>
+
 <div class="auth-page">
   <canvas id="auth-canvas"></canvas>
   <div class="hero-glow hero-glow-1"></div>
@@ -212,35 +228,33 @@
         <div class="hero-brand-icon">🌱</div>
         <div class="hero-brand-name">Agri<em>Sense</em></div>
       </div>
-      <h1 class="hero-headline">
-        Farm smarter.<br>
-        Sell <span class="accent">better.</span><br>
-        Earn more.
+      <h1 class="hero-headline" data-i18n="signin_headline">
+        Farm smarter. Sell better. Earn more.
       </h1>
-      <p class="hero-sub">
+      <p class="hero-sub" data-i18n="signin_sub">
         Join thousands of Sri Lankan farmers using AI-powered insights
         to make confident decisions every harvest season.
       </p>
       <div class="feature-cards">
         <div class="feat-card">
           <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
-          <div class="feat-title">Price Forecasting</div>
-          <div class="feat-desc">Know what your crop will fetch before harvest day.</div>
+          <div class="feat-title" data-i18n="signin_fc1_title">Price Forecasting</div>
+          <div class="feat-desc" data-i18n="signin_fc1_desc">Know what your crop will fetch before harvest day.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fas fa-map-marked-alt"></i></div>
-          <div class="feat-title">Market Ranking</div>
-          <div class="feat-desc">Find the best market with Lowest transport cost.</div>
+          <div class="feat-title" data-i18n="signin_fc2_title">Market Ranking</div>
+          <div class="feat-desc" data-i18n="signin_fc2_desc">Find the best market with Lowest transport cost.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fas fa-seedling"></i></div>
-          <div class="feat-title">Cultivation AI</div>
-          <div class="feat-desc">AI tells you exactly what to plant next season.</div>
+          <div class="feat-title" data-i18n="signin_fc3_title">Cultivation AI</div>
+          <div class="feat-desc" data-i18n="signin_fc3_desc">AI tells you exactly what to plant next season.</div>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fas fa-camera"></i></div>
-          <div class="feat-title">Quality Vision</div>
-          <div class="feat-desc">Upload a photo — get an instant income estimate.</div>
+          <div class="feat-title" data-i18n="signin_fc4_title">Quality Vision</div>
+          <div class="feat-desc" data-i18n="signin_fc4_desc">Upload a photo — get an instant income estimate.</div>
         </div>
       </div>
     </div>
@@ -251,8 +265,8 @@
     <div class="auth-card">
 
       <div class="card-tabs">
-        <button class="card-tab active">Sign In</button>
-        <button class="card-tab" onclick="window.location.href='{{ url_for('register') }}'">Register</button>
+        <button class="card-tab active" data-i18n="tab_signin">Sign In</button>
+        <button class="card-tab" onclick="window.location.href='{{ url_for('register') }}'" data-i18n="tab_register">Register</button>
       </div>
 
       <div class="card-body">
@@ -266,42 +280,42 @@
         {% endwith %}
 
         <div class="card-heading">
-          <h2>Welcome back</h2>
-          <p>Sign in to your AgriSense account</p>
+          <h2 data-i18n="signin_welcome">Welcome back</h2>
+          <p data-i18n="signin_welcome_sub">Sign in to your AgriSense account</p>
         </div>
 
         <form method="post" action="{{ url_for('login') }}" id="loginForm">
           <div class="form-field">
-            <label for="email">Email address</label>
+            <label for="email" data-i18n="label_email">Email address</label>
             <div class="field-wrap">
               <i class="fas fa-envelope field-icon"></i>
-              <input type="email" class="field-input" id="email" name="email" required placeholder="you@example.com">
+              <input type="email" class="field-input" id="email" name="email" required placeholder="you@example.com" data-i18n-placeholder="placeholder_email">
             </div>
           </div>
           <div class="form-field">
-            <label for="password">Password</label>
+            <label for="password" data-i18n="label_password">Password</label>
             <div class="field-wrap">
               <i class="fas fa-lock field-icon"></i>
-              <input type="password" class="field-input" id="password" name="password" required placeholder="Enter your password">
+              <input type="password" class="field-input" id="password" name="password" required placeholder="Enter your password" data-i18n-placeholder="placeholder_password">
               <button type="button" class="field-eye" onclick="togglePwd('password',this)"><i class="fas fa-eye"></i></button>
             </div>
           </div>
           <div class="remember-row">
             <label class="remember-label">
-              <input type="checkbox" name="remember" id="remember"> Remember me
+              <input type="checkbox" name="remember" id="remember"> <span data-i18n="remember_me">Remember me</span>
             </label>
-            <a href="#" class="forgot-link" data-bs-toggle="modal" data-bs-target="#forgotModal">Forgot password?</a>
+            <a href="#" class="forgot-link" data-bs-toggle="modal" data-bs-target="#forgotModal" data-i18n="forgot_password">Forgot password?</a>
           </div>
           <button type="submit" class="btn-primary-auth" id="loginBtn">
-            <i class="fas fa-sign-in-alt"></i> Sign In
+            <i class="fas fa-sign-in-alt"></i> <span data-i18n="btn_signin">Sign In</span>
           </button>
         </form>
 
-        <div class="or-divider"><span>OR</span></div>
+        <div class="or-divider"><span data-i18n="or_divider">OR</span></div>
         <a href="{{ url_for('register') }}" class="btn-outline-auth">
-          <i class="fas fa-user-plus"></i> Create a new account
+          <i class="fas fa-user-plus"></i> <span data-i18n="btn_create_account">Create a new account</span>
         </a>
-        <p class="card-footer-note">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+        <p class="card-footer-note"><span data-i18n="no_account">Don't have an account?</span> <a href="{{ url_for('register') }}" data-i18n="tab_register">Register</a></p>
       </div>
     </div>
   </div>
@@ -344,4 +358,5 @@ function doReset(){
   if(m)m.hide();
 }
 </script>
+<script src="{{ url_for('static', filename='js/translations.js') }}"></script>
 

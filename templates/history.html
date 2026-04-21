@@ -634,54 +634,54 @@
 <div class="history-page">
   <div class="history-inner">
     <nav class="history-breadcrumb" aria-label="breadcrumb">
-      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('home') }}" data-i18n="footer_home">Home</a>
       <span class="sep">/</span>
-      <span class="current">Prediction history</span>
+      <span class="current" data-i18n="hist_title">Prediction history</span>
     </nav>
 
     <header>
-      <p class="history-eyebrow">Activity log</p>
-      <h1 class="history-title"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> Prediction history</h1>
-      <p class="history-lead">Review past runs, filter by module or date, and export your records.</p>
+      <p class="history-eyebrow" data-i18n="hist_eyebrow">Activity log</p>
+      <h1 class="history-title"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> <span data-i18n="hist_title">Prediction history</span></h1>
+      <p class="history-lead" data-i18n="hist_lead">Review past runs, filter by module or date, and export your records.</p>
     </header>
 
     <!-- Filters -->
     <div class="glass-panel">
       <div class="panel-head">
-        <h2><i class="fas fa-sliders"></i> Filters</h2>
+        <h2><i class="fas fa-sliders"></i> <span data-i18n="hist_filters">Filters</span></h2>
       </div>
       <div class="panel-body">
         <div class="filter-chips">
           <span class="filter-badge active" data-filter="all">
-            <i class="fas fa-layer-group"></i> All
+            <i class="fas fa-layer-group"></i> <span data-i18n="hist_filter_all">All</span>
           </span>
           <span class="filter-badge" data-filter="price_demand">
-            <i class="fas fa-chart-line"></i> Price &amp; demand
+            <i class="fas fa-chart-line"></i> <span data-i18n="hist_filter_price">Price &amp; demand</span>
           </span>
           <span class="filter-badge" data-filter="market_ranking">
-            <i class="fas fa-map-marked-alt"></i> Market ranking
+            <i class="fas fa-map-marked-alt"></i> <span data-i18n="hist_filter_market">Market ranking</span>
           </span>
           <span class="filter-badge" data-filter="cultivation_targeting">
-            <i class="fas fa-seedling"></i> Cultivation
+            <i class="fas fa-seedling"></i> <span data-i18n="hist_filter_cult">Cultivation</span>
           </span>
           <span class="filter-badge" data-filter="yield_quality">
-            <i class="fas fa-camera"></i> Yield quality
+            <i class="fas fa-camera"></i> <span data-i18n="hist_filter_yield">Yield quality</span>
           </span>
         </div>
 
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label-h" for="dateFrom">Date range</label>
+            <label class="form-label-h" for="dateFrom" data-i18n="hist_date_range">Date range</label>
             <div class="input-group">
               <input type="date" class="form-control history-input" id="dateFrom" aria-label="From date">
-              <span class="input-group-text input-group-text-h">to</span>
+              <span class="input-group-text input-group-text-h" data-i18n="hist_date_to">to</span>
               <input type="date" class="form-control history-input" id="dateTo" aria-label="To date">
             </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label-h" for="searchInput">Search</label>
+            <label class="form-label-h" for="searchInput" data-i18n="hist_search_label">Search</label>
             <div class="input-group">
-              <input type="text" class="form-control history-input" id="searchInput" placeholder="Search text in entries…" style="border-radius: 10px 0 0 10px;">
+              <input type="text" class="form-control history-input" id="searchInput" placeholder="Search text in entries…" data-i18n-placeholder="hist_search_ph" style="border-radius: 10px 0 0 10px;">
               <button class="btn btn-search-h" type="button" onclick="applyFilters()" aria-label="Search">
                 <i class="fas fa-magnifying-glass"></i>
               </button>
@@ -694,40 +694,40 @@
     <!-- Statistics -->
     <div class="stats-grid">
       <div class="stat-tile">
-        <div class="lbl">Total (visible)</div>
+        <div class="lbl" data-i18n="hist_stat_total">Total (visible)</div>
         <div class="num c0" id="totalCount">{{ history|length }}</div>
-        <small>Filtered set</small>
+        <small data-i18n="hist_stat_filtered">Filtered set</small>
       </div>
       <div class="stat-tile">
-        <div class="lbl">Profitable strategy</div>
+        <div class="lbl" data-i18n="hist_stat_strategy">Profitable strategy</div>
         <div class="num c1" id="profitableCount">{{ history|selectattr('component', 'equalto', 'profitable_strategy')|list|length }}</div>
-        <small>All time</small>
+        <small data-i18n="hist_stat_alltime">All time</small>
       </div>
       <div class="stat-tile">
-        <div class="lbl">Market rankings</div>
+        <div class="lbl" data-i18n="hist_stat_market">Market rankings</div>
         <div class="num c2" id="marketCount">{{ history|selectattr('component', 'equalto', 'market_ranking')|list|length }}</div>
-        <small>Component</small>
+        <small data-i18n="hist_stat_component">Component</small>
       </div>
       <div class="stat-tile">
-        <div class="lbl">Cultivation</div>
+        <div class="lbl" data-i18n="hist_stat_cult">Cultivation</div>
         <div class="num c3" id="cultivationCount">{{ history|selectattr('component', 'equalto', 'cultivation_targeting')|list|length }}</div>
-        <small>Plans</small>
+        <small data-i18n="hist_stat_plans">Plans</small>
       </div>
       <div class="stat-tile">
-        <div class="lbl">Yield quality</div>
+        <div class="lbl" data-i18n="hist_stat_yield">Yield quality</div>
         <div class="num c4" id="yieldCount">{{ history|selectattr('component', 'equalto', 'yield_quality')|list|length }}</div>
-        <small>Analyses</small>
+        <small data-i18n="hist_stat_analyses">Analyses</small>
       </div>
     </div>
 
     <!-- History List -->
     <div class="glass-panel mb-0">
       <div class="panel-head list-head-actions">
-        <h2><i class="fas fa-list-ul"></i> Entries</h2>
+        <h2><i class="fas fa-list-ul"></i> <span data-i18n="hist_entries">Entries</span></h2>
         {% if history %}
         <div class="dropdown">
           <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-download"></i> Export
+            <i class="fas fa-download"></i> <span data-i18n="hist_export">Export</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="#" onclick="exportHistory('csv'); return false;">
@@ -775,15 +775,15 @@
               <div>
                 <span class="hist-badge {{ hbcls }}">
                   {% if prediction.component == 'price_demand' %}
-                  <i class="fas fa-chart-line"></i> Price &amp; demand
+                  <i class="fas fa-chart-line"></i> <span data-i18n="hist_badge_price">Price &amp; demand</span>
                   {% elif prediction.component == 'market_ranking' %}
-                  <i class="fas fa-map-marked-alt"></i> Market ranking
+                  <i class="fas fa-map-marked-alt"></i> <span data-i18n="hist_badge_market">Market ranking</span>
                   {% elif prediction.component == 'cultivation_targeting' %}
-                  <i class="fas fa-seedling"></i> Cultivation targeting
+                  <i class="fas fa-seedling"></i> <span data-i18n="hist_badge_cult">Cultivation targeting</span>
                   {% elif prediction.component == 'yield_quality' %}
-                  <i class="fas fa-camera"></i> Yield quality
+                  <i class="fas fa-camera"></i> <span data-i18n="hist_badge_yield">Yield quality</span>
                   {% elif prediction.component == 'profitable_strategy' %}
-                  <i class="fas fa-lightbulb"></i> Profitable strategy
+                  <i class="fas fa-lightbulb"></i> <span data-i18n="hist_badge_strategy">Profitable strategy</span>
                   {% else %}
                   <i class="fas fa-cube"></i> {{ prediction.component|replace('_', ' ')|title }}
                   {% endif %}
@@ -802,7 +802,7 @@
                   <i class="fas fa-trash"></i>
                 </button>
                 <button type="button" class="btn-hist primary" onclick="viewDetails('{{ prediction._id }}')">
-                  <i class="fas fa-eye"></i> Details
+                  <i class="fas fa-eye"></i> <span data-i18n="hist_btn_details">Details</span>
                 </button>
               </div>
             </div>
@@ -907,9 +907,9 @@
         {% else %}
         <div class="empty-state">
           <div class="empty-icon"><i class="fas fa-seedling"></i></div>
-          <h3>No prediction history</h3>
-          <p>Use AgriSense modules to build your history—predictions will appear here.</p>
-          <a href="{{ url_for('price_demand') }}" class="btn-cta"><i class="fas fa-rocket"></i> Make your first prediction</a>
+          <h3 data-i18n="hist_empty_title">No prediction history</h3>
+          <p data-i18n="hist_empty_desc">Use AgriSense modules to build your history—predictions will appear here.</p>
+          <a href="{{ url_for('price_demand') }}" class="btn-cta"><i class="fas fa-rocket"></i> <span data-i18n="hist_empty_cta">Make your first prediction</span></a>
         </div>
         {% endif %}
       </div>

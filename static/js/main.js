@@ -49,6 +49,7 @@ function enhanceForms() {
 
         // Add form submission confirmation
         form.addEventListener('submit', function(e) {
+            form.classList.add('was-submitted');
             const submitBtn = this.querySelector('button[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
                 submitBtn.disabled = true;
@@ -76,11 +77,28 @@ function validateField(field) {
     // Validation logic
     let isValid = true;
     let message = '';
+    const isFileInput = field.type === 'file';
+    const form = field.closest('form');
+    const hasFiles = isFileInput && field.files && field.files.length > 0;
+    const allowFileValidation = !isFileInput || (form && form.classList.contains('was-submitted'));
 
     // Required validation
-    if (field.hasAttribute('required') && !field.value.trim()) {
-        isValid = false;
-        message = 'This field is required.';
+    if (field.hasAttribute('required')) {
+        if (isFileInput) {
+            if (allowFileValidation && !hasFiles) {
+                isValid = false;
+                message = 'This field is required.';
+            }
+        } else if (!field.value.trim()) {
+            isValid = false;
+            message = 'This field is required.';
+        }
+    }
+
+    // Skip showing invalid state for empty file inputs until submit
+    if (isFileInput && !hasFiles && !allowFileValidation) {
+        feedback.style.display = 'none';
+        return true;
     }
 
     // Email validation
@@ -114,7 +132,7 @@ function validateField(field) {
         field.classList.add('is-invalid');
         feedback.textContent = message;
         feedback.style.display = 'block';
-    } else if (field.value.trim()) {
+    } else if (isFileInput ? hasFiles : field.value.trim()) {
         field.classList.add('is-valid');
         feedback.style.display = 'none';
     } else {

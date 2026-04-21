@@ -198,6 +198,23 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .error-card { background: #fff5f5; border: 1px solid #fecaca; border-left: 4px solid #ef4444; border-radius: 12px; padding: 16px 20px; color: #991b1b; font-size: 0.88rem; display: none; margin-bottom: 20px; }
 
+  /* STEP LOCK SYSTEM */
+  .form-card { position: relative; }
+  .form-card.step-locked .form-card-body { pointer-events: none; opacity: 0.38; user-select: none; }
+  .form-card.step-locked .fetch-btn { pointer-events: none; opacity: 0.35; }
+  .step-lock-overlay { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(240,250,240,0.55); backdrop-filter: blur(3px); border-radius: var(--radius); }
+  .step-lock-box { background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 28px; text-align: center; box-shadow: var(--shadow-md); max-width: 260px; }
+  .step-lock-box .lock-icon { font-size: 1.6rem; color: var(--green-500); margin-bottom: 8px; }
+  .step-lock-box p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; }
+  .step-continue-row { display: flex; align-items: center; justify-content: flex-end; padding: 0 28px 22px; gap: 10px; }
+  .btn-step-continue { background: linear-gradient(135deg, var(--green-700), var(--green-500)); color: #fff; border: none; border-radius: 10px; padding: 10px 24px; font-family: 'DM Sans', sans-serif; font-size: 0.87rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+  .btn-step-continue:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .step-num-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: var(--green-200); margin-right: 2px; }
+  .step-locked-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
+  .step-locked-badge i { font-size: 0.68rem; }
+  .step-done-badge { display: none; align-items: center; gap: 5px; background: rgba(76,190,108,0.2); border: 1px solid rgba(76,190,108,0.4); color: #7defa0; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
+  .step-done-badge i { font-size: 0.68rem; }
+
   /* ANIMATIONS */
   @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
@@ -217,12 +234,12 @@
   <div class="container">
     <div class="hero-inner">
       <div class="animate-in">
-        <div class="hero-badge"><i class="fas fa-lightbulb"></i> AI-Powered Strategy</div>
-        <h1>Profitable Business<br><em>Strategy</em></h1>
-        <p>Our AI analyzes your profile, budget, and market access to surface the most profitable agricultural opportunity tailored specifically to you.</p>
+        <div class="hero-badge" data-i18n="ps_badge"><i class="fas fa-lightbulb"></i> AI-Powered Strategy</div>
+        <h1><span data-i18n="ps_hero_title">Profitable Business</span><br><em data-i18n="ps_hero_title_em">Strategy</em></h1>
+        <p data-i18n="ps_hero_desc">Our AI analyzes your profile, budget, and market access to surface the most profitable agricultural opportunity tailored specifically to you.</p>
       </div>
       <div class="animate-in" style="animation-delay:0.12s">
-        <div class="hero-pill"><strong>Fill form</strong> → <strong>Get recommendations</strong> → <strong>Compare options</strong></div>
+        <div class="hero-pill"><strong data-i18n="ps_pill_fill">Fill form</strong> → <strong data-i18n="ps_pill_reco">Get recommendations</strong> → <strong data-i18n="ps_pill_compare">Compare options</strong></div>
       </div>
     </div>
   </div>
@@ -235,86 +252,40 @@
       <!-- SECTION 1: Profile -->
       <div class="form-card animate-in">
         <div class="form-card-header">
-          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-user-circle"></i></div><h3>Profile, Family & Financial Information</h3></div>
+          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-user-circle"></i></div><h3 data-i18n="ps_sec1_title">Profile, Family & Financial Information</h3></div>
         </div>
         <div class="form-card-body">
-          <div class="section-label"><i class="fas fa-user" style="color:var(--green-500)"></i> Basic Information</div>
+          <div class="section-label" data-i18n="ps_sec_basic"><i class="fas fa-user" style="color:var(--green-500)"></i> Basic Information</div>
           <div class="fields-grid cols-4" style="margin-bottom:24px;">
-            <div class="field-group"><label class="form-label">Role</label><select class="form-select" id="role" name="role" required><option value="farmer" selected>Farmer</option><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="consumer">Consumer</option></select></div>
-            <div class="field-group"><label class="form-label">Profession</label><select class="form-select" id="profession" name="profession" required><option value="farming" selected>Farming</option><option value="business">Business</option><option value="government">Government</option><option value="private">Private Sector</option></select></div>
-            <div class="field-group" style="grid-column:span 2;"><label class="form-label">Purpose *</label><select class="form-select" name="purpose" id="purpose" required><option value="">— Select Purpose —</option></select></div>
+            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_role">Role</label><select class="form-select" id="role" name="role" required><option value="farmer" selected data-i18n="ps_opt_farmer">Farmer</option><option value="buyer" data-i18n="ps_opt_buyer">Buyer</option><option value="seller" data-i18n="ps_opt_seller">Seller</option><option value="consumer" data-i18n="ps_opt_consumer">Consumer</option></select></div>
+            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_profession">Profession</label><select class="form-select" id="profession" name="profession" required><option value="farming" selected data-i18n="ps_opt_farming">Farming</option><option value="business" data-i18n="ps_opt_business">Business</option><option value="government" data-i18n="ps_opt_government">Government</option><option value="private" data-i18n="ps_opt_private">Private Sector</option></select></div>
+            <div class="field-group" style="grid-column:span 2;"><label class="form-label" data-i18n="ps_lbl_purpose">Purpose *</label><select class="form-select" name="purpose" id="purpose" required><option value="" data-i18n="ps_opt_select_purpose">— Select Purpose —</option></select></div>
           </div>
           <div class="fields-grid cols-4" style="margin-bottom:0;">
-            <div class="field-group"><label class="form-label">Monthly Income <span class="tip">(LKR)</span></label><input type="number" class="form-control" id="monthly_income" name="monthly_income" value="85000" min="0" step="1000" required></div>
-            <div class="field-group"><label class="form-label">Income Source</label><select class="form-select" id="income_source" name="income_source" required><option value="both" selected>Both</option><option value="profession">Profession Only</option><option value="business">Business Only</option></select></div>
-            <div class="field-group"><label class="form-label">Marital Status</label><select class="form-select" id="marital_status" name="marital_status" required><option value="" disabled selected>Select status</option><option value="married">Married</option><option value="unmarried">Unmarried</option></select></div>
-            <div class="field-group"><label class="form-label">Family Members</label><input type="number" class="form-control" id="family_members" name="family_members" value="0" min="1" max="20"></div>
+            <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_income">Monthly Income</span> <span class="tip">(LKR)</span></label><input type="number" class="form-control" id="monthly_income" name="monthly_income" value="85000" min="0" step="1000" required></div>
+            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_income_src">Income Source</label><select class="form-select" id="income_source" name="income_source" required><option value="both" selected data-i18n="ps_opt_both">Both</option><option value="profession" data-i18n="ps_opt_prof_only">Profession Only</option><option value="business" data-i18n="ps_opt_biz_only">Business Only</option></select></div>
           </div>
           <div class="section-divider"></div>
-          <div class="section-label"><i class="fas fa-wallet" style="color:var(--green-500)"></i> Financial Information</div>
+          <div class="section-label" data-i18n="ps_sec_financial"><i class="fas fa-wallet" style="color:var(--green-500)"></i> Financial Information</div>
           <div class="fields-grid cols-4">
-            <div class="field-group"><label class="form-label">Children Under 16</label><input type="number" class="form-control" id="children_under_16" name="children_under_16" value="0" min="0" max="10"></div>
-            <div class="field-group"><label class="form-label">Available Budget <span class="tip">(LKR)</span></label><input type="number" class="form-control" id="available_budget" name="available_budget" value="250000" min="0" step="10000" required></div>
-            <div class="field-group" style="grid-column:span 2;"><label class="form-label">Budget Source</label><select class="form-select" id="budget_source" name="budget_source" required><option value="" disabled selected>Select a source</option><option value="saving">Savings</option><option value="exchange">Exchange</option><option value="pawning">Pawning</option><option value="bank_loan">Bank Loan</option><option value="private_loan">Private Loan</option></select></div>
+            <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_budget">Available Budget</span> <span class="tip">(LKR)</span></label><input type="number" class="form-control" id="available_budget" name="available_budget" value="250000" min="0" step="10000" required></div>
+            <div class="field-group" style="grid-column:span 2;"><label class="form-label" data-i18n="ps_lbl_budget_src">Budget Source</label><select class="form-select" id="budget_source" name="budget_source" required><option value="" disabled selected data-i18n="ps_opt_select_src">Select a source</option><option value="saving" data-i18n="ps_opt_saving">Savings</option><option value="exchange" data-i18n="ps_opt_exchange">Exchange</option><option value="pawning" data-i18n="ps_opt_pawning">Pawning</option><option value="bank_loan" data-i18n="ps_opt_bank_loan">Bank Loan</option><option value="private_loan" data-i18n="ps_opt_private_loan">Private Loan</option></select></div>
           </div>
         </div>
       </div>
 
-      <!-- SECTION 2: Cultivation -->
-      <div class="form-card animate-in" id="cultivationSection" style="animation-delay:0.06s;">
+      <!-- SECTION 2: Location (always unlocked) -->
+      <div class="form-card animate-in" id="locationSection" style="animation-delay:0.06s;">
         <div class="form-card-header">
-          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-seedling"></i></div><h3>Cultivation Targeting</h3></div>
-          <button type="button" class="fetch-btn" onclick="fetchCultivationRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 3</button>
-        </div>
-        <div class="form-card-body">
-          <div class="info-banner cultivation" id="cultivationInfo"></div>
-          <div class="fields-grid cols-6">
-            <div class="field-group" style="grid-column:span 2"><label class="form-label">Cultivation Item</label><select class="form-select" id="cultivation_item" name="cultivation_item"><option value="" disabled selected>Select an item</option><option value="Tomato">Tomato</option><option value="Brinjal">Brinjal</option><option value="Chili Pepper">Chili Pepper</option><option value="Pumpkin">Pumpkin</option><option value="Cabbage">Cabbage</option><option value="Carrot">Carrot</option><option value="Beans">Beans</option><option value="Lime">Lime</option><option value="Banana">Banana</option><option value="Papaya">Papaya</option><option value="Pineapple">Pineapple</option><option value="Bitter Gourd">Bitter Gourd</option></select></div>
-            <div class="field-group" style="grid-column:span 2"><label class="form-label">Optimal Month</label><select class="form-select" id="optimal_month" name="optimal_month"><option value="1" selected>January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
-            <div class="field-group"><label class="form-label">Season</label><select class="form-select" id="season" name="season"><option value="Spring" selected>Spring</option><option value="Summer">Summer</option><option value="Autumn">Autumn</option><option value="Winter">Winter</option></select></div>
-            <div class="field-group"><label class="form-label">Profitability <span class="tip">(0–1)</span></label><input type="number" class="form-control" id="cultivation_profitability" name="cultivation_profitability" value="0" min="0" max="1" step="0.01"></div>
-          </div>
-          <div class="fields-grid cols-6" style="margin-top:14px;"><div class="field-group"><label class="form-label">Risk <span class="tip">(0–1)</span></label><input type="number" class="form-control" id="cultivation_risk" name="cultivation_risk" value="0" min="0" max="1" step="0.01"></div></div>
-        </div>
-      </div>
-
-      <!-- SECTION 3: Market -->
-      <div class="form-card animate-in" style="animation-delay:0.1s;">
-        <div class="form-card-header">
-          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-store"></i></div><h3>Market Information</h3></div>
-          <button type="button" class="fetch-btn" onclick="fetchMarketRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 2</button>
-        </div>
-        <div class="form-card-body">
-          <div class="info-banner market" id="marketInfo"></div>
-          <div class="fields-grid cols-6">
-            <div class="field-group" style="grid-column:span 2"><label class="form-label">Item <span class="tip">(from Market Ranking)</span></label><input type="text" class="form-control" id="market_item" name="market_item" placeholder="e.g. Tomato"><span class="field-hint">Auto-filled from market fetch above</span></div>
-            <div class="field-group" style="grid-column:span 2"><label class="form-label">Market Name</label><select class="form-select" id="market_name" name="market_name" required><option value="" disabled selected>Select a market</option><option value="Dambulla">Dambulla</option><option value="Pettah">Pettah</option><option value="Narahenpita">Narahenpita</option><option value="Peliyagoda">Peliyagoda</option><option value="Negombo">Negombo</option><option value="Marandagahamula">Marandagahamula</option></select></div>
-            <div class="field-group" style="grid-column:span 2"><label class="form-label">Predicted Price <span class="tip">(Rs/kg)</span></label><input type="number" class="form-control" id="predicted_price" name="predicted_price" value="0" min="0" step="0.01" required></div>
-          </div>
-          <div class="fields-grid cols-3" style="margin-top:14px;">
-            <div class="field-group"><label class="form-label">Distance <span class="tip">(km)</span></label><input type="number" class="form-control" id="distance_km" name="distance_km" min="0" step="0.01" required></div>
-            <div class="field-group"><label class="form-label">Transport Cost <span class="tip">(Rs)</span></label><input type="number" class="form-control" id="transport_cost" name="transport_cost" min="0" step="0.01" required></div>
-            <div class="field-group"><label class="form-label">Net Advantage <span class="tip">(Rs)</span></label><input type="number" class="form-control" id="net_advantage" name="net_advantage" min="0" step="0.01" required></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 4: Location -->
-      <div class="form-card animate-in" style="animation-delay:0.14s;">
-        <div class="form-card-header">
-          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-map-marker-alt"></i></div><h3>Location Information</h3></div>
+          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-map-marker-alt"></i></div><h3 data-i18n="ps_sec4_title">Location Information</h3></div>
         </div>
         <div class="form-card-body">
           <div class="location-panel">
-            <div class="location-panel-label"><i class="fas fa-crosshairs"></i> GPS Coordinates</div>
-
-            <!-- Live location button -->
+            <div class="location-panel-label" data-i18n="ps_gps_label"><i class="fas fa-crosshairs"></i> GPS Coordinates</div>
             <button type="button" id="locBtn" class="loc-btn" onclick="getLiveLocation()">
               <i class="fas fa-location-arrow" id="locBtnIcon"></i>
-              <span id="locBtnText">Use My Current Location</span>
+              <span id="locBtnText" data-i18n="ps_loc_btn">Use My Current Location</span>
             </button>
-
-            <!-- Location name card (shown after GPS success) -->
             <div class="loc-name-card" id="locNameCard">
               <div class="loc-name-inner">
                 <div class="loc-pin-icon"><i class="fas fa-map-marker-alt"></i></div>
@@ -329,15 +300,76 @@
                 </div>
               </div>
             </div>
-
-            <!-- Error message -->
             <div class="loc-status" id="locStatus"></div>
-
-            <!-- Coordinate inputs (always visible, auto-filled by GPS) -->
             <div class="fields-grid cols-2">
-              <div class="field-group"><label class="form-label">Latitude</label><input type="number" class="form-control" id="latitude" name="latitude" value="7.2906" step="0.000001"></div>
-              <div class="field-group"><label class="form-label">Longitude</label><input type="number" class="form-control" id="longitude" name="longitude" value="80.6337" step="0.000001"></div>
+              <div class="field-group"><label class="form-label" data-i18n="ps_lbl_lat">Latitude</label><input type="number" class="form-control" id="latitude" name="latitude" placeholder="Use GPS or enter manually" step="0.000001"></div>
+              <div class="field-group"><label class="form-label" data-i18n="ps_lbl_lon">Longitude</label><input type="number" class="form-control" id="longitude" name="longitude" placeholder="Use GPS or enter manually" step="0.000001"></div>
             </div>
+          </div>
+        </div>
+        <!-- ONE button: unlocks both Cultivation & Market -->
+        <div class="step-continue-row">
+          <button type="button" class="btn-step-continue" onclick="continueToFetchSections()">
+            <i class="fas fa-unlock-alt"></i> <span data-i18n="ps_btn_unlock">Continue &amp; Unlock Fetch Sections</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 3: Cultivation -->
+      <div class="form-card animate-in step-locked" id="cultivationSection" style="animation-delay:0.1s;">
+        <div class="step-lock-overlay">
+          <div class="step-lock-box">
+            <div class="lock-icon"><i class="fas fa-lock"></i></div>
+            <p data-i18n="ps_lock_msg_cult">Complete <strong>Profile &amp; Location</strong> sections and click <strong>Continue</strong> to unlock.</p>
+          </div>
+        </div>
+        <div class="form-card-header">
+          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-seedling"></i></div><h3 data-i18n="ps_sec2_title">Cultivation Targeting</h3></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="step-locked-badge" id="cultBadgeLocked"><i class="fas fa-lock"></i> <span data-i18n="ps_locked_badge">Locked</span></span>
+            <span class="step-done-badge" id="cultBadgeDone"><i class="fas fa-check-circle"></i> <span data-i18n="ps_done_badge">Done</span></span>
+            <button type="button" class="fetch-btn" data-i18n="ps_fetch_cult" onclick="fetchCultivationRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 3</button>
+          </div>
+        </div>
+        <div class="form-card-body">
+          <div class="info-banner cultivation" id="cultivationInfo"></div>
+          <div class="fields-grid cols-6">
+            <div class="field-group" style="grid-column:span 2"><label class="form-label" data-i18n="ps_lbl_cult_item">Cultivation Item</label><select class="form-select" id="cultivation_item" name="cultivation_item"><option value="" disabled selected data-i18n="ps_opt_select_item">Select an item</option><option value="Tomato">Tomato</option><option value="Brinjal">Brinjal</option><option value="Chili Pepper">Chili Pepper</option><option value="Pumpkin">Pumpkin</option><option value="Cabbage">Cabbage</option><option value="Carrot">Carrot</option><option value="Beans">Beans</option><option value="Lime">Lime</option><option value="Banana">Banana</option><option value="Papaya">Papaya</option><option value="Pineapple">Pineapple</option><option value="Bitter Gourd">Bitter Gourd</option></select></div>
+            <div class="field-group" style="grid-column:span 2"><label class="form-label" data-i18n="ps_lbl_opt_month">Optimal Month</label><select class="form-select" id="optimal_month" name="optimal_month"><option value="1" selected>January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+            <div class="field-group"><label class="form-label" data-i18n="ps_lbl_season">Season</label><select class="form-select" id="season" name="season"><option value="Spring" selected>Spring</option><option value="Summer">Summer</option><option value="Autumn">Autumn</option><option value="Winter">Winter</option></select></div>
+            <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_cult_profit">Profitability</span> <span class="tip">(0–1)</span></label><input type="number" class="form-control" id="cultivation_profitability" name="cultivation_profitability" value="0" min="0" max="1" step="0.01"></div>
+          </div>
+          <div class="fields-grid cols-6" style="margin-top:14px;"><div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_cult_risk">Risk</span> <span class="tip">(0–1)</span></label><input type="number" class="form-control" id="cultivation_risk" name="cultivation_risk" value="0" min="0" max="1" step="0.01"></div></div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: Market -->
+      <div class="form-card animate-in step-locked" id="marketSection" style="animation-delay:0.14s;">
+        <div class="step-lock-overlay">
+          <div class="step-lock-box">
+            <div class="lock-icon"><i class="fas fa-lock"></i></div>
+            <p data-i18n="ps_lock_msg_mkt">Complete <strong>Profile &amp; Location</strong> sections and click <strong>Continue</strong> to unlock.</p>
+          </div>
+        </div>
+        <div class="form-card-header">
+          <div class="form-card-header-left"><div class="fch-icon"><i class="fas fa-store"></i></div><h3 data-i18n="ps_sec3_title">Market Information</h3></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="step-locked-badge" id="mktBadgeLocked"><i class="fas fa-lock"></i> <span data-i18n="ps_locked_badge">Locked</span></span>
+            <span class="step-done-badge" id="mktBadgeDone"><i class="fas fa-check-circle"></i> <span data-i18n="ps_done_badge">Done</span></span>
+            <button type="button" class="fetch-btn" data-i18n="ps_fetch_market" onclick="fetchMarketRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 2</button>
+          </div>
+        </div>
+        <div class="form-card-body">
+          <div class="info-banner market" id="marketInfo"></div>
+          <div class="fields-grid cols-6">
+            <div class="field-group" style="grid-column:span 2"><label class="form-label"><span data-i18n="ps_lbl_market_item">Item</span> <span class="tip">(from Market Ranking)</span></label><input type="text" class="form-control" id="market_item" name="market_item" placeholder="e.g. Tomato"><span class="field-hint" data-i18n="ps_hint_autofill">Auto-filled from market fetch above</span></div>
+            <div class="field-group" style="grid-column:span 2"><label class="form-label" data-i18n="ps_lbl_market_name">Market Name</label><select class="form-select" id="market_name" name="market_name" required><option value="" disabled selected data-i18n="ps_opt_select_market">Select a market</option><option value="Dambulla">Dambulla</option><option value="Pettah">Pettah</option><option value="Narahenpita">Narahenpita</option><option value="Peliyagoda">Peliyagoda</option><option value="Negombo">Negombo</option><option value="Marandagahamula">Marandagahamula</option></select></div>
+            <div class="field-group" style="grid-column:span 2"><label class="form-label"><span data-i18n="ps_lbl_pred_price">Predicted Price</span> <span class="tip">(Rs/kg)</span></label><input type="number" class="form-control" id="predicted_price" name="predicted_price" value="0" min="0" step="0.01" required></div>
+          </div>
+          <div class="fields-grid cols-3" style="margin-top:14px;">
+            <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_distance">Distance</span> <span class="tip">(km)</span></label><input type="number" class="form-control" id="distance_km" name="distance_km" min="0" step="0.01" required></div>
+            <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_transport">Transport Cost</span> <span class="tip">(Rs)</span></label><input type="number" class="form-control" id="transport_cost" name="transport_cost" min="0" step="0.01" required></div>
+            <div class="field-group"><label class="form-label"><span data-i18n="ps_lbl_net_adv">Net Advantage</span> <span class="tip">(Rs)</span></label><input type="number" class="form-control" id="net_advantage" name="net_advantage" min="0" step="0.01" required></div>
           </div>
         </div>
       </div>
@@ -345,12 +377,12 @@
       <!-- SUBMIT -->
       <div class="submit-area animate-in" style="animation-delay:0.18s;">
         <div class="submit-area-text">
-          <h4>Ready to get your strategy?</h4>
-          <p>Our AI will analyze all your inputs and recommend the most profitable agricultural business for your profile.</p>
+          <h4 data-i18n="ps_submit_title">Ready to get your strategy?</h4>
+          <p data-i18n="ps_submit_desc">Our AI will analyze all your inputs and recommend the most profitable agricultural business for your profile.</p>
         </div>
         <div class="submit-area-actions">
-          <button type="submit" class="btn-predict"><i class="fas fa-magic"></i><span>Predict My Strategy</span></button>
-          <button type="button" class="btn-reset" id="resetBtn"><i class="fas fa-undo"></i> Reset</button>
+          <button type="submit" class="btn-predict"><i class="fas fa-magic"></i><span data-i18n="ps_btn_predict">Predict My Strategy</span></button>
+          <button type="button" class="btn-reset" id="resetBtn" data-i18n="ps_btn_reset"><i class="fas fa-undo"></i> Reset</button>
         </div>
       </div>
 
@@ -358,58 +390,58 @@
 
     <!-- MODEL STRIP -->
     <div class="model-strip animate-in" style="animation-delay:0.22s;">
-      <div class="model-chip"><div class="model-chip-icon"><i class="fas fa-brain"></i></div><div><h6>Random Forest Classifier</h6><p>Accuracy: 98.7% &nbsp;|&nbsp; F1-Score: 98.2%</p></div></div>
-      <div class="model-chip"><div class="model-chip-icon"><i class="fas fa-database"></i></div><div><h6>Training Data</h6><p>40,000 samples &nbsp;|&nbsp; 12 business types</p></div></div>
-      <div class="model-chip"><div class="model-chip-icon"><i class="fas fa-chart-bar"></i></div><div><h6>Features Used</h6><p>30 features including engineered ratios</p></div></div>
+      <div class="model-chip"><div class="model-chip-icon"><i class="fas fa-brain"></i></div><div><h6 data-i18n="ps_model1_title">Random Forest Classifier</h6><p data-i18n="ps_model1_desc">Accuracy: 98.7% &nbsp;|&nbsp; F1-Score: 98.2%</p></div></div>
+      <div class="model-chip"><div class="model-chip-icon"><i class="fas fa-database"></i></div><div><h6 data-i18n="ps_model2_title">Training Data</h6><p data-i18n="ps_model2_desc">40,000 samples &nbsp;|&nbsp; 12 business types</p></div></div>
+      <div class="model-chip"><div class="model-chip-icon"><i class="fas fa-chart-bar"></i></div><div><h6 data-i18n="ps_model3_title">Features Used</h6><p data-i18n="ps_model3_desc">30 features including engineered ratios</p></div></div>
     </div>
 
     <!-- INITIAL STATE -->
     <div id="initialState" class="state-card animate-in">
       <div class="state-icon"><i class="fas fa-seedling"></i></div>
-      <h4>Your strategy will appear here</h4>
-      <p>Fill in the form above and click <strong>Predict My Strategy</strong> to get your personalized AI recommendation.</p>
+      <h4 data-i18n="ps_state_title">Your strategy will appear here</h4>
+      <p data-i18n="ps_state_desc">Fill in the form above and click Predict My Strategy to get your personalized AI recommendation.</p>
     </div>
 
-    <div class="loading-card" id="loadingSpinner"><div class="as-spinner"></div><p style="color:var(--text-muted);font-size:0.9rem;">Analyzing your profile…</p></div>
+    <div class="loading-card" id="loadingSpinner"><div class="as-spinner"></div><p style="color:var(--text-muted);font-size:0.9rem;" data-i18n="ps_loading">Analyzing your profile…</p></div>
     <div class="error-card" id="errorAlert"><i class="fas fa-exclamation-triangle"></i><span id="errorMessage" style="margin-left:8px;"></span></div>
 
     <!-- RESULTS SECTION -->
     <div class="results-section" id="resultsSection">
-      <div class="results-title-row"><h2>Your Recommended Strategy</h2></div>
+      <div class="results-title-row"><h2 data-i18n="ps_results_title">Your Recommended Strategy</h2></div>
       <div class="result-main">
-        <div class="result-crown-tag"><i class="fas fa-crown"></i> AI Recommendation</div>
+        <div class="result-crown-tag" data-i18n="ps_crown_tag"><i class="fas fa-crown"></i> AI Recommendation</div>
         <div class="result-biz-name" id="predictedBusinessName">—</div>
         <div class="result-biz-code" id="predictedBusinessCode">—</div>
         <div class="conf-row confidence-bar-wrap">
-          <span class="conf-label">Confidence</span>
+          <span class="conf-label" data-i18n="ps_conf_label">Confidence</span>
           <div class="conf-track"><div class="conf-fill" id="confidenceBar"></div></div>
           <span class="conf-pct" id="confidenceValue">—</span>
           <span id="confidenceBadge" style="background:rgba(255,255,255,0.15);color:#fff;font-size:0.7rem;font-weight:700;padding:3px 12px;border-radius:100px;border:1px solid rgba(255,255,255,0.2);">—</span>
         </div>
         <div class="result-grid">
-          <div class="result-cell"><div class="result-cell-label"><i class="fas fa-exclamation-triangle"></i> Risk Level</div><div class="result-cell-val" id="riskValue">—</div></div>
-          <div class="result-cell"><div class="result-cell-label"><i class="fas fa-coins"></i> Capital Required</div><div class="result-cell-val" id="capitalRequired">—</div></div>
-          <div class="result-cell"><div class="result-cell-label"><i class="fas fa-tag"></i> Business Code</div><div class="result-cell-val" id="businessCodeCell">—</div></div>
+          <div class="result-cell"><div class="result-cell-label" data-i18n="ps_cell_risk"><i class="fas fa-exclamation-triangle"></i> Risk Level</div><div class="result-cell-val" id="riskValue">—</div></div>
+          <div class="result-cell"><div class="result-cell-label" data-i18n="ps_cell_capital"><i class="fas fa-coins"></i> Capital Required</div><div class="result-cell-val" id="capitalRequired">—</div></div>
+          <div class="result-cell"><div class="result-cell-label" data-i18n="ps_cell_code"><i class="fas fa-tag"></i> Business Code</div><div class="result-cell-val" id="businessCodeCell">—</div></div>
         </div>
       </div>
       <div class="result-details-grid">
-        <div class="detail-card"><div class="detail-card-header"><i class="fas fa-align-left"></i> Description</div><div class="detail-card-body"><p class="detail-desc" id="businessDescription">—</p></div></div>
-        <div class="detail-card"><div class="detail-card-header"><i class="fas fa-check-circle" style="color:var(--green-600)"></i> Key Considerations</div><div class="detail-card-body"><ul class="check-list" id="keyConsiderations"></ul></div></div>
-        <div class="detail-card"><div class="detail-card-header" style="background:#fff5f5;color:#c62828;border-color:#ffcdd2;"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i> Potential Challenges</div><div class="detail-card-body"><ul class="check-list" id="potentialChallenges"></ul></div></div>
+        <div class="detail-card"><div class="detail-card-header" data-i18n="ps_detail_desc"><i class="fas fa-align-left"></i> Description</div><div class="detail-card-body"><p class="detail-desc" id="businessDescription">—</p></div></div>
+        <div class="detail-card"><div class="detail-card-header" data-i18n="ps_detail_keys"><i class="fas fa-check-circle" style="color:var(--green-600)"></i> Key Considerations</div><div class="detail-card-body"><ul class="check-list" id="keyConsiderations"></ul></div></div>
+        <div class="detail-card"><div class="detail-card-header" data-i18n="ps_detail_challenges" style="background:#fff5f5;color:#c62828;border-color:#ffcdd2;"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i> Potential Challenges</div><div class="detail-card-body"><ul class="check-list" id="potentialChallenges"></ul></div></div>
       </div>
-      <div class="results-title-row" style="margin-top:8px;"><h2>Alternative Options</h2></div>
+      <div class="results-title-row" style="margin-top:8px;"><h2 data-i18n="ps_alts_title">Alternative Options</h2></div>
       <div class="alts-grid" id="alternativesContainer"></div>
-      <div class="chart-card"><div class="chart-card-title"><i class="fas fa-chart-bar"></i> Confidence Distribution</div><canvas id="confidenceChart" height="160"></canvas></div>
+      <div class="chart-card"><div class="chart-card-title" data-i18n="ps_chart_title"><i class="fas fa-chart-bar"></i> Confidence Distribution</div><canvas id="confidenceChart" height="160"></canvas></div>
     </div>
 
     <!-- FAQ -->
     <div class="faq-card animate-in" style="animation-delay:0.26s;">
-      <div class="faq-header"><i class="fas fa-question-circle"></i> Frequently Asked Questions</div>
+      <div class="faq-header" data-i18n="ps_faq_title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</div>
       <div class="faq-body-wrap">
-        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)">How accurate is this prediction model? <i class="fas fa-chevron-down"></i></button><div class="faq-answer">Our model achieves 98.7% accuracy on test data, with an F1-score of 98.2%. It has been trained on 40,000 synthetic profiles based on real agricultural market data in Sri Lanka.</div></div>
-        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)">What factors are considered in the recommendation? <i class="fas fa-chevron-down"></i></button><div class="faq-answer">The model considers your role, purpose, financial capacity, family situation, market access (distance, transport costs), and cultivation preferences to make personalized recommendations.</div></div>
-        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)">How should I use these recommendations? <i class="fas fa-chevron-down"></i></button><div class="faq-answer">Use the recommendations as a starting point for your business planning. Consider the top 3 options, evaluate your local market conditions, and consult with agricultural experts before making final decisions.</div></div>
-        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)">Can I get a second opinion? <i class="fas fa-chevron-down"></i></button><div class="faq-answer">Absolutely! The model provides multiple alternative options with confidence scores. You can also consult with local agricultural officers or business development services for additional guidance.</div></div>
+        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="ps_faq1_q">How accurate is this prediction model?</span> <i class="fas fa-chevron-down"></i></button><div class="faq-answer" data-i18n="ps_faq1_a">Our model achieves 98.7% accuracy on test data, with an F1-score of 98.2%. It has been trained on 40,000 synthetic profiles based on real agricultural market data in Sri Lanka.</div></div>
+        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="ps_faq2_q">What factors are considered in the recommendation?</span> <i class="fas fa-chevron-down"></i></button><div class="faq-answer" data-i18n="ps_faq2_a">The model considers your role, purpose, financial capacity, family situation, market access (distance, transport costs), and cultivation preferences to make personalized recommendations.</div></div>
+        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="ps_faq3_q">How should I use these recommendations?</span> <i class="fas fa-chevron-down"></i></button><div class="faq-answer" data-i18n="ps_faq3_a">Use the recommendations as a starting point for your business planning. Consider the top 3 options, evaluate your local market conditions, and consult with agricultural experts before making final decisions.</div></div>
+        <div class="faq-item"><button class="faq-trigger" onclick="toggleFaq(this)"><span data-i18n="ps_faq4_q">Can I get a second opinion?</span> <i class="fas fa-chevron-down"></i></button><div class="faq-answer" data-i18n="ps_faq4_a">Absolutely! The model provides multiple alternative options with confidence scores. You can also consult with local agricultural officers or business development services for additional guidance.</div></div>
       </div>
     </div>
 
@@ -547,6 +579,47 @@ var keyConsiderations={BUS_F01:['Use quality seeds & inputs','Implement modern t
 var potentialChallenges={BUS_F01:['Weather uncertainty','Pest/disease outbreaks','Input cost volatility','Market price fluctuations'],BUS_F02:['Lower yields initially','Certification costs','Market access challenges','Pest management without chemicals'],BUS_F03:['Product shelf life','Packaging costs','Brand building challenges','Scaling production'],BUS_F04:['Contract dependency','Price fixing concerns','Quality pressure','Limited flexibility'],BUS_S01:['Storage losses','Price volatility','Farmer loyalty issues','Transportation costs'],BUS_S02:['Transport costs','Quality variation','Payment collection','Seasonal supply fluctuations'],BUS_S03:['Commission pressure','Trust issues','Market fluctuations','Competition'],BUS_B01:['Price fluctuations','Perishable inventory','Competition','Supplier reliability'],BUS_B02:['Export regulations','Quality consistency','International competition','Currency fluctuations'],BUS_B03:['High startup costs','Equipment maintenance','Food safety compliance','Supply chain management'],BUS_C01:['Member commitment','Coordination difficulty','Trust issues','Fair distribution'],BUS_C02:['Group dynamics','Decision making','Fair distribution','Maintaining engagement']};
 
 /* ─────────────────────────────────────────────
+   STEP UNLOCK SYSTEM
+───────────────────────────────────────────── */
+function unlockSection(sectionId, lockedBadgeId, doneBadgeId) {
+  var sec = document.getElementById(sectionId);
+  if (!sec) return;
+  sec.classList.remove('step-locked');
+  var overlay = sec.querySelector('.step-lock-overlay');
+  if (overlay) overlay.remove();
+  if (lockedBadgeId) { var lb = document.getElementById(lockedBadgeId); if (lb) lb.style.display = 'none'; }
+  if (doneBadgeId)   { var db = document.getElementById(doneBadgeId);   if (db) db.style.display = 'inline-flex'; }
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function validateProfileSection() {
+  var role        = document.getElementById('role').value;
+  var purpose     = document.getElementById('purpose').value;
+  var budget      = document.getElementById('available_budget').value;
+  var budgetSrc   = document.getElementById('budget_source').value;
+  if (!role)      { showToast('Please select your Role.', 'warning');            return false; }
+  if (!purpose)   { showToast('Please select your Purpose.', 'warning');          return false; }
+  if (!budget || parseFloat(budget) <= 0) { showToast('Please enter Available Budget.', 'warning'); return false; }
+  if (!budgetSrc) { showToast('Please select a Budget Source.', 'warning');       return false; }
+  return true;
+}
+
+function validateLocationSection() {
+  var lat = document.getElementById('latitude').value;
+  var lon = document.getElementById('longitude').value;
+  if (!lat || !lon) { showToast('Please enter or fetch your GPS coordinates.', 'warning'); return false; }
+  return true;
+}
+
+function continueToFetchSections() {
+  if (!validateProfileSection()) return;
+  if (!validateLocationSection()) return;
+  unlockSection('cultivationSection', 'cultBadgeLocked', 'cultBadgeDone');
+  unlockSection('marketSection', 'mktBadgeLocked', 'mktBadgeDone');
+  showToast('Unlocked! You can now fetch Cultivation & Market data.', 'success');
+}
+
+/* ─────────────────────────────────────────────
    INIT
 ───────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function() {
@@ -558,9 +631,13 @@ document.addEventListener('DOMContentLoaded', function() {
       var opt = document.createElement('option');
       opt.value = o.value; opt.textContent = o.text; sel.appendChild(opt);
     });
-    document.getElementById('cultivationSection').style.display = role === 'farmer' ? 'block' : 'none';
+    var cultSec = document.getElementById('cultivationSection');
+    if (cultSec) cultSec.style.display = role === 'farmer' ? 'block' : 'none';
   });
   document.getElementById('role').dispatchEvent(new Event('change'));
+  // Default optimal_month to current real month
+  var curMonth = new Date().getMonth() + 1;
+  document.getElementById('optimal_month').value = curMonth;
 });
 
 /* ─────────────────────────────────────────────
@@ -576,10 +653,8 @@ async function fetchCultivationRecommendations() {
       document.getElementById('cultivation_item').value          = top.crop;
       document.getElementById('cultivation_profitability').value  = top.profitability_score;
       document.getElementById('cultivation_risk').value           = top.risk_score;
-      document.getElementById('market_item').value                = top.crop;
-      var mm = top.planting_timeline.match(/month (\d+)/i);
-      if (mm) document.getElementById('optimal_month').value = mm[1];
-      var mn = parseInt(document.getElementById('optimal_month').value);
+      document.getElementById('market_item').value               = top.crop;
+      var mn = parseInt(month);
       document.getElementById('season').value = ['Winter','Winter','Spring','Spring','Spring','Summer','Summer','Summer','Autumn','Autumn','Autumn','Winter'][mn-1];
       var d = document.getElementById('cultivationInfo');
       d.style.display = 'block';
@@ -594,11 +669,12 @@ async function fetchCultivationRecommendations() {
 ───────────────────────────────────────────── */
 async function fetchMarketRecommendations() {
   try {
-    var item       = document.getElementById('market_item').value || 'Tomato';
+    var item       = document.getElementById('market_item').value || document.getElementById('cultivation_item').value || 'Tomato';
     var role       = document.getElementById('role').value;
     var marketRole = role==='farmer' ? 'seller' : (role==='consumer' ? 'buyer' : role);
-    var lat        = parseFloat(document.getElementById('latitude').value)  || 7.2906;
-    var lon        = parseFloat(document.getElementById('longitude').value) || 80.6337;
+    var lat        = parseFloat(document.getElementById('latitude').value);
+    var lon        = parseFloat(document.getElementById('longitude').value);
+    if (!lat || !lon) { showToast('Please set your location first.', 'warning'); return; }
     var r = await fetch('/api/market-predict', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ item, price_type: marketRole==='seller' ? 'Wholesale' : 'Retail', user_role: marketRole, latitude: lat, longitude: lon, transport_cost_per_km: 160, quantity: 100, quantity_unit: 'kg', cultivation_cost: marketRole==='seller' ? parseFloat(document.getElementById('predicted_price').value||185.5)*(1-(parseFloat(document.getElementById('cultivation_profitability').value)||0.7)) : 0, profitability: parseFloat(document.getElementById('cultivation_profitability').value||0.7) })
@@ -631,13 +707,12 @@ document.getElementById('predictionForm').addEventListener('submit', async funct
   var fd = {
     role: document.getElementById('role').value, purpose: document.getElementById('purpose').value,
     profession: document.getElementById('profession').value, monthly_income: parseFloat(document.getElementById('monthly_income').value),
-    income_source: document.getElementById('income_source').value, marital_status: document.getElementById('marital_status').value,
-    family_members: parseInt(document.getElementById('family_members').value)||0, children_under_16: parseInt(document.getElementById('children_under_16').value)||0,
+    income_source: document.getElementById('income_source').value,
     available_budget: parseFloat(document.getElementById('available_budget').value), budget_source: document.getElementById('budget_source').value,
     market_item: document.getElementById('market_item').value, market_name: document.getElementById('market_name').value,
     predicted_price: parseFloat(document.getElementById('predicted_price').value), distance_km: parseFloat(document.getElementById('distance_km').value),
     transport_cost: parseFloat(document.getElementById('transport_cost').value), net_advantage: parseFloat(document.getElementById('net_advantage').value),
-    latitude: parseFloat(document.getElementById('latitude').value)||7.2906, longitude: parseFloat(document.getElementById('longitude').value)||80.6337
+    latitude: parseFloat(document.getElementById('latitude').value), longitude: parseFloat(document.getElementById('longitude').value)
   };
   if (fd.role === 'farmer') {
     Object.assign(fd, { cultivation_item: document.getElementById('cultivation_item').value, cultivation_profitability: parseFloat(document.getElementById('cultivation_profitability').value), cultivation_risk: parseFloat(document.getElementById('cultivation_risk').value), optimal_month: parseInt(document.getElementById('optimal_month').value), season: document.getElementById('season').value });
@@ -701,7 +776,7 @@ function _createChart(predictions) {
 ───────────────────────────────────────────── */
 document.getElementById('resetBtn').addEventListener('click', function() {
   document.getElementById('predictionForm').reset();
-  var defaults = {role:'farmer',profession:'farming',income_source:'both',monthly_income:'85000',available_budget:'250000',marital_status:'',family_members:'0',children_under_16:'0',market_item:'',market_name:'',predicted_price:'0',distance_km:'',transport_cost:'',net_advantage:'',cultivation_item:'',cultivation_profitability:'0',cultivation_risk:'0',optimal_month:'1',season:'Spring',latitude:'7.2906',longitude:'80.6337'};
+  var defaults = {role:'farmer',profession:'farming',income_source:'both',monthly_income:'85000',available_budget:'250000',market_item:'',market_name:'',predicted_price:'0',distance_km:'',transport_cost:'',net_advantage:'',cultivation_item:'',cultivation_profitability:'0',cultivation_risk:'0',optimal_month:'1',season:'Spring',latitude:'',longitude:''};
   Object.entries(defaults).forEach(function(e) { var el = document.getElementById(e[0]); if (el) el.value = e[1]; });
   document.getElementById('role').dispatchEvent(new Event('change'));
   document.getElementById('resultsSection').classList.remove('visible');
@@ -718,6 +793,22 @@ document.getElementById('resetBtn').addEventListener('click', function() {
   document.getElementById('locBtnText').textContent       = 'Use My Current Location';
   document.getElementById('locNameCard').style.display    = 'none';
   document.getElementById('locStatus').style.display      = 'none';
+  /* Re-lock steps (location stays open) */
+  ['cultivationSection','marketSection'].forEach(function(id) {
+    var sec = document.getElementById(id);
+    if (!sec) return;
+    if (!sec.classList.contains('step-locked')) sec.classList.add('step-locked');
+    if (!sec.querySelector('.step-lock-overlay')) {
+      var labels = {cultivationSection:'Profile & Location', marketSection:'Profile & Location'};
+      var ov = document.createElement('div'); ov.className = 'step-lock-overlay';
+      ov.innerHTML = '<div class="step-lock-box"><div class="lock-icon"><i class="fas fa-lock"></i></div><p>Complete <strong>'+labels[id]+'</strong> to unlock this section.</p></div>';
+      sec.insertBefore(ov, sec.firstChild);
+    }
+  });
+  var badges = ['cultBadgeLocked','mktBadgeLocked'];
+  badges.forEach(function(b){ var el=document.getElementById(b); if(el) el.style.display=''; });
+  var done = ['cultBadgeDone','mktBadgeDone'];
+  done.forEach(function(b){ var el=document.getElementById(b); if(el) el.style.display='none'; });
 });
 
 /* ─────────────────────────────────────────────

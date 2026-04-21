@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python -c ':*)",
+      "Bash(flutter --version)",
+      "Bash(flutter pub:*)",
+      "Bash(where flutter:*)",
+      "Read(//c/flutter/bin/**)",
+      "Read(//c/src/flutter/bin/**)",
+      "Read(//c/Users/My PC/flutter/bin/**)",
+      "Bash(C:/flutter/bin/flutter analyze:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(python -c ' *)"
+    ]
+  }
+}

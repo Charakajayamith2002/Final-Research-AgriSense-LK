@@ -24,7 +24,17 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-CORS(app)
+CORS(app, supports_credentials=True)
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '')
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Cookie, X-Requested-With'
+    return response
 
 # Configuration
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -138,14 +148,12 @@ PROVINCE_DISTRICTS = {
     }
 }
 
-# Market coordinates for Component 2
+# Market coordinates for Component 2 — loaded from markets.json
+with open('markets.json') as _f:
+    _markets_data = json.load(_f)
 MARKET_COORDINATES = {
-    'Pettah': {'lat': 6.9341, 'lon': 79.9861},
-    'Dambulla': {'lat': 7.8643, 'lon': 80.6501},
-    'Narahenpita': {'lat': 6.9300, 'lon': 79.9681},
-    'Marandagahamula': {'lat': 7.2903, 'lon': 80.5327},
-    'Peliyagoda': {'lat': 6.9682, 'lon': 79.9815},
-    'Negombo': {'lat': 7.2085, 'lon': 79.9743}
+    m['name']: {'lat': m['lat'], 'lon': m['lon']}
+    for m in _markets_data['markets']
 }
 
 # Item data based on categories
@@ -169,6 +177,366 @@ ITEM_DATA = {
         'local': ['Kelawalla', 'Thalapath', 'Balaya', 'Paraw', 'Salaya', 'Hurulla', 'Linna'],
     }
 }
+
+# ============ MOBILE API ROUTES (for Flutter app) ============
+
+@app.route('/api/mobile/login', methods=['POST'])
+def mobile_login():
+    """Mobile login - returns JSON"""
+    try:
+        data = request.get_json() or request.form
+        email = str(data.get('email', '')).lower().strip()
+        password = str(data.get('password', ''))
+        if not email or not password:
+            return jsonify({'success': False, 'message': 'Email and password required'}), 400
+        user = db_handler.get_user_by_email(email)
+        if not user:
+            return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
+        if not check_password_hash(user['password_hash'], password):
+            return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
+        db_handler.update_user_login(str(user['_id']))
+        session['user_id'] = str(user['_id'])
+        session['username'] = user['username']
+        session['user_type'] = user.get('user_type', 'buyer')
+        session['email'] = user['email']
+        return jsonify({
+            'success': True,
+            'username': user['username'],
+            'email': user['email'],
+            'user_type': user.get('user_type', 'buyer'),
+            'user_id': str(user['_id'])
+        })
+    except Exception as e:
+        logger.error(f"Mobile login error: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@app.route('/api/mobile/register', methods=['POST'])
+def mobile_register():
+    """Mobile register - returns JSON"""
+    try:
+        data = request.get_json() or request.form
+        username = str(data.get('username', '')).strip()
+        email = str(data.get('email', '')).lower().strip()
+        password = str(data.get('password', ''))
+        user_type = str(data.get('user_type', 'farmer'))
+        if not username or not email or not password:
+            return jsonify({'success': False, 'message': 'All fields required'}), 400
+        existing = db_handler.get_user_by_email(email)
+        if existing:
+            return jsonify({'success': False, 'message': 'Email already registered'}), 400
+        password_hash = generate_password_hash(password)
+        user_data = {
+            'username': username,
+            'email': email,
+            'password_hash': password_hash,
+            'user_type': user_type,
+            'created_at': datetime.now()
+        }
+        user_id = db_handler.create_user(user_data)
+        session['user_id'] = str(user_id)
+        session['username'] = username
+        session['user_type'] = user_type
+        session['email'] = email
+        return jsonify({
+            'success': True,
+            'username': username,
+            'email': email,
+            'user_type': user_type
+        })
+    except Exception as e:
+        logger.error(f"Mobile register error: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@app.route('/api/mobile/logout', methods=['POST', 'GET'])
+def mobile_logout():
+    """Mobile logout - returns JSON"""
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/mobile/cultivation-targeting', methods=['POST'])
+def mobile_cultivation_targeting():
+    """Mobile API for cultivation targeting - returns JSON with recommendations + weather"""
+    try:
+        import requests as req_lib
+        data = request.get_json() or {}
+        validated_input = {
+            'month': int(data.get('month', 1)),
+            'category': data.get('category', 'All'),
+            'risk_tolerance': data.get('risk_tolerance', 'medium'),
+            'budget': float(data.get('budget', 10000)),
+            'land_size': float(data.get('land_size', 1.0)),
+            'water_availability': data.get('water_availability', 'medium'),
+            'soil_type': data.get('soil_type', 'loam'),
+        }
+        recommendations = model_loader.predict_component3(validated_input)
+
+        # Fetch real weather from Open-Meteo (free, no key needed)
+        lat = float(data.get('latitude', 7.75))
+        lon = float(data.get('longitude', 80.75))
+        weather = None
+        forecast_days = []
+        try:
+            w_url = (
+                f"https://api.open-meteo.com/v1/forecast"
+                f"?latitude={lat}&longitude={lon}"
+                f"&current=temperature_2m,relative_humidity_2m,precipitation,"
+                f"wind_speed_10m,soil_temperature_0cm,weather_code"
+                f"&daily=temperature_2m_max,temperature_2m_min,"
+                f"relative_humidity_2m_max,relative_humidity_2m_min,"
+                f"precipitation_sum,wind_speed_10m_max,weather_code"
+                f"&timezone=Asia%2FColombo&forecast_days=7"
+            )
+            w_resp = req_lib.get(w_url, timeout=8)
+            if w_resp.status_code == 200:
+                w_data = w_resp.json()
+                cur = w_data.get('current', {})
+                daily = w_data.get('daily', {})
+                weather = {
+                    'temperature': round(cur.get('temperature_2m', 25), 1),
+                    'humidity': cur.get('relative_humidity_2m', 70),
+                    'precipitation': round(cur.get('precipitation', 0), 2),
+                    'wind_speed': round(cur.get('wind_speed_10m', 10), 1),
+                    'soil_temp': round(cur.get('soil_temperature_0cm', 24), 1),
+                    'weather_code': cur.get('weather_code', 0),
+                    'latitude': lat,
+                    'longitude': lon,
+                }
+                dates = daily.get('time', [])
+                t_max = daily.get('temperature_2m_max', [])
+                t_min = daily.get('temperature_2m_min', [])
+                hum_max = daily.get('relative_humidity_2m_max', [])
+                hum_min = daily.get('relative_humidity_2m_min', [])
+                precip = daily.get('precipitation_sum', [])
+                wind = daily.get('wind_speed_10m_max', [])
+                codes = daily.get('weather_code', [])
+                for i in range(len(dates)):
+                    forecast_days.append({
+                        'date': dates[i],
+                        'temp_max': round(t_max[i], 1) if i < len(t_max) else 0,
+                        'temp_min': round(t_min[i], 1) if i < len(t_min) else 0,
+                        'humidity_max': hum_max[i] if i < len(hum_max) else 0,
+                        'humidity_min': hum_min[i] if i < len(hum_min) else 0,
+                        'precipitation': round(precip[i], 2) if i < len(precip) else 0,
+                        'wind_max': round(wind[i], 1) if i < len(wind) else 0,
+                        'weather_code': codes[i] if i < len(codes) else 0,
+                    })
+        except Exception as we:
+            logger.warning(f"Weather fetch failed: {we}")
+            # Fallback simulated weather
+            weather = {
+                'temperature': 25.0, 'humidity': 70, 'precipitation': 0.0,
+                'wind_speed': 10.0, 'soil_temp': 24.0, 'weather_code': 0,
+                'latitude': lat, 'longitude': lon,
+            }
+
+        return jsonify({
+            'success': True,
+            **recommendations,
+            'weather': weather,
+            'forecast': forecast_days,
+        })
+    except Exception as e:
+        logger.error(f"Mobile cultivation targeting error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/mobile/market-ranking', methods=['POST'])
+def mobile_market_ranking():
+    """Mobile API for market ranking - returns JSON"""
+    try:
+        data = request.get_json() or {}
+        latitude = float(data.get('latitude', 7.2906))
+        longitude = float(data.get('longitude', 80.6337))
+        quantity = float(data.get('quantity', 1))
+        quantity_unit = data.get('quantity_unit', 'kg')
+        user_role = data.get('user_role', 'seller')
+        additional_transport_cost = float(data.get('additional_transport_cost', 0))
+        cultivation_cost = float(data.get('cultivation_cost', 0))
+        reference_price = float(data.get('reference_price', 0) or 0)
+
+        model_input = {
+            'item': data.get('item'),
+            'price_type': data.get('price_type', 'Wholesale'),
+            'user_role': user_role,
+            'latitude': latitude,
+            'longitude': longitude,
+            'transport_cost_per_km': float(data.get('transport_cost', 160)),
+            'additional_transport_cost': additional_transport_cost,
+            'quantity': quantity,
+            'quantity_unit': quantity_unit,
+            'cultivation_cost': cultivation_cost,
+            'reference_price': reference_price,
+        }
+
+        recommendations = model_loader.predict_component2(model_input)
+
+        if recommendations and 'recommendations' in recommendations:
+            for rec in recommendations['recommendations']:
+                market_name = rec['market']
+                if market_name in MARKET_COORDINATES:
+                    rec['market_lat'] = MARKET_COORDINATES[market_name]['lat']
+                    rec['market_lon'] = MARKET_COORDINATES[market_name]['lon']
+
+        return jsonify({'success': True, **recommendations})
+    except Exception as e:
+        logger.error(f"Mobile market ranking error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/mobile/profitable-strategy', methods=['POST'])
+def mobile_profitable_strategy():
+    """Mobile API for profitable strategy prediction - returns JSON"""
+    if business_predictor is None:
+        return jsonify({'success': False, 'message': 'Business predictor not initialized'}), 500
+    try:
+        data = request.get_json() or {}
+        result = business_predictor.predict(data)
+        return jsonify({'success': True, **result})
+    except Exception as e:
+        logger.error(f"Mobile profitable strategy error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/mobile/yield-quality', methods=['POST'])
+def mobile_yield_quality():
+    """Mobile API for yield quality prediction - returns JSON (no image_urls)"""
+    try:
+        if 'images' not in request.files:
+            return jsonify({'success': False, 'message': 'No image files uploaded'}), 400
+
+        files = request.files.getlist('images')
+        if not files or all(f.filename == '' for f in files):
+            return jsonify({'success': False, 'message': 'No images selected'}), 400
+
+        valid_files = [f for f in files if f and allowed_file(f.filename)]
+        if not valid_files:
+            return jsonify({'success': False, 'message': 'No valid image files provided'}), 400
+
+        best_unit_price = request.form.get('best_unit_price')
+        if not best_unit_price:
+            return jsonify({'success': False, 'message': 'Best unit price is required'}), 400
+        try:
+            best_unit_price = float(best_unit_price)
+        except ValueError:
+            return jsonify({'success': False, 'message': 'Best unit price must be a valid number'}), 400
+
+        import torch
+        from torchvision import transforms
+        from PIL import Image as PILImage
+        import io
+
+        # Load and cache model — share with web yield_quality endpoint
+        if not hasattr(yield_quality, 'model'):
+            import torch.nn as nn
+
+            class ResNet50HealthClassifier(nn.Module):
+                def __init__(self, num_classes=1, pretrained=False, freeze_backbone=False):
+                    super().__init__()
+                    from torchvision import models
+                    self.backbone = models.resnet50(pretrained=pretrained)
+                    num_features = self.backbone.fc.in_features
+                    self.backbone.fc = nn.Identity()
+                    self.classifier = nn.Sequential(
+                        nn.Dropout(p=0.5),
+                        nn.Linear(num_features, 512),
+                        nn.ReLU(inplace=True),
+                        nn.BatchNorm1d(512),
+                        nn.Dropout(p=0.3),
+                        nn.Linear(512, 128),
+                        nn.ReLU(inplace=True),
+                        nn.BatchNorm1d(128),
+                        nn.Linear(128, num_classes)
+                    )
+                    if freeze_backbone:
+                        for param in self.backbone.parameters():
+                            param.requires_grad = False
+
+                def forward(self, x):
+                    x = self.backbone(x)
+                    x = self.classifier(x)
+                    return x
+
+            model = ResNet50HealthClassifier(num_classes=1, pretrained=False, freeze_backbone=True)
+            model_path = 'models/4/model_latest.pth'
+            model.load_state_dict(torch.load(model_path, map_location='cpu'))
+            model.eval()
+            yield_quality.model = model
+
+        model = yield_quality.model
+
+        preprocess = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+
+        probabilities = []
+        predicted_classes = []
+
+        for file in valid_files:
+            img_bytes = file.read()
+            img = PILImage.open(io.BytesIO(img_bytes)).convert('RGB')
+            input_tensor = preprocess(img).unsqueeze(0)
+
+            with torch.no_grad():
+                output = model(input_tensor)
+                if isinstance(output, tuple):
+                    output = output[0]
+                probability = torch.sigmoid(output).item() if output.numel() == 1 else torch.softmax(output, dim=1).max().item()
+                if probability <= 0.1:
+                    probability = probability * 10
+
+            probabilities.append(probability)
+
+            if output.numel() == 1:
+                if probability < 0.1:
+                    predicted_class = 'NULL OR ROTTEN'
+                elif probability < 0.4:
+                    predicted_class = 'Grade_C'
+                elif probability < 0.9:
+                    predicted_class = 'Grade_B'
+                else:
+                    predicted_class = 'Grade_A'
+            else:
+                predicted_idx = torch.softmax(output, dim=1).argmax().item()
+                class_names = ['Grade_A', 'Grade_B', 'Grade_C', 'NULL']
+                predicted_class = class_names[predicted_idx]
+            predicted_classes.append(predicted_class)
+
+        mean_probability = sum(probabilities) / len(probabilities)
+
+        if mean_probability < 0.1:
+            overall_class = 'NULL OR ROTTEN'
+        elif mean_probability < 0.4:
+            overall_class = 'Grade_C'
+        elif mean_probability < 0.9:
+            overall_class = 'Grade_B'
+        else:
+            overall_class = 'Grade_A'
+
+        prediction = {
+            'mean_probability': round(mean_probability, 4),
+            'individual_probabilities': [round(p, 4) for p in probabilities],
+            'predicted_class': overall_class,
+            'individual_classes': predicted_classes,
+            'num_images': len(valid_files),
+            'best_unit_price': best_unit_price,
+            'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        history_data = {
+            'component': 'yield_quality',
+            'input': {'num_files': len(valid_files), 'best_unit_price': best_unit_price},
+            'output': prediction,
+            'timestamp': datetime.now(),
+            'user_id': session.get('user_id')
+        }
+        db_handler.save_prediction(history_data)
+
+        return jsonify({'success': True, **prediction})
+
+    except Exception as e:
+        logger.error(f"Mobile yield quality error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': str(e)}), 400
 
 # ============ AUTHENTICATION ROUTES ============
 
@@ -587,76 +955,178 @@ def cultivation_targeting():
 
     return render_template('cultivation_targeting.html', success=False)
 
+# Updated code of component 04
 @app.route('/yield-quality', methods=['GET', 'POST'])
 @login_required
 def yield_quality():
-    """Component 4: Yield Quality Scaling with Multi-Task Model (Class + Grade)"""
+    """Component 4: Yield Quality Scaling using a separate PyTorch model (.pth)"""
     if request.method == 'POST':
         try:
-            # Check if file was uploaded
-            if 'image' not in request.files:
+            # Check if files were uploaded
+            if 'images' not in request.files:
                 return render_template('yield_quality_scaling.html',
-                                       error='No image file uploaded')
+                                       error='No image files uploaded')
 
-            file = request.files['image']
+            files = request.files.getlist('images')
 
-            if file.filename == '':
+            if not files or all(f.filename == '' for f in files):
                 return render_template('yield_quality_scaling.html',
-                                       error='No image selected')
+                                       error='No images selected')
 
-            if file and allowed_file(file.filename):
+            # Filter valid files
+            valid_files = [f for f in files if f and allowed_file(f.filename)]
+
+            if not valid_files:
+                return render_template('yield_quality_scaling.html',
+                                       error='No valid image files provided')
+
+            # Get best unit price from form
+            best_unit_price = request.form.get('best_unit_price')
+            if not best_unit_price:
+                return render_template('yield_quality_scaling.html',
+                                       error='Best unit price is required')
+            
+            try:
+                best_unit_price = float(best_unit_price)
+            except ValueError:
+                return render_template('yield_quality_scaling.html',
+                                       error='Best unit price must be a valid number')
+
+            # Load the separate PyTorch model and make prediction
+            import torch
+            from torchvision import transforms
+            from PIL import Image
+
+            # Load ResNet50HealthClassifier model (load once and cache)
+            if not hasattr(yield_quality, 'model'):
+                import torch.nn as nn
+
+                class ResNet50HealthClassifier(nn.Module):
+                    """ResNet-50 model for binary health classification"""
+                    def __init__(self, num_classes=1, pretrained=False, freeze_backbone=False):
+                        super().__init__()
+                        from torchvision import models
+                        self.backbone = models.resnet50(pretrained=pretrained)
+                        num_features = self.backbone.fc.in_features
+                        self.backbone.fc = nn.Identity()
+                        self.classifier = nn.Sequential(
+                            nn.Dropout(p=0.5),
+                            nn.Linear(num_features, 512),
+                            nn.ReLU(inplace=True),
+                            nn.BatchNorm1d(512),
+                            nn.Dropout(p=0.3),
+                            nn.Linear(512, 128),
+                            nn.ReLU(inplace=True),
+                            nn.BatchNorm1d(128),
+                            nn.Linear(128, num_classes)
+                        )
+                        if freeze_backbone:
+                            for param in self.backbone.parameters():
+                                param.requires_grad = False
+
+                    def forward(self, x):
+                        x = self.backbone(x)
+                        x = self.classifier(x)
+                        return x
+
+                    def get_health_score(self, x):
+                        logits = self.forward(x)
+                        return torch.sigmoid(logits)
+
+                model = ResNet50HealthClassifier(num_classes=1, pretrained=False, freeze_backbone=True)
+                model_path = 'models/4/model_latest.pth'  # Update path as needed
+                model.load_state_dict(torch.load(model_path, map_location='cpu'))
+                model.eval()
+                yield_quality.model = model
+            else:
+                model = yield_quality.model
+
+            # Image preprocessing
+            preprocess = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+
+            # Process all images
+            probabilities = []
+            image_urls = []
+            predicted_classes = []
+
+            for file in valid_files:
                 # Save uploaded file
                 filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secure_filename(file.filename)}"
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
 
-                # Get prediction from multi-task model (class + grade)
-                try:
-                    prediction = model_loader.predict_component4(filepath)
-                except Exception as model_error:
-                    print(f"Model prediction error: {model_error}")
-                    # Fallback to intelligent prediction
-                    prediction = model_loader._create_intelligent_multitask_prediction(filepath)
+                # Predict probability
+                img = Image.open(filepath).convert('RGB')
+                input_tensor = preprocess(img).unsqueeze(0)
 
-                # Add image URL for display
-                prediction['image_url'] = url_for('static', filename=f'uploads/{filename}')
-                prediction['upload_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                with torch.no_grad():
+                    output = model(input_tensor)
+                    if isinstance(output, tuple):
+                        output = output[0]
+                    probability = torch.sigmoid(output).item() if output.numel() == 1 else torch.softmax(output, dim=1).max().item()
+                    if probability <= 0.1:
+                        probability = probability * 10
 
-                # Format the display result for the template
-                # The template expects both old and new fields for compatibility
-                if 'grade' in prediction:
-                    # This is the new multi-task model output
-                    prediction['predicted_class'] = prediction.get('predicted_class', 'Unknown')
-                    prediction['quality'] = 'Quality' if prediction.get('grade') == 'Grade_A' else 'Low'
-                    prediction['confidence'] = prediction.get('class_confidence', 0.5)
+                probabilities.append(probability)
+                image_urls.append(url_for('static', filename=f'uploads/{filename}'))
 
-                    # Ensure top_3_predictions is in the format template expects
-                    if 'top_3_predictions' not in prediction and 'top_3_classes' in prediction:
-                        prediction['top_3_predictions'] = prediction['top_3_classes']
-
-                    # Create display text
-                    prediction['display_text'] = f"{prediction['predicted_class']} - {prediction.get('grade', 'Unknown')}"
+                # Determine class
+                if output.numel() == 1:
+                    if probability < 0.1:
+                        predicted_class = 'NULL OR ROTTEN'
+                    elif probability < 0.4:
+                        predicted_class = 'Grade_C'
+                    elif probability < 0.9:
+                        predicted_class = 'Grade_B'
+                    else:
+                        predicted_class = 'Grade_A'
                 else:
-                    # This is the old model output - ensure compatibility
-                    prediction['grade'] = 'Grade_A' if prediction.get('quality') == 'Quality' else 'Grade_B'
-                    prediction['class_confidence'] = prediction.get('confidence', 0.5)
-                    prediction['grade_confidence'] = 0.85  # Default for backward compatibility
-                    prediction['all_class_probabilities'] = prediction.get('all_predictions', {})
-                    prediction['all_grade_probabilities'] = {'Grade_A': 0.85, 'Grade_B': 0.15}  # Default
+                    predicted_idx = torch.softmax(output, dim=1).argmax().item()
+                    class_names = ['Grade_A', 'Grade_B', 'Grade_C', 'NULL']
+                    predicted_class = class_names[predicted_idx]
 
-                # Save to history
-                history_data = {
-                    'component': 'yield_quality',
-                    'input': {'filename': filename},
-                    'output': prediction,
-                    'timestamp': datetime.now(),
-                    'user_id': session.get('user_id')
-                }
-                db_handler.save_prediction(history_data)
+                predicted_classes.append(predicted_class)
 
-                return render_template('yield_quality_scaling.html',
-                                       prediction=prediction,
-                                       image_url=prediction['image_url'])
+            # Calculate mean probability
+            mean_probability = sum(probabilities) / len(probabilities)
+
+            # Determine overall class based on mean probability
+            if mean_probability < 0.1:
+                overall_class = 'NULL OR ROTTEN'
+            elif mean_probability < 0.4:
+                overall_class = 'Grade_C'
+            elif mean_probability < 0.9:
+                overall_class = 'Grade_B'
+            else:
+                overall_class = 'Grade_A'
+
+            prediction = {
+                'mean_probability': round(mean_probability, 4),
+                'individual_probabilities': [round(p, 4) for p in probabilities],
+                'predicted_class': overall_class,
+                'individual_classes': predicted_classes,
+                'image_urls': image_urls,
+                'num_images': len(valid_files),
+                'best_unit_price': best_unit_price,
+                'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+            # Save to history
+            history_data = {
+                'component': 'yield_quality',
+                'input': {'num_files': len(valid_files), 'best_unit_price': best_unit_price},
+                'output': prediction,
+                'timestamp': datetime.now(),
+                'user_id': session.get('user_id')
+            }
+            db_handler.save_prediction(history_data)
+
+            return render_template('yield_quality_scaling.html',
+                                   prediction=prediction)
 
         except Exception as e:
             logger.error(f"Yield quality prediction error: {str(e)}")
@@ -667,6 +1137,7 @@ def yield_quality():
 
     return render_template('yield_quality_scaling.html')
 
+# End 0f Updated code of component 04
 
 # Import Component 5
 from component_5 import BusinessIdeaPredictor
@@ -690,7 +1161,7 @@ def profitable_strategy():
             form_data = request.form.to_dict()
 
             # Convert numeric fields
-            numeric_fields = ['monthly_income', 'family_members', 'children_under_16',
+            numeric_fields = ['monthly_income',
                               'available_budget', 'loan_amount', 'loan_rate', 'loan_period_months',
                               'predicted_price', 'distance_km', 'transport_cost', 'net_advantage',
                               'cultivation_profitability', 'cultivation_risk', 'optimal_month']

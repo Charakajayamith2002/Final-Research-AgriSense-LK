@@ -468,25 +468,24 @@
   <canvas id="olee-canvas"></canvas>
 
   <div class="hero-left">
-    <span class="hero-badge">AI-Powered Agriculture</span>
+    <span class="hero-badge" data-i18n="home_badge">AI-Powered Agriculture</span>
 
     <h1 class="hero-title">
-      Smarter Farming<br>
-      Starts with<br>
+      <span data-i18n="home_hero_title">Smarter Farming Starts with</span><br>
       <span class="accent">AgriSense</span>
     </h1>
 
-    <p class="hero-desc">
+    <p class="hero-desc" data-i18n="home_hero_desc">
       Harness the power of machine learning and real-time data to make confident,
       profitable decisions — from what to plant to where to sell.
     </p>
 
     <div class="hero-actions">
       <a href="{{ url_for('profitable_strategy') }}" class="btn-primary-hero">
-        <i class="fas fa-rocket"></i> Get Started Free
+        <i class="fas fa-rocket"></i> <span data-i18n="home_btn_start">Get Started Free</span>
       </a>
       <a href="#features" class="btn-ghost-hero">
-        Explore Features <i class="fas fa-arrow-down"></i>
+        <span data-i18n="home_btn_explore">Explore Features</span> <i class="fas fa-arrow-down"></i>
       </a>
     </div>
   </div>
@@ -496,22 +495,22 @@
       <div class="hero-stat-card">
         <div class="icon">🌿</div>
         <div class="value">5</div>
-        <div class="label">AI Components</div>
+        <div class="label" data-i18n="home_stat_ai">AI Components</div>
       </div>
       <div class="hero-stat-card">
         <div class="icon">🌾</div>
         <div class="value">12+</div>
-        <div class="label">Crop Categories</div>
+        <div class="label" data-i18n="home_stat_crops">Crop Categories</div>
       </div>
       <div class="hero-stat-card">
         <div class="icon">🏪</div>
         <div class="value">6</div>
-        <div class="label">Major Markets</div>
+        <div class="label" data-i18n="home_stat_markets">Major Markets</div>
       </div>
       <div class="hero-stat-card">
         <div class="icon">⚡</div>
         <div class="value">24/7</div>
-        <div class="label">Always Available</div>
+        <div class="label" data-i18n="home_stat_avail">Always Available</div>
       </div>
     </div>
   </div>
@@ -522,9 +521,9 @@
 <section id="features" class="features-section">
   <div class="container">
     <div class="features-header reveal">
-      <p class="section-label">What We Offer</p>
-      <h2 class="section-title">Five Intelligent Modules</h2>
-      <p class="section-subtitle">
+      <p class="section-label" data-i18n="home_feat_label">What We Offer</p>
+      <h2 class="section-title" data-i18n="home_feat_title">Five Intelligent Modules</h2>
+      <p class="section-subtitle" data-i18n="home_feat_subtitle">
         Each component is purpose-built to tackle a distinct challenge in
         agricultural decision-making — powered by state-of-the-art AI.
       </p>
@@ -533,42 +532,42 @@
     <div class="features-grid">
       <a href="{{ url_for('profitable_strategy') }}" class="feature-card fc-strategy reveal">
         <div class="feature-icon-wrap fi-green"><i class="fas fa-lightbulb"></i></div>
-        <span class="feature-tag tag-green">Recommended</span>
-        <h3>Profitable Business Strategy</h3>
-        <p>Get personalized recommendations based on your profile, budget, and current market conditions to maximize your farm profits.</p>
-        <span class="feature-link fl-green">Explore module <i class="fas fa-arrow-right"></i></span>
+        <span class="feature-tag tag-green" data-i18n="home_tag_recommended">Recommended</span>
+        <h3 data-i18n="home_fc1_title">Profitable Business Strategy</h3>
+        <p data-i18n="home_fc1_desc">Get personalized recommendations based on your profile, budget, and current market conditions to maximize your farm profits.</p>
+        <span class="feature-link fl-green"><span data-i18n="home_explore_module">Explore module</span> <i class="fas fa-arrow-right"></i></span>
       </a>
 
       <a href="{{ url_for('price_demand') }}" class="feature-card fc-price reveal">
         <div class="feature-icon-wrap fi-blue"><i class="fas fa-chart-line"></i></div>
-        <span class="feature-tag tag-blue">Predictive AI</span>
-        <h3>Price & Demand Prediction</h3>
-        <p>Forecast prices and demand for vegetables, fruits, and rice with high-accuracy AI models trained on real market data.</p>
-        <span class="feature-link fl-blue">Explore module <i class="fas fa-arrow-right"></i></span>
+        <span class="feature-tag tag-blue" data-i18n="home_tag_predictive">Predictive AI</span>
+        <h3 data-i18n="home_fc2_title">Price & Demand Prediction</h3>
+        <p data-i18n="home_fc2_desc">Forecast prices and demand for vegetables, fruits, and rice with high-accuracy AI models trained on real market data.</p>
+        <span class="feature-link fl-blue"><span data-i18n="home_explore_module">Explore module</span> <i class="fas fa-arrow-right"></i></span>
       </a>
 
       <a href="{{ url_for('market_ranking') }}" class="feature-card fc-market reveal">
         <div class="feature-icon-wrap fi-cyan"><i class="fas fa-map-marked-alt"></i></div>
-        <span class="feature-tag tag-cyan">Geo-Optimized</span>
-        <h3>Market Opportunity Ranking</h3>
-        <p>Discover the best markets nearby with optimal prices and the lowest transportation cost factored in automatically.</p>
-        <span class="feature-link fl-cyan">Explore module <i class="fas fa-arrow-right"></i></span>
+        <span class="feature-tag tag-cyan" data-i18n="home_tag_geo">Geo-Optimized</span>
+        <h3 data-i18n="home_fc3_title">Market Opportunity Ranking</h3>
+        <p data-i18n="home_fc3_desc">Discover the best markets nearby with optimal prices and the lowest transportation cost factored in automatically.</p>
+        <span class="feature-link fl-cyan"><span data-i18n="home_explore_module">Explore module</span> <i class="fas fa-arrow-right"></i></span>
       </a>
 
       <a href="{{ url_for('cultivation_targeting') }}" class="feature-card fc-cultivation reveal">
         <div class="feature-icon-wrap fi-amber"><i class="fas fa-seedling"></i></div>
-        <span class="feature-tag tag-amber">Seasonal Intel</span>
-        <h3>Cultivation Targeting</h3>
-        <p>Know exactly what to plant next season. Get crop recommendations driven by market trends, soil suitability, and seasonality data.</p>
-        <span class="feature-link fl-amber">Explore module <i class="fas fa-arrow-right"></i></span>
+        <span class="feature-tag tag-amber" data-i18n="home_tag_seasonal">Seasonal Intel</span>
+        <h3 data-i18n="home_fc4_title">Cultivation Targeting</h3>
+        <p data-i18n="home_fc4_desc">Know exactly what to plant next season. Get crop recommendations driven by market trends, soil suitability, and seasonality data.</p>
+        <span class="feature-link fl-amber"><span data-i18n="home_explore_module">Explore module</span> <i class="fas fa-arrow-right"></i></span>
       </a>
 
       <a href="{{ url_for('yield_quality') }}" class="feature-card fc-quality reveal">
         <div class="feature-icon-wrap fi-red"><i class="fas fa-camera"></i></div>
-        <span class="feature-tag tag-red">Computer Vision</span>
-        <h3>Quality Grading & Income Prediction</h3>
-        <p>Upload a crop image to get an instant quality grade and projected income estimate powered by deep learning vision models.</p>
-        <span class="feature-link fl-red">Explore module <i class="fas fa-arrow-right"></i></span>
+        <span class="feature-tag tag-red" data-i18n="home_tag_vision">Computer Vision</span>
+        <h3 data-i18n="home_fc5_title">Quality Grading & Income Prediction</h3>
+        <p data-i18n="home_fc5_desc">Upload a crop image to get an instant quality grade and projected income estimate powered by deep learning vision models.</p>
+        <span class="feature-link fl-red"><span data-i18n="home_explore_module">Explore module</span> <i class="fas fa-arrow-right"></i></span>
       </a>
     </div>
   </div>
@@ -579,28 +578,28 @@
 <section class="how-section">
   <div class="container">
     <div class="how-header reveal">
-      <p class="section-label" style="color: var(--mist); opacity:0.8;">The Process</p>
-      <h2 class="section-title">How AgriSense Works</h2>
-      <p class="section-subtitle">Three simple steps between your data and a smarter harvest.</p>
+      <p class="section-label" style="color: var(--mist); opacity:0.8;" data-i18n="home_how_label">The Process</p>
+      <h2 class="section-title" data-i18n="home_how_title">How AgriSense Works</h2>
+      <p class="section-subtitle" data-i18n="home_how_subtitle">Three simple steps between your data and a smarter harvest.</p>
     </div>
     <div class="how-steps">
       <div class="how-step reveal">
         <div class="step-num">01</div>
         <div class="step-icon">📥</div>
-        <h4>Input Your Data</h4>
-        <p>Enter crop details, upload field images, or describe your current conditions through our guided, intuitive interface.</p>
+        <h4 data-i18n="home_step1_title">Input Your Data</h4>
+        <p data-i18n="home_step1_desc">Enter crop details, upload field images, or describe your current conditions through our guided, intuitive interface.</p>
       </div>
       <div class="how-step reveal">
         <div class="step-num">02</div>
         <div class="step-icon">🤖</div>
-        <h4>AI Processes It</h4>
-        <p>Our machine learning models analyze your inputs against historical trends, market data, and seasonal patterns in real time.</p>
+        <h4 data-i18n="home_step2_title">AI Processes It</h4>
+        <p data-i18n="home_step2_desc">Our machine learning models analyze your inputs against historical trends, market data, and seasonal patterns in real time.</p>
       </div>
       <div class="how-step reveal">
         <div class="step-num">03</div>
         <div class="step-icon">📊</div>
-        <h4>Act on Insights</h4>
-        <p>Receive clear, visual recommendations and forecasts you can act on immediately to maximise yield and profit.</p>
+        <h4 data-i18n="home_step3_title">Act on Insights</h4>
+        <p data-i18n="home_step3_desc">Receive clear, visual recommendations and forecasts you can act on immediately to maximise yield and profit.</p>
       </div>
     </div>
   </div>
@@ -611,10 +610,10 @@
 <div class="metrics-bar">
   <div class="container">
     <div class="metrics-inner">
-      <div class="metric-item reveal"><div class="metric-val">5</div><div class="metric-label">Intelligent Components</div></div>
-      <div class="metric-item reveal"><div class="metric-val">12+</div><div class="metric-label">Crop Categories</div></div>
-      <div class="metric-item reveal"><div class="metric-val">6</div><div class="metric-label">Major Markets</div></div>
-      <div class="metric-item reveal"><div class="metric-val">24/7</div><div class="metric-label">System Availability</div></div>
+      <div class="metric-item reveal"><div class="metric-val">5</div><div class="metric-label" data-i18n="home_metric1">Intelligent Components</div></div>
+      <div class="metric-item reveal"><div class="metric-val">12+</div><div class="metric-label" data-i18n="home_metric2">Crop Categories</div></div>
+      <div class="metric-item reveal"><div class="metric-val">6</div><div class="metric-label" data-i18n="home_metric3">Major Markets</div></div>
+      <div class="metric-item reveal"><div class="metric-val">24/7</div><div class="metric-label" data-i18n="home_metric4">System Availability</div></div>
     </div>
   </div>
 </div>
@@ -625,13 +624,13 @@
   <div class="container">
     <div class="cta-inner reveal">
       <div class="cta-text">
-        <p class="section-label">Ready to Begin?</p>
-        <h2>Put Data-Driven Farming<br>to Work for You</h2>
-        <p>Join thousands of farmers across Sri Lanka using AgriSense to make smarter planting, marketing, and selling decisions every day.</p>
+        <p class="section-label" data-i18n="home_cta_label">Ready to Begin?</p>
+        <h2 data-i18n="home_cta_title">Put Data-Driven Farming to Work for You</h2>
+        <p data-i18n="home_cta_desc">Join thousands of farmers across Sri Lanka using AgriSense to make smarter planting, marketing, and selling decisions every day.</p>
       </div>
       <div class="cta-actions">
-        <a href="{{ url_for('profitable_strategy') }}" class="btn-cta-primary">Start for Free</a>
-        <a href="{{ url_for('about') }}" class="btn-cta-outline">Learn More</a>
+        <a href="{{ url_for('profitable_strategy') }}" class="btn-cta-primary" data-i18n="home_cta_start">Start for Free</a>
+        <a href="{{ url_for('about') }}" class="btn-cta-outline" data-i18n="home_cta_learn">Learn More</a>
       </div>
     </div>
   </div>
