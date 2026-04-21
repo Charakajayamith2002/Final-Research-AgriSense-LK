@@ -9,7 +9,8 @@
       "Read(//c/src/flutter/bin/**)",
       "Read(//c/Users/My PC/flutter/bin/**)",
       "Bash(C:/flutter/bin/flutter analyze:*)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(python -c ' *)"
     ]
   }
 }

@@ -148,14 +148,12 @@ PROVINCE_DISTRICTS = {
     }
 }
 
-# Market coordinates for Component 2
+# Market coordinates for Component 2 — loaded from markets.json
+with open('markets.json') as _f:
+    _markets_data = json.load(_f)
 MARKET_COORDINATES = {
-    'Pettah': {'lat': 6.9341, 'lon': 79.9861},
-    'Dambulla': {'lat': 7.8643, 'lon': 80.6501},
-    'Narahenpita': {'lat': 6.9300, 'lon': 79.9681},
-    'Marandagahamula': {'lat': 7.2903, 'lon': 80.5327},
-    'Peliyagoda': {'lat': 6.9682, 'lon': 79.9815},
-    'Negombo': {'lat': 7.2085, 'lon': 79.9743}
+    m['name']: {'lat': m['lat'], 'lon': m['lon']}
+    for m in _markets_data['markets']
 }
 
 # Item data based on categories
