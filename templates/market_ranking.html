@@ -368,14 +368,14 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
                   <input type="number" class="form-control" name="transport_cost" id="transport_cost"
                          step="0.1" min="1" max="1000" required
                          value="{% if form_data %}{{ form_data.transport_cost }}{% else %}160{% endif %}">
-                  <span class="form-hint" data-i18n="mr_hint_transport">Default: Rs.160 per km</span>
+                  <span class="form-hint" data-i18n="mr_hint_transport">Transport rates typically vary depending on vehicle type and storage conditions. Enter a rate that reflects your real-world factors (e.g. three-wheeler ≈ Rs.70/km, mini lorry ≈ Rs.135/km, refrigerated truck ≈ Rs.310/km).</span>
                 </div>
                 <div class="fg">
                   <label class="form-label"><span data-i18n="mr_lbl_add_transport">Additional Transport Cost</span> <span style="font-weight:400;color:var(--tmut)">(Rs.)</span></label>
                   <input type="number" class="form-control" name="additional_transport_cost" id="additional_transport_cost"
                          step="0.1" min="0" max="1000000"
                          value="{% if form_data %}{{ form_data.additional_transport_cost|default(0) }}{% else %}0{% endif %}">
-                  <span class="form-hint" data-i18n="mr_hint_add_transport">Fixed extra charge (e.g. refrigerated vehicle)</span>
+                  <span class="form-hint" data-i18n="mr_hint_add_transport">Fixed extra charges such as refrigeration, special vehicle rental, loading/unloading, or cold storage staging costs.</span>
                 </div>
               </div>
               <div class="fields-grid c2">

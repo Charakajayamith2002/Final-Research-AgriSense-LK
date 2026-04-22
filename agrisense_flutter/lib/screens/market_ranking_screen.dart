@@ -225,7 +225,9 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> with LangMixi
                           validator: (v) => v == null || v.isEmpty ? lang.t('required') : null,
                         ),
                         const SizedBox(height: 4),
-                        const Text('Default: Rs.160 per km',
+                        const Text(
+                            'Transport rates vary by vehicle type & storage conditions.\n'
+                            'e.g. three-wheeler ≈ Rs.70/km · mini lorry ≈ Rs.135/km · refrigerated truck ≈ Rs.310/km',
                             style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       ],
                     )),
@@ -239,7 +241,8 @@ class _MarketRankingScreenState extends State<MarketRankingScreen> with LangMixi
                           decoration: flaskInput(lang.t('mr_add_transport')),
                         ),
                         const SizedBox(height: 4),
-                        const Text('Fixed extra charge (e.g. refrigerated vehicle)',
+                        const Text(
+                            'Fixed extra charges e.g. refrigeration, special vehicle rental, loading/unloading, or cold storage costs.',
                             style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       ],
                     )),
