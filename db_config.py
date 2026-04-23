@@ -197,6 +197,12 @@ class MongoDBHandler:
                 update_data['user_type'] = kwargs['user_type']
             if 'preferences' in kwargs:
                 update_data['preferences'] = kwargs['preferences']
+            if 'profile_photo' in kwargs:
+                update_data['profile_photo'] = kwargs['profile_photo']
+            if 'profile_photo_data' in kwargs:
+                update_data['profile_photo_data'] = kwargs['profile_photo_data']
+            if 'profile_photo_type' in kwargs:
+                update_data['profile_photo_type'] = kwargs['profile_photo_type']
 
             if update_data:
                 self.users.update_one(

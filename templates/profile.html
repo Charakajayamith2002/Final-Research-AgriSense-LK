@@ -2,175 +2,713 @@
 
 {% block title %}User Profile - AgriSense{% endblock %}
 
+{% block extra_css %}
+<style>
+  .profile-page {
+    --profile-bg: #f4f6f1;
+    --profile-surface: #ffffff;
+    --profile-border: rgba(122, 182, 72, 0.28);
+    --profile-accent: #7ab648;
+    --profile-accent-soft: rgba(122, 182, 72, 0.16);
+    --profile-text: #1a1a14;
+    --profile-muted: #64748b;
+    --profile-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--profile-text);
+    background:
+      radial-gradient(ellipse 100% 70% at 100% 0%, rgba(122, 182, 72, 0.14) 0%, transparent 48%),
+      radial-gradient(ellipse 90% 55% at 0% 100%, rgba(212, 168, 71, 0.08) 0%, transparent 42%),
+      linear-gradient(180deg, #fafbf8 0%, var(--profile-bg) 45%, #f0f2ec 100%);
+    min-height: 70vh;
+    padding: 2rem 1.25rem 3.5rem;
+  }
+
+  .profile-page .profile-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .profile-page .profile-hero {
+    margin-bottom: 1.75rem;
+  }
+
+  .profile-page .profile-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--profile-accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-page .profile-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 800;
+    color: #1a1a14;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.35rem;
+  }
+
+  .profile-page .profile-sub {
+    font-size: 0.95rem;
+    color: var(--profile-muted);
+    margin: 0;
+    max-width: 36ch;
+  }
+
+  .profile-page .glass-panel {
+    background: var(--profile-surface);
+    border: 1px solid rgba(122, 182, 72, 0.18);
+    border-radius: var(--profile-radius);
+    box-shadow: 0 4px 24px rgba(26, 26, 14, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+
+  .profile-page .profile-sidebar {
+    padding: 2rem 1.75rem;
+    position: relative;
+  }
+
+  .profile-page .profile-sidebar::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(122, 182, 72, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .profile-page .avatar-wrap {
+    width: 112px;
+    height: 112px;
+    margin: 0 auto 1.25rem;
+    padding: 3px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--profile-accent), #9ccc65);
+    box-shadow: 0 8px 28px rgba(90, 158, 50, 0.2);
+    position: relative;
+  }
+
+  .profile-page .avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(160deg, #f8faf6 0%, #eef2ea 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.75rem;
+    color: var(--profile-accent);
+    overflow: hidden;
+  }
+
+  .profile-page .avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .profile-page .avatar-edit-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--profile-accent);
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    font-size: 0.7rem;
+    transition: background 0.2s, transform 0.15s;
+    z-index: 2;
+  }
+
+  .profile-page .avatar-edit-btn:hover {
+    background: #5a9e32;
+    transform: scale(1.1);
+  }
+
+  .profile-page .profile-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 0.25rem;
+    color: #1a1a14;
+  }
+
+  .profile-page .profile-email {
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--profile-muted);
+    margin-bottom: 1rem;
+    word-break: break-word;
+  }
+
+  .profile-page .role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.9rem;
+    border-radius: 100px;
+    border: 1px solid var(--profile-border);
+    background: var(--profile-accent-soft);
+    color: var(--profile-accent);
+  }
+
+  .profile-page .role-pill.seller {
+    border-color: rgba(13, 148, 136, 0.35);
+    background: rgba(6, 182, 212, 0.12);
+    color: #0f766e;
+  }
+
+  .profile-page .meta-grid {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(26, 26, 20, 0.08);
+  }
+
+  .profile-page .meta-item label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--profile-muted);
+    margin-bottom: 0.2rem;
+  }
+
+  .profile-page .meta-item span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a1a14;
+  }
+
+  .profile-page .meta-item small {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--profile-muted);
+    margin-top: 0.15rem;
+  }
+
+  .profile-page .action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+  }
+
+  .profile-page .btn-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.72rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 26, 20, 0.1);
+    background: #f8faf6;
+    color: var(--profile-text);
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+
+  .profile-page .btn-profile:hover {
+    background: var(--profile-accent-soft);
+    border-color: rgba(122, 182, 72, 0.45);
+    color: #14532d;
+    transform: translateY(-1px);
+  }
+
+  .profile-page .btn-profile.accent {
+    background: var(--profile-accent);
+    border-color: var(--profile-accent);
+    color: #ffffff;
+  }
+
+  .profile-page .btn-profile.accent:hover {
+    filter: brightness(1.05);
+    color: #ffffff;
+  }
+
+  .profile-page .btn-profile.danger {
+    border-color: rgba(220, 38, 38, 0.25);
+    color: #b91c1c;
+    background: #fff;
+  }
+
+  .profile-page .btn-profile.danger:hover {
+    background: rgba(254, 226, 226, 0.6);
+    border-color: rgba(220, 38, 38, 0.4);
+    color: #991b1b;
+  }
+
+  .profile-page .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(26, 26, 20, 0.08);
+    background: linear-gradient(180deg, #fafcf8 0%, #f4f6f1 100%);
+  }
+
+  .profile-page .section-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1a1a14;
+  }
+
+  .profile-page .section-head h2 i {
+    color: var(--profile-accent);
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+
+  .profile-page .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  @media (max-width: 576px) {
+    .profile-page .stats-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .profile-page .stat-tile {
+    border-radius: 16px;
+    padding: 1.1rem 1rem;
+    border: 1px solid rgba(26, 26, 20, 0.08);
+    background: #f8faf6;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .profile-page .stat-tile:hover {
+    border-color: var(--profile-border);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(26, 26, 14, 0.06);
+  }
+
+  .profile-page .stat-tile .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+  }
+
+  .profile-page .stat-tile .num.c1 { color: #4d7c0f; }
+  .profile-page .stat-tile .num.c2 { color: #0d9488; }
+  .profile-page .stat-tile .num.c3 { color: #b45309; }
+
+  .profile-page .stat-tile .lbl {
+    font-size: 0.75rem;
+    color: var(--profile-muted);
+    font-weight: 500;
+  }
+
+  .profile-page .activity-body {
+    padding: 0;
+  }
+
+  .profile-page .activity-table-wrap {
+    overflow-x: auto;
+  }
+
+  .profile-page table.profile-table {
+    width: 100%;
+    margin: 0;
+    color: var(--profile-text);
+    border-collapse: collapse;
+  }
+
+  .profile-page .profile-table thead th {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--profile-muted);
+    padding: 0.9rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(26, 26, 20, 0.08);
+    background: #f4f6f1;
+  }
+
+  .profile-page .profile-table tbody td {
+    padding: 0.85rem 1.25rem;
+    font-size: 0.88rem;
+    border-bottom: 1px solid rgba(26, 26, 20, 0.06);
+    vertical-align: middle;
+  }
+
+  .profile-page .profile-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .profile-page .profile-table tbody tr:hover td {
+    background: rgba(122, 182, 72, 0.04);
+  }
+
+  .profile-page .comp-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+  }
+
+  .profile-page .comp-badge.price { background: rgba(122, 182, 72, 0.18); color: #3f6212; border-color: rgba(122, 182, 72, 0.35); }
+  .profile-page .comp-badge.market { background: rgba(6, 182, 212, 0.12); color: #0e7490; border-color: rgba(6, 182, 212, 0.3); }
+  .profile-page .comp-badge.cult { background: rgba(212, 168, 71, 0.18); color: #92400e; border-color: rgba(212, 168, 71, 0.35); }
+  .profile-page .comp-badge.default { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+
+  .profile-page .btn-view {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(26, 26, 20, 0.12);
+    background: #fff;
+    color: var(--profile-muted);
+    transition: all 0.2s;
+  }
+
+  .profile-page .btn-view:hover {
+    border-color: var(--profile-accent);
+    color: var(--profile-accent);
+    background: var(--profile-accent-soft);
+  }
+
+  .profile-page .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .profile-page .empty-state .empty-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--profile-accent-soft);
+    border: 1px solid var(--profile-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: var(--profile-accent);
+    opacity: 0.85;
+  }
+
+  .profile-page .empty-state p {
+    color: var(--profile-muted);
+    margin-bottom: 1.25rem;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .profile-page .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    padding: 0.65rem 1.25rem;
+    border-radius: 12px;
+    background: var(--profile-accent);
+    color: #ffffff;
+    text-decoration: none;
+    border: none;
+    transition: filter 0.2s, transform 0.15s;
+  }
+
+  .profile-page .btn-cta:hover {
+    filter: brightness(1.05);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  /* Modal — light theme */
+  #editProfileModal .modal-content {
+    background: #ffffff;
+    border: 1px solid rgba(122, 182, 72, 0.2);
+    border-radius: 18px;
+    color: var(--profile-text);
+    box-shadow: 0 24px 48px rgba(26, 26, 14, 0.12);
+  }
+
+  #editProfileModal .modal-header {
+    border-bottom: 1px solid rgba(26, 26, 20, 0.08);
+    padding: 1.25rem 1.5rem;
+  }
+
+  #editProfileModal .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  #editProfileModal .modal-body {
+    padding: 1.5rem;
+  }
+
+  #editProfileModal .form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--profile-muted);
+    text-transform: uppercase;
+  }
+
+  #editProfileModal .form-control,
+  #editProfileModal .form-select {
+    background: #f8faf6;
+    border: 1px solid rgba(26, 26, 20, 0.12);
+    color: #1a1a14;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  #editProfileModal .form-control:focus,
+  #editProfileModal .form-select:focus {
+    border-color: var(--profile-accent);
+    box-shadow: 0 0 0 3px rgba(122, 182, 72, 0.2);
+  }
+
+  #editProfileModal .alert-info {
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.22);
+    color: #0e7490;
+    border-radius: 12px;
+    font-size: 0.85rem;
+  }
+
+  #editProfileModal .modal-footer {
+    border-top: 1px solid rgba(26, 26, 20, 0.08);
+    padding: 1rem 1.5rem;
+  }
+
+  #editProfileModal .btn-secondary {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+  }
+
+  #editProfileModal .btn-secondary:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+
+  #editProfileModal .btn-primary {
+    background: var(--profile-accent);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border-radius: 10px;
+  }
+
+  #editProfileModal .btn-primary:hover {
+    background: #6cad3a;
+    color: #ffffff;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-4">
-            <!-- User Profile Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i><span data-i18n="prof_title">Profile</span></h4>
-                </div>
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-user-circle fa-5x text-primary"></i>
-                    </div>
-                    <h3>{{ user.username }}</h3>
-                    <p class="text-muted">{{ user.email }}</p>
-                    
-                    <div class="mb-3">
-                        <span class="badge bg-{{ 'success' if user.user_type == 'buyer' else 'info' }}">
-                            {{ user.user_type|title }}
-                        </span>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <p class="mb-1"><small data-i18n="prof_member_since">Member since</small></p>
-                        <p class="mb-0"><strong>{{ user.created_at.strftime('%d %B %Y') }}</strong></p>
-                        <p class="text-muted small mt-2"><span data-i18n="prof_last_login">Last login</span>: {{ user.last_login.strftime('%d %B %Y %H:%M') }}</p>
-                    </div>
-                </div>
+<div class="profile-page">
+  <div class="profile-inner">
+    <header class="profile-hero">
+      <p class="profile-eyebrow" data-i18n="prof_eyebrow">Account</p>
+      <h1 class="profile-title" data-i18n="prof_heading">Your profile</h1>
+      <p class="profile-sub" data-i18n="prof_sub">Manage your identity, review usage, and jump back into AgriSense tools.</p>
+    </header>
+
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="glass-panel profile-sidebar h-100">
+          <form id="photoUploadForm" method="POST" action="{{ url_for('upload_profile_photo_web') }}" enctype="multipart/form-data" style="display:none;">
+            <input type="file" id="photoFileInput" name="photo" accept="image/png,image/jpeg,image/webp" onchange="document.getElementById('photoUploadForm').submit()">
+          </form>
+          <div class="avatar-wrap">
+            <div class="avatar-inner">
+              {% if user.profile_photo %}
+              <img src="{{ user.profile_photo }}" alt="Profile photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <i class="fas fa-user" aria-hidden="true" style="display:none"></i>
+              {% else %}
+              <i class="fas fa-user" aria-hidden="true"></i>
+              {% endif %}
             </div>
-            
-            <!-- Profile Actions -->
-            <div class="card shadow">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0" data-i18n="prof_actions">Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            <i class="fas fa-edit me-2"></i><span data-i18n="prof_edit_profile">Edit Profile</span>
-                        </button>
-                        <a href="{{ url_for('history') }}" class="btn btn-outline-info">
-                            <i class="fas fa-history me-2"></i><span data-i18n="prof_view_history">View History</span>
-                        </a>
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
-                            <i class="fas fa-sign-out-alt me-2"></i><span data-i18n="prof_logout">Logout</span>
-                        </a>
-                    </div>
-                </div>
+            <button type="button" class="avatar-edit-btn" title="Change photo" onclick="document.getElementById('photoFileInput').click()">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+          <h2 class="profile-name">{{ user.username }}</h2>
+          <p class="profile-email">{{ user.email }}</p>
+          <div class="text-center">
+            <span class="role-pill {{ 'seller' if user.user_type == 'seller' else '' }}">
+              <i class="fas {{ 'fa-store' if user.user_type == 'seller' else 'fa-shopping-bag' }}"></i>
+              {{ user.user_type|title }}
+            </span>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-item">
+              <label data-i18n="prof_member_since">Member since</label>
+              <span>{{ user.created_at.strftime('%d %B %Y') }}</span>
             </div>
+            <div class="meta-item">
+              <label data-i18n="prof_last_login">Last login</label>
+              <span>{{ user.last_login.strftime('%d %B %Y') }}</span>
+              <small>{{ user.last_login.strftime('%H:%M') }}</small>
+            </div>
+          </div>
+
+          <div class="action-list">
+            <button type="button" class="btn-profile accent" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+              <i class="fas fa-pen"></i> <span data-i18n="prof_edit_profile">Edit profile</span>
+            </button>
+            <a href="{{ url_for('history') }}" class="btn-profile">
+              <i class="fas fa-clock-rotate-left"></i> <span data-i18n="prof_view_history">View history</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-profile danger">
+              <i class="fas fa-arrow-right-from-bracket"></i> <span data-i18n="prof_logout">Log out</span>
+            </a>
+          </div>
         </div>
-        
-        <div class="col-lg-8">
-            <!-- Statistics Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i><span data-i18n="prof_usage_stats">Usage Statistics</span></h4>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-4 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h1 class="display-4 text-primary">{{ history|length }}</h1>
-                                    <p class="mb-0" data-i18n="prof_total_pred">Total Predictions</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h1 class="display-4 text-success">{{ (history|selectattr('component', 'equalto', 'price_demand')|list)|length }}</h1>
-                                    <p class="mb-0" data-i18n="prof_price_pred">Price Predictions</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h1 class="display-4 text-info">{{ (history|selectattr('component', 'equalto', 'market_ranking')|list)|length }}</h1>
-                                    <p class="mb-0" data-i18n="prof_market_rank">Market Rankings</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      </div>
+
+      <div class="col-lg-8 d-flex flex-column gap-4">
+        <div class="glass-panel">
+          <div class="section-head">
+            <h2><i class="fas fa-chart-simple"></i> <span data-i18n="prof_usage_overview">Usage overview</span></h2>
+          </div>
+          <div class="stats-row">
+            <div class="stat-tile">
+              <div class="num c1">{{ history|length }}</div>
+              <div class="lbl" data-i18n="prof_total_pred">Total predictions</div>
             </div>
-            
-            <!-- Recent Activity -->
-            <div class="card shadow">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0"><i class="fas fa-history me-2"></i><span data-i18n="prof_recent">Recent Activity</span></h4>
-                </div>
-                <div class="card-body">
-                    {% if history %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="prof_col_component">Component</th>
-                                    <th data-i18n="prof_col_datetime">Date & Time</th>
-                                    <th data-i18n="prof_col_action">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in history %}
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-{{ 'success' if item.component == 'price_demand' else 'info' if item.component == 'market_ranking' else 'warning' if item.component == 'cultivation_targeting' else 'primary' }}">
-                                            {{ item.component|replace('_', ' ')|title }}
-                                        </span>
-                                    </td>
-                                    <td>{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="viewDetails('{{ item._id }}')">
-                                            <span data-i18n="prof_view_details">View Details</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                        <p class="text-muted" data-i18n="prof_no_activity">No activity yet. Start using the components!</p>
-                        <a href="{{ url_for('price_demand') }}" class="btn btn-primary" data-i18n="prof_first_pred">Make First Prediction</a>
-                    </div>
-                    {% endif %}
-                </div>
+            <div class="stat-tile">
+              <div class="num c2">{{ (history|selectattr('component', 'equalto', 'price_demand')|list)|length }}</div>
+              <div class="lbl" data-i18n="prof_price_pred">Price predictions</div>
             </div>
+            <div class="stat-tile">
+              <div class="num c3">{{ (history|selectattr('component', 'equalto', 'market_ranking')|list)|length }}</div>
+              <div class="lbl" data-i18n="prof_market_rank">Market rankings</div>
+            </div>
+          </div>
         </div>
+
+        <div class="glass-panel flex-grow-1 d-flex flex-column">
+          <div class="section-head">
+            <h2><i class="fas fa-bolt"></i> <span data-i18n="prof_recent">Recent activity</span></h2>
+          </div>
+          <div class="activity-body flex-grow-1">
+            {% if history %}
+            <div class="activity-table-wrap">
+              <table class="profile-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="prof_col_component">Component</th>
+                    <th data-i18n="prof_col_datetime">Date &amp; time</th>
+                    <th style="text-align:right;" data-i18n="prof_col_action">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in history %}
+                  <tr>
+                    <td>
+                      {% if item.component == 'price_demand' %}
+                      <span class="comp-badge price">{{ item.component|replace('_', ' ')|title }}</span>
+                      {% elif item.component == 'market_ranking' %}
+                      <span class="comp-badge market">{{ item.component|replace('_', ' ')|title }}</span>
+                      {% elif item.component == 'cultivation_targeting' %}
+                      <span class="comp-badge cult">{{ item.component|replace('_', ' ')|title }}</span>
+                      {% else %}
+                      <span class="comp-badge default">{{ item.component|replace('_', ' ')|title }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-secondary">{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td style="text-align:right;">
+                      <button type="button" class="btn-view" onclick="viewDetails('{{ item._id }}')"><span data-i18n="prof_view_details">Details</span></button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-icon"><i class="fas fa-leaf"></i></div>
+              <p data-i18n="prof_no_activity">No activity yet. Run a prediction from any module to see it listed here.</p>
+              <a href="{{ url_for('price_demand') }}" class="btn-cta"><i class="fas fa-arrow-trend-up"></i> <span data-i18n="prof_first_pred">Make a prediction</span></a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Edit Profile Modal -->
-<div class="modal fade" id="editProfileModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" data-i18n="prof_edit_title">Edit Profile</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{{ url_for('update_profile') }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label" data-i18n="label_username">Username</label>
-                        <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" data-i18n="prof_label_usertype">User Type</label>
-                        <select class="form-select" name="user_type" required>
-                            <option value="buyer" {% if user.user_type == 'buyer' %}selected{% endif %} data-i18n="buyer_title">Buyer</option>
-                            <option value="seller" {% if user.user_type == 'seller' %}selected{% endif %} data-i18n="seller_title">Seller</option>
-                        </select>
-                    </div>
-                    <div class="alert alert-info">
-                        <small><i class="fas fa-info-circle me-2"></i>
-                            <span data-i18n="prof_email_note">Note: Email cannot be changed. Contact support for email changes.</span>
-                        </small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="prof_cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" data-i18n="prof_save">Save Changes</button>
-                </div>
-            </form>
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProfileModalLabel" data-i18n="prof_edit_title">Edit profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('update_profile') }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label" for="profile-username" data-i18n="prof_label_username">Username</label>
+            <input type="text" class="form-control" id="profile-username" name="username" value="{{ user.username }}" required autocomplete="username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="profile-user-type" data-i18n="prof_label_usertype">User type</label>
+            <select class="form-select" id="profile-user-type" name="user_type" required>
+              <option value="buyer" {% if user.user_type == 'buyer' %}selected{% endif %} data-i18n="prof_opt_buyer">Buyer</option>
+              <option value="seller" {% if user.user_type == 'seller' %}selected{% endif %} data-i18n="prof_opt_seller">Seller</option>
+            </select>
+          </div>
+          <div class="alert alert-info mb-0">
+            <small><i class="fas fa-circle-info me-2"></i><span data-i18n="prof_email_note">Email cannot be changed from here. Contact support if you need to update it.</span></small>
+          </div>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="prof_cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" data-i18n="prof_save">Save changes</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -178,7 +716,6 @@
 <script>
 function viewDetails(predictionId) {
     alert('Details for prediction ID: ' + predictionId + '\n\nIn a full implementation, this would show detailed prediction results.');
-    // In a real implementation, you would fetch and display the prediction details
 }
 </script>
 {% endblock %}

@@ -17,6 +17,9 @@ class ApiConfig {
   static const String logout = '$baseUrl/api/mobile/logout';
   static const String profile = '$baseUrl/profile';
   static const String updateProfile = '$baseUrl/update-profile';
+  static const String getProfile = '$baseUrl/api/mobile/get-profile';
+  static const String uploadProfilePhoto = '$baseUrl/api/mobile/upload-profile-photo';
+  static const String resolveUser = '$baseUrl/api/mobile/resolve-user';
 
   // Feature endpoints
   static const String priceDemand = '$baseUrl/price-demand';

@@ -11,10 +11,37 @@ class ApiService {
 
   // Cookie storage for session
   String? _sessionCookie;
+  String? _userId;
 
   Future<void> _loadCookie() async {
     final prefs = await SharedPreferences.getInstance();
     _sessionCookie = prefs.getString('session_cookie');
+    _userId = prefs.getString('user_id');
+  }
+
+  /// If user_id is missing (old login), recover it from the server using stored email.
+  Future<void> _ensureUserId() async {
+    await _loadCookie();
+    if (_userId != null && _userId!.isNotEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email') ?? '';
+    if (email.isEmpty) return;
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.resolveUser}?email=${Uri.encodeComponent(email)}'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+      final body = response.body.trim();
+      if (!body.startsWith('{')) return;
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      if (data['success'] == true) {
+        _userId = data['user_id'] ?? '';
+        await prefs.setString('user_id', _userId!);
+        if ((data['profile_photo'] ?? '').isNotEmpty) {
+          await prefs.setString('photo_url', data['profile_photo']);
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _saveCookie(String cookie) async {
@@ -26,11 +53,13 @@ class ApiService {
   Map<String, String> get _headers => {
         'Content-Type': 'application/x-www-form-urlencoded',
         if (_sessionCookie != null) 'Cookie': _sessionCookie!,
+        if (_userId != null) 'X-User-Id': _userId!,
       };
 
   Map<String, String> get _jsonHeaders => {
         'Content-Type': 'application/json',
         if (_sessionCookie != null) 'Cookie': _sessionCookie!,
+        if (_userId != null) 'X-User-Id': _userId!,
       };
 
   void _extractCookie(http.Response response) {
@@ -60,6 +89,8 @@ class ApiService {
         await prefs.setString('user_email', email);
         await prefs.setString('username', data['username'] ?? '');
         await prefs.setString('user_type', data['user_type'] ?? 'farmer');
+        await prefs.setString('user_id', data['user_id'] ?? '');
+        _userId = data['user_id'] ?? '';
         return {'success': true};
       }
       return {'success': false, 'message': data['message'] ?? 'Invalid email or password'};
@@ -92,6 +123,8 @@ class ApiService {
         await prefs.setString('user_email', email);
         await prefs.setString('username', data['username'] ?? username);
         await prefs.setString('user_type', data['user_type'] ?? userType);
+        await prefs.setString('user_id', data['user_id'] ?? '');
+        _userId = data['user_id'] ?? '';
         return {'success': true};
       }
       return {'success': false, 'message': data['message'] ?? 'Registration failed'};
@@ -108,6 +141,7 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     _sessionCookie = null;
+    _userId = null;
   }
 
   // ─── PRICE DEMAND ─────────────────────────────────────────
@@ -380,5 +414,68 @@ class ApiService {
 
   Map<String, dynamic> _parseHtmlResponse(String html, String type) {
     return {'success': true, 'html': html};
+  }
+
+  // ─── PROFILE ──────────────────────────────────────────────
+  Future<Map<String, dynamic>> getProfile() async {
+    await _ensureUserId();
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getProfile),
+        headers: _jsonHeaders,
+      ).timeout(const Duration(seconds: 15));
+      _extractCookie(response);
+
+      // Guard: server may return HTML (redirect) if session expired
+      final body = response.body.trim();
+      if (!body.startsWith('{')) {
+        return {'success': false, 'message': 'Session expired. Please log in again.'};
+      }
+
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      if (data['success'] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', data['username'] ?? '');
+        await prefs.setString('user_email', data['email'] ?? '');
+        await prefs.setString('user_type', data['user_type'] ?? '');
+        await prefs.setString('photo_url', data['profile_photo'] ?? '');
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadProfilePhoto(XFile photo) async {
+    await _ensureUserId();
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiConfig.uploadProfilePhoto),
+      );
+      if (_sessionCookie != null) {
+        request.headers['Cookie'] = _sessionCookie!;
+      }
+      final bytes = await photo.readAsBytes();
+      final filename = photo.name.isNotEmpty ? photo.name : 'photo.jpg';
+      request.files.add(http.MultipartFile.fromBytes('photo', bytes, filename: filename));
+      final streamed = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamed);
+      _extractCookie(response);
+
+      final body = response.body.trim();
+      if (!body.startsWith('{')) {
+        return {'success': false, 'message': 'Session expired. Please log in again.'};
+      }
+
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      if (data['success'] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('photo_url', data['photo_url'] ?? '');
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
   }
 }

@@ -33,16 +33,32 @@ def add_cors_headers(response):
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Cookie, X-Requested-With'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Cookie, X-Requested-With, X-User-Id'
     return response
+
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        from flask import Response as FlaskResponse
+        r = FlaskResponse()
+        origin = request.headers.get('Origin', '')
+        if origin:
+            r.headers['Access-Control-Allow-Origin'] = origin
+            r.headers['Access-Control-Allow-Credentials'] = 'true'
+            r.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            r.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Cookie, X-Requested-With, X-User-Id'
+        return r
 
 # Configuration
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['PROFILE_PHOTO_FOLDER'] = 'static/profile_photos'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff', 'webp'}
+app.config['PROFILE_PHOTO_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'webp'}
 
 # Ensure upload directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['PROFILE_PHOTO_FOLDER'], exist_ok=True)
 os.makedirs('static/history', exist_ok=True)
 
 # Initialize components
@@ -51,13 +67,32 @@ model_loader = ModelLoader()
 
 # Authentication and Authorization Decorator
 def login_required(f):
-    """Decorator to require login for protected routes"""
+    """Decorator to require login for protected routes (returns HTML redirect)"""
+    from functools import wraps
+    @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please login to access this page', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+def api_login_required(f):
+    """Decorator for mobile/API routes — accepts session cookie OR X-User-Id header."""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Primary: Flask session cookie (web browser)
+        if 'user_id' in session:
+            return f(*args, **kwargs)
+        # Fallback: token header for Flutter/mobile clients
+        user_id = request.headers.get('X-User-Id', '').strip()
+        if user_id:
+            user = db_handler.get_user_by_id(user_id)
+            if user:
+                session['user_id'] = user_id
+                return f(*args, **kwargs)
+        return jsonify({'success': False, 'message': 'Not authenticated', 'code': 401}), 401
     return decorated_function
 
 # Province-District-DS Division data
@@ -246,6 +281,23 @@ def mobile_register():
     except Exception as e:
         logger.error(f"Mobile register error: {str(e)}")
         return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@app.route('/api/mobile/resolve-user', methods=['GET'])
+def resolve_user_by_email():
+    """Return user_id for a given email — lets the app recover auth without re-login."""
+    email = request.args.get('email', '').lower().strip()
+    if not email:
+        return jsonify({'success': False}), 400
+    user = db_handler.get_user_by_email(email)
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    return jsonify({
+        'success': True,
+        'user_id': str(user['_id']),
+        'username': user.get('username', ''),
+        'user_type': user.get('user_type', ''),
+        'profile_photo': user.get('profile_photo', ''),
+    })
 
 @app.route('/api/mobile/logout', methods=['POST', 'GET'])
 def mobile_logout():
@@ -701,6 +753,116 @@ def update_profile():
         flash('An error occurred', 'error')
 
     return redirect(url_for('profile'))
+
+def _save_photo_to_mongo(user_id, file):
+    """Read file bytes, store as base64 in MongoDB, return the serving URL."""
+    import base64
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'jpg'
+    mime = 'image/jpeg' if ext in ('jpg', 'jpeg') else f'image/{ext}'
+    photo_bytes = file.read()
+    photo_b64 = base64.b64encode(photo_bytes).decode('utf-8')
+    photo_url = f'/api/profile-photo/{user_id}'
+    db_handler.update_user_profile(
+        user_id,
+        profile_photo=photo_url,
+        profile_photo_data=photo_b64,
+        profile_photo_type=mime,
+    )
+    return photo_url
+
+
+@app.route('/api/profile-photo/<user_id>', methods=['GET'])
+def serve_profile_photo(user_id):
+    """Serve profile photo stored in MongoDB — no filesystem needed."""
+    import base64
+    from flask import Response
+    try:
+        user_data = db_handler.get_user_by_id(user_id)
+        if not user_data or 'profile_photo_data' not in user_data:
+            return '', 404
+        photo_bytes = base64.b64decode(user_data['profile_photo_data'])
+        mime = user_data.get('profile_photo_type', 'image/jpeg')
+        return Response(photo_bytes, mimetype=mime,
+                        headers={'Cache-Control': 'public, max-age=86400'})
+    except Exception as e:
+        logger.error(f"Serve profile photo error: {str(e)}")
+        return '', 500
+
+
+@app.route('/upload-profile-photo', methods=['POST'])
+@login_required
+def upload_profile_photo_web():
+    """Upload profile photo from the web UI — stored in MongoDB."""
+    if 'photo' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+
+    file = request.files['photo']
+    if not file or file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in app.config['PROFILE_PHOTO_EXTENSIONS']:
+        flash('Invalid file type. Use JPG, PNG, or WEBP.', 'error')
+        return redirect(url_for('profile'))
+
+    try:
+        photo_url = _save_photo_to_mongo(session['user_id'], file)
+        session['profile_photo'] = photo_url
+        flash('Profile photo updated successfully', 'success')
+    except Exception as e:
+        logger.error(f"Profile photo upload error: {str(e)}")
+        flash('Failed to upload photo', 'error')
+
+    return redirect(url_for('profile'))
+
+
+@app.route('/api/mobile/upload-profile-photo', methods=['POST'])
+@api_login_required
+def upload_profile_photo_api():
+    """Mobile API: Upload profile photo — stored in MongoDB."""
+    if 'photo' not in request.files:
+        return jsonify({'success': False, 'message': 'No file provided'}), 400
+
+    file = request.files['photo']
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'message': 'Empty file'}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in app.config['PROFILE_PHOTO_EXTENSIONS']:
+        return jsonify({'success': False, 'message': 'Invalid file type. Use JPG, PNG, or WEBP.'}), 400
+
+    try:
+        user_id = session['user_id']
+        photo_url = _save_photo_to_mongo(user_id, file)
+        session['profile_photo'] = photo_url
+        return jsonify({'success': True, 'photo_url': photo_url})
+    except Exception as e:
+        logger.error(f"Mobile profile photo upload error: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+
+@app.route('/api/mobile/get-profile', methods=['GET'])
+@api_login_required
+def get_profile_api():
+    """Mobile API: Get current user profile"""
+    try:
+        user_data = db_handler.get_user_by_id(session['user_id'])
+        if not user_data:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+
+        return jsonify({
+            'success': True,
+            'username': user_data.get('username', ''),
+            'email': user_data.get('email', ''),
+            'user_type': user_data.get('user_type', ''),
+            'profile_photo': user_data.get('profile_photo', ''),
+        })
+    except Exception as e:
+        logger.error(f"Get profile API error: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
 
 # ============ PROTECTED APPLICATION ROUTES ============
 
