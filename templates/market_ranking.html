@@ -640,7 +640,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--g50); color:var(--td);
             <div class="summary-strip">
               <div class="summary-cell">
                 <span class="lbl" data-i18n="mr_sum_avg_price">Avg. Price</span>
-                <span class="val">Rs. {{ "%.2f"|format(recommendations.recommendations|map(attribute='predicted_price')|sum / recommendations.recommendations|length) }}/kg</span>
+                <span class="val">Rs. {{ "%.2f"|format(recommendations.recommendations|map(attribute='predicted_price')|sum / [recommendations.recommendations|length, 1]|max) }}/kg</span>
               </div>
               <div class="summary-cell">
                 <span class="lbl" data-i18n="mr_sum_avg_dist">Avg. Distance</span>
