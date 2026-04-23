@@ -35,8 +35,11 @@ class MongoDBHandler:
             self.models = self.db.models
 
             # Test connection
-            self.client.admin.command('ping')
-            logger.info(f"MongoDB connection established successfully to database: {database_name}")
+            try:
+                self.client.admin.command('ping')
+                logger.info(f"MongoDB connection established successfully to database: {database_name}")
+            except Exception as ping_error:
+                logger.warning(f"MongoDB ping failed: {ping_error}")
 
         except ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {str(e)}")
@@ -670,7 +673,11 @@ class MongoDBHandler:
             logger.error(f"Error closing connection: {str(e)}")
 
 # Global database handler instance
-db_handler = MongoDBHandler()
+try:
+    db_handler = MongoDBHandler()
+except Exception as e:
+    logger.error(f"Failed to initialize MongoDB handler: {e}")
+    db_handler = None
 
 # Ensure database is initialized when module is imported
 if __name__ == "__main__":
