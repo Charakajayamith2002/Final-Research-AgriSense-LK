@@ -1089,7 +1089,10 @@ def cultivation_targeting():
                 'budget': float(form_data.get('budget', 10000)),
                 'land_size': float(form_data.get('land_size', 1.0)),
                 'water_availability': form_data.get('water_availability', 'medium'),
-                'soil_type': form_data.get('soil_type', 'loam')
+                'soil_type': form_data.get('soil_type', 'loam'),
+                'latitude': form_data.get('latitude', ''),
+                'longitude': form_data.get('longitude', ''),
+                'previous_profitability': form_data.get('previous_profitability', ''),
             }
 
             # Get recommendations
