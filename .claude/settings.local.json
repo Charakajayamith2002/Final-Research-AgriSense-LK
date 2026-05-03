@@ -10,7 +10,11 @@
       "Read(//c/Users/My PC/flutter/bin/**)",
       "Bash(C:/flutter/bin/flutter analyze:*)",
       "Bash(flutter analyze:*)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(powershell -Command \"Get-Content 'd:\\\\SLIIT\\\\Final-Research Github\\\\-Final-Research-AgriSense-LK\\\\models\\\\3\\\\3. Cultivation Targeting.txt' -TotalCount 500 | Select-Object -First 300\")",
+      "Bash(powershell -Command \"Select-String -Path 'd:\\\\SLIIT\\\\Final-Research Github\\\\-Final-Research-AgriSense-LK\\\\models\\\\3\\\\3. Cultivation Targeting.txt' -Pattern 'classification|regression|crop.*predict|y_train|X_train|feature.*select|label.*encode' -Context 2,2\")",
+      "Bash(powershell -Command \"Select-String -Path 'd:\\\\SLIIT\\\\Final-Research Github\\\\-Final-Research-AgriSense-LK\\\\models\\\\3\\\\3. Cultivation Targeting.txt' -Pattern 'available_features|feature_list|feature_names|feature_data\\\\[' | head -100\")",
+      "Bash(dir \"d:\\\\SLIIT\\\\Final-Research Github\\\\-Final-Research-AgriSense-LK\" /s /b)"
     ]
   }
 }

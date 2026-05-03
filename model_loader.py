@@ -15,6 +15,17 @@ from component_2 import MarketRankingPredictor
 
 warnings.filterwarnings('ignore')
 
+# ── Component 3: crop-level constants (loaded from config/crop_config.json) ────
+def _load_crop_config(path='config/crop_config.json'):
+    with open(path, 'r') as f:
+        cfg = json.load(f)
+    return cfg
+
+_crop_cfg = _load_crop_config()
+_C3_CROP_BASELINES = _crop_cfg['crop_baselines']
+_C3_CROP_INFO      = _crop_cfg['crop_info']
+_C3_ENCODER_CROPS  = set(_crop_cfg['encoder_crops'])
+_C3_SCALER_COLS    = _crop_cfg['scaler_cols']
 
 def _load_markets_config(path='markets.json'):
     """Load market list from JSON config. Returns dict of {name: (lat, lon)}."""
@@ -1008,45 +1019,45 @@ class ModelLoader:
             regression_file = os.path.join(model_path, 'regression_model.pkl')
             if os.path.exists(regression_file):
                 self.models['component3_regression'] = joblib.load(regression_file)
-                print("✓ Loaded regression model")
+                print("OK: Loaded regression model")
             else:
-                print("⚠️ Regression model not found, using default")
+                print("WARN: Regression model not found, using default")
                 self.models['component3_regression'] = None
 
             # Load classification model
             classification_file = os.path.join(model_path, 'classification_model.pkl')
             if os.path.exists(classification_file):
                 self.models['component3_classification'] = joblib.load(classification_file)
-                print("✓ Loaded classification model")
+                print("OK: Loaded classification model")
             else:
-                print("⚠️ Classification model not found, using default")
+                print("WARN: Classification model not found, using default")
                 self.models['component3_classification'] = None
 
             # Load scaler
             scaler_file = os.path.join(model_path, 'feature_scaler.pkl')
             if os.path.exists(scaler_file):
                 self.scalers['component3'] = joblib.load(scaler_file)
-                print("✓ Loaded feature scaler")
+                print("OK: Loaded feature scaler")
             else:
-                print("⚠️ Feature scaler not found")
+                print("WARN: Feature scaler not found")
                 self.scalers['component3'] = None
 
             # Load encoders
             encoders_file = os.path.join(model_path, 'label_encoders.pkl')
             if os.path.exists(encoders_file):
                 self.encoders['component3'] = joblib.load(encoders_file)
-                print("✓ Loaded label encoders")
+                print("OK: Loaded label encoders")
             else:
-                print("⚠️ Label encoders not found, using default")
+                print("WARN: Label encoders not found, using default")
                 self.encoders['component3'] = {}
 
             # Load features
             features_file = os.path.join(model_path, 'selected_features.pkl')
             if os.path.exists(features_file):
                 self.features['component3'] = joblib.load(features_file)
-                print(f"✓ Loaded {len(self.features['component3'])} features")
+                print(f"OK: Loaded {len(self.features['component3'])} features")
             else:
-                print("⚠️ Selected features not found, using default")
+                print("WARN: Selected features not found, using default")
                 self.features['component3'] = []
 
             # Load metadata
@@ -1054,9 +1065,9 @@ class ModelLoader:
             if os.path.exists(metadata_file):
                 with open(metadata_file, 'r') as f:
                     self.metadata['component3'] = json.load(f)
-                print("✓ Loaded model metadata")
+                print("OK: Loaded model metadata")
             else:
-                print("⚠️ Model metadata not found, using default")
+                print("WARN: Model metadata not found, using default")
                 self.metadata['component3'] = {
                     'model_type': 'Default Cultivation Model',
                     'accuracy': 0.75,
@@ -1064,7 +1075,7 @@ class ModelLoader:
                     'classes': 15
                 }
 
-            print("Component 3 models loaded with fallbacks")
+            print("Component 3 models loaded")
 
         except Exception as e:
             print(f"Error loading Component 3: {str(e)}")
@@ -1150,115 +1161,356 @@ class ModelLoader:
                 'soil_type': 'loam'
             }
 
+    # ── Component 3: seasonal crop map ────────────────────────────────────────
+    _SEASONAL_CROPS = {
+        1:  ['Cabbage', 'Carrot', 'Beans', 'Spinach'],
+        2:  ['Tomato', 'Brinjal', 'Pumpkin', 'Cucumber'],
+        3:  ['Green Chilli', 'Lime', 'Snake gourd', 'Okra'],
+        4:  ['Cabbage', 'Carrot', 'Beans', 'Radish'],
+        5:  ['Tomato', 'Brinjal', 'Pumpkin', 'Bitter Gourd'],
+        6:  ['Banana', 'Papaw', 'Pineapple', 'Mango'],
+        7:  ['Green Chilli', 'Lime', 'Snake gourd', 'Drumstick'],
+        8:  ['Cabbage', 'Carrot', 'Beans', 'Cauliflower'],
+        9:  ['Tomato', 'Brinjal', 'Pumpkin', 'Capsicum'],
+        10: ['Banana', 'Papaw', 'Pineapple', 'Guava'],
+        11: ['Green Chilli', 'Lime', 'Snake gourd', 'Bottle Gourd'],
+        12: ['Cabbage', 'Carrot', 'Beans', 'Broccoli'],
+    }
+    _CATEGORY_FILTER = {
+        'Vegetables': {'Cabbage', 'Carrot', 'Beans', 'Tomato', 'Brinjal', 'Pumpkin',
+                       'Snake gourd', 'Green Chilli', 'Lime', 'Spinach', 'Cucumber',
+                       'Okra', 'Radish', 'Bitter Gourd', 'Drumstick', 'Cauliflower',
+                       'Capsicum', 'Bottle Gourd', 'Broccoli'},
+        'Fruits': {'Banana', 'Papaw', 'Pineapple', 'Mango', 'Guava'},
+        'Rice':   {'Samba', 'Nadu', 'Kekulu'},
+    }
+
+    def _component3_models_ready(self):
+        """Return True when both regression and classification models are loaded."""
+        return bool(
+            self.models.get('component3_regression') is not None
+            and self.models.get('component3_classification') is not None
+            and self.scalers.get('component3') is not None
+            and self.encoders.get('component3')
+        )
+
+    def _prepare_component3_features_for_crop(self, crop, month, input_data):
+        """
+        Build the 92-feature DataFrame the Component 3 models expect for one crop.
+
+        Feature names are read directly from the trained model so the vector always
+        matches, regardless of what selected_features.pkl contains.  Price-based
+        features are synthesised from per-crop historical baselines; categorical
+        features are encoded with the saved LabelEncoders; scaled columns are
+        produced with (raw − mean) / std using the saved StandardScaler.
+        """
+        label_encoders = self.encoders['component3']
+        scaler         = self.scalers['component3']
+        # Use the model's own feature list — 92 features, authoritative.
+        model_features = self.models['component3_regression'].feature_name_
+
+        # Scaler lookup: raw column → (mean, scale)
+        scaler_stats: dict = {}
+        if hasattr(scaler, 'feature_names_in_'):
+            for i, col in enumerate(scaler.feature_names_in_):
+                scaler_stats[col] = (float(scaler.mean_[i]), float(scaler.scale_[i]))
+
+        def scale(raw_name: str, raw_val: float) -> float:
+            if raw_name in scaler_stats:
+                mean, std = scaler_stats[raw_name]
+                return (raw_val - mean) / max(std, 1e-10)
+            return float(raw_val)
+
+        def encode(enc_key: str, value: str) -> int:
+            le = label_encoders.get(enc_key)
+            if le is None:
+                return 0
+            try:
+                return int(le.transform([value])[0])
+            except ValueError:
+                return len(le.classes_) // 2   # unseen → median class
+
+        # ── Category / crop metadata ──────────────────────────────────────────
+        category = input_data.get('category', 'All')
+        if category == 'All':
+            category = _C3_CROP_INFO.get(crop, {}).get('category', 'Vegetables')
+
+        crop_info = _C3_CROP_INFO.get(crop, {
+            'growth_days': 90, 'water_needs': 'Medium',
+            'optimal_season': 'Both', 'crop_type': 'Vegetable', 'category': 'Vegetables',
+        })
+        baselines  = _C3_CROP_BASELINES.get(crop, _C3_CROP_BASELINES['_default'])
+        typ_price  = float(baselines['typical_price'])
+        price_std  = float(baselines['price_std'])
+        growth_days = int(crop_info['growth_days'])
+
+        # ── Time features ─────────────────────────────────────────────────────
+        import datetime as _dt
+        now           = _dt.date.today()
+        year          = now.year
+        day           = 15             # representative mid-month day
+        week          = now.isocalendar()[1]
+        day_of_week   = 2              # Wednesday
+        quarter       = (month - 1) // 3 + 1
+        is_month_start = 0
+        is_month_end   = 0
+        season_enc     = 0 if 4 <= month <= 9 else 1   # Yala=0, Maha=1
+
+        # ── Cultivation features ──────────────────────────────────────────────
+        gdd_map      = {1: 250, 2: 260, 3: 270, 4: 280, 5: 290, 6: 290,
+                        7: 285, 8: 280, 9: 275, 10: 270, 11: 260, 12: 255}
+        gdd          = float(gdd_map.get(month, 270))
+        rainfall_map = {10: 2, 11: 2, 12: 2, 1: 2, 4: 1, 5: 1, 9: 1}
+        rainfall_enc = float(rainfall_map.get(month, 0))
+        water_enc    = float({'Low': 0, 'Medium': 1, 'High': 2}.get(
+                                 crop_info.get('water_needs', 'Medium'), 1))
+
+        opt_season = crop_info.get('optimal_season', 'Both')
+        if opt_season == 'Both':
+            season_compat = 1.0
+        elif opt_season == 'Cool' and month in {11, 12, 1, 2, 3}:
+            season_compat = 1.0
+        elif opt_season == 'Warm' and month in {4, 5, 6, 7, 8, 9, 10}:
+            season_compat = 1.0
+        else:
+            season_compat = 0.3
+
+        # ── Price baseline (seasonal adjustment) ──────────────────────────────
+        seasonal_adj = {1: 1.00, 2: 0.95, 3: 0.90, 4: 0.95, 5: 1.00, 6: 0.85,
+                        7: 0.80, 8: 0.90, 9: 1.00, 10: 0.90, 11: 0.85, 12: 0.95}
+        adj       = seasonal_adj.get(month, 1.0)
+        cur_price = typ_price * adj
+
+        # Raw price features (mirror training feature construction)
+        p_prev  = cur_price * 0.99
+        p_ra3   = cur_price
+        p_ra5   = cur_price * 0.99
+        p_ra7   = cur_price * 0.98
+        p_rs5   = price_std
+        p_rs10  = price_std * 1.1
+        p_m1    = 0.01 * adj
+        p_m3    = 0.02 * adj
+        p_m7    = 0.03 * adj
+        p_rng5  = price_std * 2.0
+        p_pos5  = 0.60
+        p_l1    = cur_price * 0.99
+        p_l3    = cur_price * 0.97
+        p_l7    = cur_price * 0.95
+        p_tr5   = cur_price * 0.005
+        p_s7    = cur_price * 0.02
+
+        mkt_spread = typ_price * 0.15
+        mkt_cv     = price_std / (cur_price + 1e-10)
+        p2mkt_avg  = 1.0
+        p2vol      = cur_price / (price_std + 1e-10)
+        s_pf       = season_enc * cur_price / 100.0
+        mkt_dem    = p_m3 * mkt_spread
+        supply_pr  = -p_m7 * p_rs10
+        grow_adj_p = cur_price / (growth_days / 100.0)
+
+        w_mean  = cur_price * 0.99
+        w_std   = price_std * 0.90
+        w_min   = cur_price * 0.95
+        w_max   = cur_price * 1.05
+        w_cnt   = 5.0
+        w_mom   = p_m3
+        w_vol   = mkt_cv
+        m_mean  = cur_price
+        m_std   = price_std
+        m_spr   = mkt_spread
+        dev_w   = 0.10
+        dev_m   = 0.00
+
+        # Flat dict: raw feature name → raw value
+        raw: dict = {
+            'price_prev': p_prev, 'price_today': cur_price,
+            'price_rolling_avg_3': p_ra3, 'price_rolling_avg_5': p_ra5,
+            'price_rolling_avg_7': p_ra7, 'price_rolling_std_5': p_rs5,
+            'price_rolling_std_10': p_rs10, 'price_momentum_1': p_m1,
+            'price_momentum_3': p_m3, 'price_momentum_7': p_m7,
+            'price_range_5': p_rng5, 'price_position_5': p_pos5,
+            'price_lag_1': p_l1, 'price_lag_3': p_l3, 'price_lag_7': p_l7,
+            'price_trend_5': p_tr5, 'price_seasonal_7': p_s7,
+            'gdd_estimation': gdd, 'growth_days': float(growth_days),
+            'season_compatibility': season_compat,
+            'price_to_market_avg': p2mkt_avg, 'price_to_volatility': p2vol,
+            'season_price_factor': s_pf, 'market_demand_indicator': mkt_dem,
+            'supply_pressure': supply_pr, 'growth_adjusted_price': grow_adj_p,
+            'weekly_price_mean': w_mean, 'weekly_price_std': w_std,
+            'weekly_price_min': w_min, 'weekly_price_max': w_max,
+            'weekly_record_count': w_cnt, 'weekly_momentum_avg': w_mom,
+            'weekly_volatility_avg': w_vol,
+            'monthly_price_mean': m_mean, 'monthly_price_std': m_std,
+            'monthly_market_spread': m_spr,
+            'price_deviation_weekly': dev_w, 'price_deviation_monthly': dev_m,
+        }
+
+        # ── Build 92-feature row ──────────────────────────────────────────────
+        feat_row: dict = {}
+        for feat in model_features:
+            if feat == 'market_clean_encoded':
+                feat_row[feat] = encode('market_clean', 'Dambulla')
+            elif feat == 'category_encoded':
+                feat_row[feat] = encode('category', category)
+            elif feat == 'price_type_encoded':
+                feat_row[feat] = encode('price_type', 'Wholesale')
+            elif feat == 'item_clean_encoded':
+                feat_row[feat] = encode('item_clean', crop)
+            elif feat == 'crop_type_encoded':
+                feat_row[feat] = encode('crop_type', crop_info['crop_type'])
+            elif feat == 'year':
+                feat_row[feat] = year
+            elif feat == 'month':
+                feat_row[feat] = month
+            elif feat == 'day':
+                feat_row[feat] = day
+            elif feat == 'week':
+                feat_row[feat] = week
+            elif feat == 'day_of_week':
+                feat_row[feat] = day_of_week
+            elif feat == 'quarter':
+                feat_row[feat] = quarter
+            elif feat == 'is_month_start':
+                feat_row[feat] = is_month_start
+            elif feat == 'is_month_end':
+                feat_row[feat] = is_month_end
+            elif feat == 'season_encoded':
+                feat_row[feat] = season_enc
+            elif feat == 'water_needs_encoded':
+                feat_row[feat] = water_enc
+            elif feat == 'rainfall_encoded':
+                feat_row[feat] = rainfall_enc
+            elif feat in raw:
+                feat_row[feat] = float(raw[feat])
+            elif feat.endswith('_scaled'):
+                raw_name = feat[:-7]            # strip '_scaled'
+                feat_row[feat] = scale(raw_name, raw.get(raw_name, 0.0))
+            else:
+                feat_row[feat] = 0.0
+
+        return pd.DataFrame([feat_row])[model_features]
+
     def predict_component3(self, input_data):
-        """Get cultivation recommendations - FIXED for division by zero"""
+        """Get cultivation recommendations using the trained ML models."""
         try:
-            month = int(input_data.get('month', 1))
-            category = input_data.get('category', 'All')
+            month          = int(input_data.get('month', 1))
+            category       = input_data.get('category', 'All')
             risk_tolerance = input_data.get('risk_tolerance', 'medium')
+            land_size      = float(input_data.get('land_size', 1.0))
 
-            # Seasonal crops based on month
-            seasonal_crops = {
-                1: ['Cabbage', 'Carrot', 'Beans', 'Spinach'],
-                2: ['Tomato', 'Brinjal', 'Pumpkin', 'Cucumber'],
-                3: ['Green Chilli', 'Lime', 'Snake gourd', 'Okra'],
-                4: ['Cabbage', 'Carrot', 'Beans', 'Radish'],
-                5: ['Tomato', 'Brinjal', 'Pumpkin', 'Bitter Gourd'],
-                6: ['Banana', 'Papaw', 'Pineapple', 'Mango'],
-                7: ['Green Chilli', 'Lime', 'Snake gourd', 'Drumstick'],
-                8: ['Cabbage', 'Carrot', 'Beans', 'Cauliflower'],
-                9: ['Tomato', 'Brinjal', 'Pumpkin', 'Capsicum'],
-                10: ['Banana', 'Papaw', 'Pineapple', 'Guava'],
-                11: ['Green Chilli', 'Lime', 'Snake gourd', 'Bottle Gourd'],
-                12: ['Cabbage', 'Carrot', 'Beans', 'Broccoli']
-            }
-
-            # Get crops for the month
-            crops = seasonal_crops.get(month, ['Beans', 'Tomato', 'Cabbage'])
-
-            # Filter by category if specified
+            # ── Candidate crops for this month / category ─────────────────────
+            crops = list(self._SEASONAL_CROPS.get(month, ['Beans', 'Tomato', 'Cabbage']))
             if category != 'All':
-                crop_categories = {
-                    'Vegetables': ['Cabbage', 'Carrot', 'Beans', 'Tomato', 'Brinjal',
-                                   'Pumpkin', 'Snake gourd', 'Green Chilli', 'Lime',
-                                   'Spinach', 'Cucumber', 'Okra', 'Radish', 'Bitter Gourd',
-                                   'Drumstick', 'Cauliflower', 'Capsicum', 'Bottle Gourd', 'Broccoli'],
-                    'Fruits': ['Banana', 'Papaw', 'Pineapple', 'Mango', 'Guava'],
-                    'Rice': ['Samba', 'Nadu', 'Kekulu']
-                }
-                category_crops = crop_categories.get(category, [])
-                crops = [crop for crop in crops if crop in category_crops]
+                allowed = self._CATEGORY_FILTER.get(category, set())
+                crops = [c for c in crops if c in allowed] or crops
 
-            # Ensure we have crops to recommend
-            if not crops:
-                crops = ['Beans', 'Tomato', 'Cabbage']  # Default fallback
-
-            # Generate recommendations with scores
+            use_ml = self._component3_models_ready()
             recommendations = []
-            for i, crop in enumerate(crops[:5]):  # Limit to top 5 crops
-                try:
-                    profitability = self._calculate_profitability_score(crop, month)
-                    risk = self._calculate_risk_score(crop, risk_tolerance)
 
-                    # Calculate recommendation score safely
-                    if profitability > 0 and risk >= 0:
-                        recommendation_score = profitability - risk
+            for crop in crops[:5]:
+                try:
+                    if use_ml and crop in _C3_ENCODER_CROPS:
+                        features = self._prepare_component3_features_for_crop(
+                            crop, month, input_data
+                        )
+                        predicted_price = float(
+                            self.models['component3_regression'].predict(features)[0]
+                        )
+                        price_up_prob = float(
+                            self.models['component3_classification'].predict_proba(features)[0][1]
+                        )
+
+                        bl = _C3_CROP_BASELINES.get(crop, _C3_CROP_BASELINES['_default'])
+                        cost_per_kg  = bl['cost_per_kg']
+                        yield_per_ha = bl['yield_per_ha']
+
+                        # Profitability: profit margin normalised to 0–1
+                        profit_margin     = (predicted_price - cost_per_kg) / max(predicted_price, 1.0)
+                        profitability_score = max(0.0, min(1.0, profit_margin))
+
+                        # Price uncertainty: 0 = certain direction, 1 = 50/50
+                        price_uncertainty = 1.0 - abs(price_up_prob - 0.5) * 2.0
+
+                        # Base crop risk adjusted by market signal uncertainty
+                        base_risk  = self._calculate_risk_score(crop, risk_tolerance)
+                        risk_score = min(1.0, base_risk * (0.7 + price_uncertainty * 0.3))
+
+                        recommendation_score = profitability_score - risk_score * 0.5
+
+                        if price_up_prob > 0.55:
+                            price_trend = 'Increasing'
+                        elif price_up_prob < 0.45:
+                            price_trend = 'Decreasing'
+                        else:
+                            price_trend = 'Stable'
+
+                        expected_revenue = round(
+                            predicted_price * yield_per_ha * land_size / 1000.0, 2
+                        )
+                        weather_note = (
+                            f"7-day price outlook: LKR {predicted_price:.0f}/kg "
+                            f"({price_trend})"
+                        )
+
                     else:
-                        recommendation_score = profitability  # Fallback if risk is negative
+                        # Fallback: hardcoded scoring (also used for crops outside encoder)
+                        profitability_score  = self._calculate_profitability_score(crop, month)
+                        risk_score           = self._calculate_risk_score(crop, risk_tolerance)
+                        recommendation_score = profitability_score - risk_score
+                        bl = _C3_CROP_BASELINES.get(crop, _C3_CROP_BASELINES['_default'])
+                        expected_revenue = round(profitability_score * bl['yield_per_ha'] * land_size, 2)
+                        weather_note = 'Seasonal estimate based on historical trends'
 
                     recommendations.append({
-                        'rank': i + 1,
+                        'rank': 0,
                         'crop': crop,
-                        'profitability_score': round(profitability, 2),
-                        'risk_score': round(risk, 2),
+                        'profitability_score':  round(profitability_score, 2),
+                        'risk_score':           round(risk_score, 2),
                         'recommendation_score': round(recommendation_score, 2),
-                        'planting_timeline': self._get_planting_timeline(crop, month),
-                        'expected_revenue': round(profitability * 10000, 2)  # Use profitability directly
+                        'planting_timeline':    self._get_planting_timeline(crop, month),
+                        'expected_revenue':     expected_revenue,
+                        'weather_note':         weather_note,
                     })
-                except Exception as crop_error:
-                    print(f"Error processing crop {crop}: {crop_error}")
+
+                except Exception as crop_err:
+                    print(f"Component 3 – error for {crop}: {crop_err}")
                     continue
 
-            # Sort by recommendation score (handle empty list)
-            if recommendations:
-                recommendations.sort(key=lambda x: x['recommendation_score'], reverse=True)
-                total_recommendations = len(recommendations)
-            else:
-                # Create default recommendations if none generated
+            if not recommendations:
                 recommendations = [{
-                    'rank': 1,
-                    'crop': 'Beans',
-                    'profitability_score': 0.6,
-                    'risk_score': 0.3,
-                    'recommendation_score': 0.3,
-                    'planting_timeline': f'Plant in month {month}, Harvest in month {(month + 2) % 12 or 12}',
-                    'expected_revenue': 6000.0
+                    'rank': 1, 'crop': 'Beans',
+                    'profitability_score': 0.60, 'risk_score': 0.30,
+                    'recommendation_score': 0.30,
+                    'planting_timeline': f'Plant in month {month}, Harvest in 2-3 months',
+                    'expected_revenue': 6000.0,
+                    'weather_note': 'Seasonal estimate based on historical trends',
                 }]
-                total_recommendations = 1
+
+            recommendations.sort(key=lambda x: x['recommendation_score'], reverse=True)
+            for i, rec in enumerate(recommendations):
+                rec['rank'] = i + 1
 
             return {
-                'recommendations': recommendations,
-                'optimal_month': month,
-                'season': self._get_season(month),
-                'total_recommendations': total_recommendations
+                'recommendations':      recommendations,
+                'optimal_month':        month,
+                'season':               self._get_season(month),
+                'total_recommendations': len(recommendations),
+                'ml_powered':           use_ml,
             }
 
         except Exception as e:
             print(f"Component 3 prediction error: {str(e)}")
-            # Return safe default recommendations
             return {
                 'recommendations': [{
-                    'rank': 1,
-                    'crop': 'Beans',
-                    'profitability_score': 0.6,
-                    'risk_score': 0.3,
-                    'recommendation_score': 0.3,
-                    'planting_timeline': 'Plant now, Harvest in 2-3 months',
-                    'expected_revenue': 6000.0
+                    'rank': 1, 'crop': 'Beans',
+                    'profitability_score': 0.60, 'risk_score': 0.30,
+                    'recommendation_score': 0.30,
+                    'planting_timeline': 'Plant now, harvest in 2-3 months',
+                    'expected_revenue': 6000.0,
+                    'weather_note': 'Seasonal estimate based on historical trends',
                 }],
-                'optimal_month': 1,
-                'season': 'Winter',
-                'total_recommendations': 1
+                'optimal_month': 1, 'season': 'Winter',
+                'total_recommendations': 1, 'ml_powered': False,
             }
 
     def _calculate_profitability_score(self, crop, month):

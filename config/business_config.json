@@ -1,0 +1,122 @@
+{
+  "business_mapping": {
+    "0":  "BUS_F01",
+    "1":  "BUS_F02",
+    "2":  "BUS_F03",
+    "3":  "BUS_F04",
+    "4":  "BUS_S01",
+    "5":  "BUS_S02",
+    "6":  "BUS_S03",
+    "7":  "BUS_B01",
+    "8":  "BUS_B02",
+    "9":  "BUS_B03",
+    "10": "BUS_C01",
+    "11": "BUS_C02"
+  },
+  "business_names": {
+    "BUS_F01": "Commercial Crop Farming",
+    "BUS_F02": "Organic Farming",
+    "BUS_F03": "Value-Added Farm Products",
+    "BUS_F04": "Contract Farming",
+    "BUS_S01": "Wholesale Produce Trader",
+    "BUS_S02": "Agricultural Collector",
+    "BUS_S03": "Commission Agent",
+    "BUS_B01": "Retail Fruit & Vegetable Shop",
+    "BUS_B02": "Value-Added Products for Export",
+    "BUS_B03": "Food Processing Business",
+    "BUS_C01": "Monthly Budget Optimization",
+    "BUS_C02": "Community Buying Group"
+  },
+  "business_descriptions": {
+    "BUS_F01": "Start commercial farming of high-demand crops using modern techniques for maximum yield and profit. Ideal for experienced farmers with access to land and irrigation.",
+    "BUS_F02": "Focus on organic farming methods to produce premium-priced chemical-free produce for health-conscious consumers. Requires organic certification and specialized knowledge.",
+    "BUS_F03": "Create value-added farm products like packaged honey, organic spices, or farm-made preserves. Good for diversifying farm income.",
+    "BUS_F04": "Enter into contract farming agreements with companies to grow specific crops at guaranteed prices. Provides income stability but less flexibility.",
+    "BUS_S01": "Become a wholesale trader buying in bulk from farmers and selling to retailers and distributors. Requires storage facilities and market knowledge.",
+    "BUS_S02": "Work as an agricultural collector gathering produce from multiple small farmers and supplying to larger markets. Good entry point for rural entrepreneurs.",
+    "BUS_S03": "Act as a commission agent facilitating transactions between farmers and buyers for a percentage fee. Low capital requirement, relies on trust and networks.",
+    "BUS_B01": "Start a retail shop selling fresh fruits and vegetables directly to consumers. Focus on quality, location, and competitive pricing.",
+    "BUS_B02": "Process local produce into value-added products (dried fruits, juices, pickles) for export markets. Requires processing facilities and export knowledge.",
+    "BUS_B03": "Establish a food processing facility to convert agricultural produce into packaged foods for local and regional markets. Higher capital requirement.",
+    "BUS_C01": "Join or form a monthly budget optimization group to collectively purchase groceries at wholesale prices. Reduces individual food costs significantly.",
+    "BUS_C02": "Organize a community buying group to purchase directly from farmers, reducing costs for all members. Requires coordination and trust."
+  },
+  "business_risk": {
+    "BUS_F01": "High",
+    "BUS_F02": "Medium",
+    "BUS_F03": "Medium",
+    "BUS_F04": "Low",
+    "BUS_S01": "Medium",
+    "BUS_S02": "Low",
+    "BUS_S03": "Low",
+    "BUS_B01": "Medium",
+    "BUS_B02": "High",
+    "BUS_B03": "High",
+    "BUS_C01": "Very Low",
+    "BUS_C02": "Very Low"
+  },
+  "capital_required": {
+    "BUS_F01": "LKR 300,000 - 1,500,000",
+    "BUS_F02": "LKR 200,000 - 1,000,000",
+    "BUS_F03": "LKR 150,000 - 800,000",
+    "BUS_F04": "LKR 100,000 - 500,000",
+    "BUS_S01": "LKR 200,000 - 1,000,000",
+    "BUS_S02": "LKR 50,000 - 200,000",
+    "BUS_S03": "LKR 20,000 - 100,000",
+    "BUS_B01": "LKR 100,000 - 500,000",
+    "BUS_B02": "LKR 500,000 - 2,000,000",
+    "BUS_B03": "LKR 1,000,000 - 5,000,000",
+    "BUS_C01": "LKR 10,000 - 50,000",
+    "BUS_C02": "LKR 5,000 - 30,000"
+  },
+  "key_considerations": {
+    "BUS_F01": ["Use quality seeds/inputs", "Implement modern irrigation", "Plan crop rotation", "Monitor market prices"],
+    "BUS_F02": ["Obtain organic certification", "Build soil health naturally", "Target premium markets", "Maintain detailed records"],
+    "BUS_F03": ["Develop unique recipes", "Create attractive packaging", "Ensure food safety", "Tell your farm story"],
+    "BUS_F04": ["Read contracts carefully", "Meet quality specifications", "Build long-term relationships", "Plan for contingencies"],
+    "BUS_S01": ["Build storage facilities", "Develop farmer network", "Monitor market prices daily", "Manage cash flow"],
+    "BUS_S02": ["Establish collection points", "Build trust with farmers", "Ensure timely payments", "Maintain quality standards"],
+    "BUS_S03": ["Build reputation for fairness", "Maintain good relationships", "Keep accurate records", "Stay informed on prices"],
+    "BUS_B01": ["Focus on high-demand items", "Build relationships with farmers", "Maintain quality standards", "Offer competitive prices"],
+    "BUS_B02": ["Research export requirements", "Invest in processing equipment", "Build international contacts", "Understand quality standards"],
+    "BUS_B03": ["Ensure food safety compliance", "Develop efficient production", "Create strong brand", "Build distribution network"],
+    "BUS_C01": ["Organize regular meetings", "Collect payments in advance", "Share transport costs", "Rotate responsibilities"],
+    "BUS_C02": ["Recruit committed members", "Establish clear rules", "Rotate responsibilities", "Maintain transparency"]
+  },
+  "potential_challenges": {
+    "BUS_F01": ["Weather uncertainty", "Pest/disease outbreaks", "Input cost volatility", "Market price fluctuations"],
+    "BUS_F02": ["Lower yields initially", "Certification costs", "Market access challenges", "Pest management without chemicals"],
+    "BUS_F03": ["Product shelf life", "Packaging costs", "Brand building challenges", "Scaling production"],
+    "BUS_F04": ["Contract dependency", "Price fixing concerns", "Quality pressure", "Limited flexibility"],
+    "BUS_S01": ["Storage losses", "Price volatility", "Farmer loyalty issues", "Transportation costs"],
+    "BUS_S02": ["Transport costs", "Quality variation", "Payment collection", "Seasonal supply fluctuations"],
+    "BUS_S03": ["Commission pressure", "Trust issues", "Market fluctuations", "Competition"],
+    "BUS_B01": ["Price fluctuations", "Perishable inventory", "Competition", "Supplier reliability"],
+    "BUS_B02": ["Export regulations", "Quality consistency", "International competition", "Currency fluctuations"],
+    "BUS_B03": ["High startup costs", "Equipment maintenance", "Food safety compliance", "Supply chain management"],
+    "BUS_C01": ["Member commitment", "Coordination difficulty", "Trust issues", "Fair distribution"],
+    "BUS_C02": ["Group dynamics", "Decision making", "Fair distribution", "Maintaining engagement"]
+  },
+  "purpose_mapping": {
+    "farmer": {
+      "cultivate_sell":       ["BUS_F01", "BUS_F04"],
+      "cultivate_own":        ["BUS_F02", "BUS_F03"],
+      "food_business":        ["BUS_F03", "BUS_B03"],
+      "value_added_export":   ["BUS_B02", "BUS_F03"]
+    },
+    "buyer": {
+      "retail_other":         ["BUS_S01", "BUS_S02"],
+      "retail_main":          ["BUS_B01", "BUS_S01"],
+      "food_business":        ["BUS_B03", "BUS_B01"],
+      "value_added_export":   ["BUS_B02", "BUS_S01"]
+    },
+    "seller": {
+      "retail_other":         ["BUS_S01", "BUS_S03"],
+      "collector":            ["BUS_S02", "BUS_S03"],
+      "retail_main":          ["BUS_S01", "BUS_B01"]
+    },
+    "consumer": {
+      "budget_planning":      ["BUS_C01", "BUS_C02"]
+    }
+  }
+}
