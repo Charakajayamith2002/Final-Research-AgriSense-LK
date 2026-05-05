@@ -26,9 +26,8 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
   String _locationName = '';
 
   // ── Core Parameters ───────────────────────────────
-  String _month         = 'January';
-  String _category      = 'All Categories';
-  String _riskTolerance = 'Low (Conservative)';
+  String _month    = 'January';
+  String _category = 'All Categories';
 
   final _prevProfitabilityCtrl = TextEditingController(text: '20');
   final _budgetCtrl            = TextEditingController(text: '10000');
@@ -50,11 +49,6 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
     'Fruits': 'Fruits',
     'Rice': 'Rice',
   };
-  static const _riskValues = {
-    'Low (Conservative)': 'low',
-    'Medium (Balanced)': 'medium',
-    'High (Aggressive)': 'high',
-  };
   static const _waterValues = {
     'High': 'high', 'Medium': 'medium', 'Low': 'low',
   };
@@ -71,7 +65,7 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
       'longitude':              _lonCtrl.text,
       'month':                  _monthValues[_month] ?? '1',
       'category':               _categoryValues[_category] ?? 'All',
-      'risk_tolerance':         _riskValues[_riskTolerance] ?? 'medium',
+      'risk_tolerance':         'medium',
       'previous_profitability': _prevProfitabilityCtrl.text,
       'budget':                 _budgetCtrl.text,
       'land_size':              _landSizeCtrl.text,
@@ -101,7 +95,6 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
     setState(() {
       _month = 'January';
       _category = 'All Categories';
-      _riskTolerance = 'Low (Conservative)';
       _waterAvailability = 'High';
       _soilType = 'Clay';
       _locationName = '';
@@ -251,9 +244,6 @@ class _CultivationTargetingScreenState extends State<CultivationTargetingScreen>
                     const SizedBox(width: 10),
                     Expanded(child: _drop(lang.t('ct_category'), _category, _categoryValues.keys.toList(),
                         (v) => setState(() => _category = v!))),
-                    const SizedBox(width: 10),
-                    Expanded(child: _drop(lang.t('ct_risk'), _riskTolerance, _riskValues.keys.toList(),
-                        (v) => setState(() => _riskTolerance = v!))),
                   ]),
                   const SizedBox(height: 14),
 

@@ -300,7 +300,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--td);min-
 
               <!-- Basic Parameters -->
               <div class="fsec-title" data-i18n="ct_sec_core"><i class="fas fa-sliders-h"></i> Core Parameters</div>
-              <div class="fields-grid c3" style="margin-bottom:14px;">
+              <div class="fields-grid c2" style="margin-bottom:14px;">
                 <div class="fg">
                   <label class="form-label" data-i18n="ct_lbl_month">Month *</label>
                   <select class="form-select" name="month" id="monthSelect" required>
@@ -318,14 +318,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--td);min-
                     <option value="Vegetables" {% if form_data and form_data.category=='Vegetables' %}selected{% endif %} data-i18n="ct_opt_veg">Vegetables</option>
                     <option value="Fruits" {% if form_data and form_data.category=='Fruits' %}selected{% endif %} data-i18n="ct_opt_fruit">Fruits</option>
                     <option value="Rice" {% if form_data and form_data.category=='Rice' %}selected{% endif %} data-i18n="ct_opt_rice">Rice</option>
-                  </select>
-                </div>
-                <div class="fg">
-                  <label class="form-label" data-i18n="ct_lbl_risk">Risk Tolerance *</label>
-                  <select class="form-select" name="risk_tolerance" required>
-                    <option value="low" {% if form_data and form_data.risk_tolerance=='low' %}selected{% endif %} data-i18n="ct_opt_risk_low">Low (Conservative)</option>
-                    <option value="medium" {% if form_data and form_data.risk_tolerance=='medium' %}selected{% endif %} data-i18n="ct_opt_risk_med">Medium (Balanced)</option>
-                    <option value="high" {% if form_data and form_data.risk_tolerance=='high' %}selected{% endif %} data-i18n="ct_opt_risk_high">High (Aggressive)</option>
                   </select>
                 </div>
               </div>

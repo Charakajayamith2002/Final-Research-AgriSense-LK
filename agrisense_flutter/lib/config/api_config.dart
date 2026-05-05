@@ -7,8 +7,8 @@ class ApiConfig {
   // ============================================================
   // For Chrome/Web testing: use localhost
   // For Android phone over WiFi: change to 'http://192.168.1.4:5001'
-  // static const String baseUrl = 'http://localhost:5001';
-  static const String baseUrl = 'http://10.203.163.84:5001';
+  static const String baseUrl = 'http://localhost:5001';
+  // static const String baseUrl = 'http://10.203.163.84:5001';
 
 
   // Auth endpoints (mobile JSON API)
