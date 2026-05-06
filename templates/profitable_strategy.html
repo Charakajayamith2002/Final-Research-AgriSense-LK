@@ -45,6 +45,8 @@
   .form-card-header h3 { font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 600; color: #fff; }
   .fetch-btn { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: var(--green-200); border-radius: 8px; padding: 6px 14px; font-size: 0.75rem; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; }
   .fetch-btn:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-1px); }
+  .fetch-btn.loading { pointer-events: none; opacity: 0.75; color: #fff; background: rgba(255,255,255,0.2); }
+  .fetch-btn.loading i { animation: spin 1s linear infinite; }
   .form-card-body { padding: 28px; }
 
   /* FORM ELEMENTS */
@@ -328,7 +330,7 @@
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="step-locked-badge" id="cultBadgeLocked"><i class="fas fa-lock"></i> <span data-i18n="ps_locked_badge">Locked</span></span>
             <span class="step-done-badge" id="cultBadgeDone"><i class="fas fa-check-circle"></i> <span data-i18n="ps_done_badge">Done</span></span>
-            <button type="button" class="fetch-btn" data-i18n="ps_fetch_cult" onclick="fetchCultivationRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 3</button>
+            <button type="button" class="fetch-btn" id="cultFetchBtn" data-i18n="ps_fetch_cult" onclick="fetchCultivationRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 3</button>
           </div>
         </div>
         <div class="form-card-body">
@@ -356,7 +358,7 @@
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="step-locked-badge" id="mktBadgeLocked"><i class="fas fa-lock"></i> <span data-i18n="ps_locked_badge">Locked</span></span>
             <span class="step-done-badge" id="mktBadgeDone"><i class="fas fa-check-circle"></i> <span data-i18n="ps_done_badge">Done</span></span>
-            <button type="button" class="fetch-btn" data-i18n="ps_fetch_market" onclick="fetchMarketRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 2</button>
+            <button type="button" class="fetch-btn" id="marketFetchBtn" data-i18n="ps_fetch_market" onclick="fetchMarketRecommendations()"><i class="fas fa-sync-alt"></i> Fetch from Component 2</button>
           </div>
         </div>
         <div class="form-card-body">
@@ -381,7 +383,7 @@
           <p data-i18n="ps_submit_desc">Our AI will analyze all your inputs and recommend the most profitable agricultural business for your profile.</p>
         </div>
         <div class="submit-area-actions">
-          <button type="submit" class="btn-predict"><i class="fas fa-magic"></i><span data-i18n="ps_btn_predict">Predict My Strategy</span></button>
+          <button type="submit" id="predictBtn" class="btn-predict"><i class="fas fa-magic"></i><span data-i18n="ps_btn_predict">Predict My Strategy</span></button>
           <button type="button" class="btn-reset" id="resetBtn" data-i18n="ps_btn_reset"><i class="fas fa-undo"></i> Reset</button>
         </div>
       </div>
@@ -619,6 +621,22 @@ function continueToFetchSections() {
   showToast('Unlocked! You can now fetch Cultivation & Market data.', 'success');
 }
 
+function setFetchButtonState(btn, loading, label) {
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="fas fa-spinner"></i> ' + (label || 'Loading...');
+  } else {
+    btn.classList.remove('loading');
+    if (btn.id === 'cultFetchBtn') {
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> Fetch from Component 3';
+    } else if (btn.id === 'marketFetchBtn') {
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> Fetch from Component 2';
+    }
+  }
+}
+
 /* ─────────────────────────────────────────────
    INIT
 ───────────────────────────────────────────── */
@@ -644,6 +662,8 @@ document.addEventListener('DOMContentLoaded', function() {
    FETCH CULTIVATION
 ───────────────────────────────────────────── */
 async function fetchCultivationRecommendations() {
+  var btn = document.getElementById('cultFetchBtn');
+  setFetchButtonState(btn, true, 'Fetching...');
   try {
     var month = document.getElementById('optimal_month').value;
     var r = await fetch('/api/cultivation-predict', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({month:parseInt(month),category:'All',risk_tolerance:'medium'})});
@@ -662,12 +682,15 @@ async function fetchCultivationRecommendations() {
       showToast('Cultivation recommendations fetched!', 'success');
     } else { showToast('No cultivation recommendations found', 'warning'); }
   } catch(e) { showToast('Error fetching cultivation recommendations', 'danger'); }
+  finally { setFetchButtonState(document.getElementById('cultFetchBtn'), false); }
 }
 
 /* ─────────────────────────────────────────────
    FETCH MARKET
 ───────────────────────────────────────────── */
 async function fetchMarketRecommendations() {
+  var btn = document.getElementById('marketFetchBtn');
+  setFetchButtonState(btn, true, 'Fetching...');
   try {
     var item       = document.getElementById('market_item').value || document.getElementById('cultivation_item').value || 'Tomato';
     var role       = document.getElementById('role').value;
@@ -693,6 +716,7 @@ async function fetchMarketRecommendations() {
       showToast('Market recommendations fetched!', 'success');
     } else { showToast('No market recommendations found', 'warning'); }
   } catch(e) { showToast('Error fetching market recommendations', 'danger'); }
+  finally { setFetchButtonState(document.getElementById('marketFetchBtn'), false); }
 }
 
 /* ─────────────────────────────────────────────
@@ -723,7 +747,14 @@ document.getElementById('predictionForm').addEventListener('submit', async funct
     displayResults(result.success ? result : _fallback(fd));
     if (!result.success) showToast('Using fallback prediction model','warning');
   } catch(e) { displayResults(_fallback(fd)); showToast('Using fallback prediction due to network error','warning'); }
-  finally { document.getElementById('loadingSpinner').style.display = 'none'; }
+  finally {
+    document.getElementById('loadingSpinner').style.display = 'none';
+    var submitBtn = document.getElementById('predictBtn');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-magic"></i><span data-i18n="ps_btn_predict">Predict My Strategy</span>';
+    }
+  }
 });
 
 function _fallback(f) {
